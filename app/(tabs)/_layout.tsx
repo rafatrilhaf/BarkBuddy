@@ -1,24 +1,20 @@
-import { Link, Tabs } from "expo-router";
-import { Pressable, Text } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
+import theme from '../constantes/theme';
 
 export default function TabsLayout() {
   return (
-    <Tabs screenOptions={{ headerTitleAlign: "center" }}>
-      <Tabs.Screen name="map"   options={{ title: "Localização" }} />
-      <Tabs.Screen name="blog"  options={{ title: "Blog" }} />
-      <Tabs.Screen name="lost"  options={{ title: "Perdidos" }} />
-      <Tabs.Screen name="pet"   options={{ title: "Meu Pet" }} />
-      <Tabs.Screen
-        name="tutor"
-        options={{
-          title: "Tutor",
-          headerRight: () => (
-            <Link href="/about" asChild>
-              <Pressable style={{ paddingRight: 12 }}><Text>Sobre</Text></Pressable>
-            </Link>
-          ),
-        }}
-      />
+    <Tabs screenOptions={{
+      headerShown:false,
+      tabBarStyle:{ backgroundColor: theme.green, height:64 },
+      tabBarActiveTintColor:'#fff',
+      tabBarInactiveTintColor:'#c9e3d7',
+    }}>
+      <Tabs.Screen name="index" options={{ title:'Localização', tabBarIcon:({color,size})=><Ionicons name="home" color={color} size={size}/> }} />
+      <Tabs.Screen name="blog"  options={{ title:'Blog',        tabBarIcon:({color,size})=><Ionicons name="paw"  color={color} size={size}/> }} />
+      <Tabs.Screen name="lost"  options={{ title:'Perdidos',    tabBarIcon:({color,size})=><Ionicons name="search" color={color} size={size}/> }} />
+      <Tabs.Screen name="pet"   options={{ title:'Pet',         tabBarIcon:({color,size})=><Ionicons name="medkit" color={color} size={size}/> }} />
+      <Tabs.Screen name="tutor" options={{ title:'Tutor',       tabBarIcon:({color,size})=><Ionicons name="person" color={color} size={size}/> }} />
     </Tabs>
   );
 }

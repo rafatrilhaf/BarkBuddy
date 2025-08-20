@@ -1,14 +1,13 @@
-import { Stack } from "expo-router";
-
+import { Stack } from 'expo-router';
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="auth/login" options={{ title: "Entrar" }} />
-      <Stack.Screen name="auth/register" options={{ title: "Criar conta" }} />
-      <Stack.Screen name="auth/forgot-password" options={{ title: "Recuperar senha" }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="about" options={{ title: "Sobre" }} />
+    <Stack screenOptions={{ headerShown:false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="auth/login" />
+      <Stack.Screen name="auth/register" />
+      <Stack.Screen name="auth/forgot-password" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="about" options={{ presentation:'transparentModal', animation:'fade' }} />
     </Stack>
   );
 }
