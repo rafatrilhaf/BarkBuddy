@@ -1,12 +1,30 @@
-import { router } from "expo-router";
-import { Button, Linking, View } from "react-native";
-import { SITE_URL } from "../constants/urls";
+import { Link, router } from 'expo-router';
+import { Image, Pressable, Text, View } from 'react-native';
 
-export default function Index() {
+export default function Splash() {
   return (
-    <View style={{ flex:1, justifyContent:"center", gap:16, padding:24 }}>
-      <Button title="Sou dono de pet" onPress={() => router.push("/auth/login")} />
-      <Button title="Conhecer o BarkBuddy" onPress={() => Linking.openURL(SITE_URL)} />
+    <View style={{ flex: 1, backgroundColor: '#085f37', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      {/* LOGO (já existe no seu projeto como assets/images/Logo.png) */}
+      <Image
+        source={require('../assets/images/Logo.png')}
+        style={{ width: 160, height: 160, marginBottom: 16 }}
+        resizeMode="contain"
+      />
+
+      {/* WORDMARK: só funciona se o arquivo existir. Se ainda não tiver, deixe o <Text> por enquanto */}
+      <Image source={require('../assets/images/Wordmark.png')} style={{ width: 260, height: 56, marginBottom: 24 }} resizeMode="contain" />
+      {/*<Text style={{ color:'#fff', fontSize:40, fontWeight:'900', marginBottom:24 }}>BarkBuddy</Text>*/}
+
+      <Pressable onPress={() => router.replace('./auth/login')}
+        style={{ backgroundColor: '#ececec', borderRadius: 16, padding: 14, width: '100%', marginBottom: 12 }}>
+        <Text style={{ textAlign: 'center', fontWeight: '900', color: '#0e3b28', fontSize: 22 }}>Sou dono de pet</Text>
+      </Pressable>
+
+      <Link href="https://barktestsofi.netlify.app" asChild>
+        <Pressable style={{ borderWidth: 2, borderColor: '#ececec', borderRadius: 16, padding: 14, width: '100%' }}>
+          <Text style={{ textAlign: 'center', fontWeight: '900', color: '#fff', fontSize: 22 }}>Conhecer o BarkBuddy</Text>
+        </Pressable>
+      </Link>
     </View>
   );
 }
