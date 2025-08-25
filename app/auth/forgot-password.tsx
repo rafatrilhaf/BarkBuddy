@@ -1,4 +1,7 @@
+import { auth } from '@/services/firebase'; // se não usar alias @, troque para ../../services/firebase
 import { Link, router } from 'expo-router';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import React, { useState } from 'react';
 import {
   Alert,
   Image,
@@ -12,6 +15,30 @@ import {
 } from 'react-native';
 
 export default function ForgotPassword() {
+  const [email, setEmail] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const handleReset = async () => {
+    if (!email.trim()) {
+      Alert.alert('Ops', 'Informe seu e-mail.');
+      return;
+    }
+    try {
+      setBusy(true);
+      await sendPasswordResetEmail(auth, email.trim());
+      Alert.alert('Pronto!', 'Se o e-mail existir, enviaremos o link de recuperação.');
+      router.back(); // volta para o login
+    } catch (e: any) {
+      const msg =
+        e?.code === 'auth/user-not-found' ? 'E-mail não encontrado.' :
+        e?.code === 'auth/invalid-email' ? 'E-mail inválido.' :
+        'Não foi possível enviar o e-mail agora.';
+      Alert.alert('Erro', msg);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#085f37' }}
@@ -22,7 +49,6 @@ export default function ForgotPassword() {
           {/* LOGO topo */}
           <View style={{ alignItems: 'center', marginTop: 48, marginBottom: 16 }}>
             <Image
-              // de app/auth/forgot-password.tsx → ../../assets/...
               source={require('../../assets/images/Logo.png')}
               style={{ width: 120, height: 120 }}
               resizeMode="contain"
@@ -49,20 +75,18 @@ export default function ForgotPassword() {
           {/* Campo e-mail */}
           <Text style={{ color: '#fff', marginBottom: 6 }}>E-mail</Text>
           <TextInput
-            style={{ backgroundColor: '#ececec', borderRadius: 14, padding: 12 }}
+            style={s.in}
             placeholder="seuemail@exemplo.com"
             placeholderTextColor="#666"
             keyboardType="email-address"
             autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
           />
 
           {/* Botão enviar */}
           <Pressable
-            onPress={() => {
-              // quando conectar o Firebase: sendPasswordResetEmail(...)
-              Alert.alert('Pronto!', 'Se o e-mail existir, enviaremos o link de recuperação.');
-              router.back(); // volta para o login
-            }}
+            onPress={busy ? undefined : handleReset}
             style={({ pressed }) => ({
               marginTop: 16,
               backgroundColor: pressed ? '#c6d8cd' : '#d3e3d9',
@@ -70,17 +94,7 @@ export default function ForgotPassword() {
               paddingVertical: 16,
             })}
           >
-            <Text
-              style={{
-                textAlign: 'center',
-                fontWeight: '800',
-                color: '#0e3b28',
-                fontSize: 20,
-                lineHeight: 24,
-              }}
-            >
-              Enviar link
-            </Text>
+            <Text style={s.btnt}>{busy ? '...' : 'Enviar link'}</Text>
           </Pressable>
 
           {/* Voltar para login */}
@@ -109,3 +123,8 @@ export default function ForgotPassword() {
     </KeyboardAvoidingView>
   );
 }
+
+const s = {
+  in: { backgroundColor: '#ececec', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12 },
+  btnt: { textAlign: 'center', fontWeight: '800', color: '#0e3b28', fontSize: 22, lineHeight: 26 },
+} as const;

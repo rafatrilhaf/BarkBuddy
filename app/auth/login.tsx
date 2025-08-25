@@ -1,8 +1,60 @@
-// app/auth/login.tsx
 import { Link, router } from 'expo-router';
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+
+// se já existir esses helpers no seu projeto, use-os:
+import { auth } from '@/services/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
 
 export default function Login() {
+  const [userOrEmail, setUserOrEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const resolveEmailIfUsername = async (value: string) => {
+    if (value.includes('@')) return value.trim();
+    // opcional: login por "usuário" -> busca o email na coleção users
+    try {
+      const db = getFirestore();
+      const q = query(collection(db, 'users'), where('username', '==', value.trim()));
+      const snap = await getDocs(q);
+      if (snap.empty) return null;
+      const data = snap.docs[0].data() as any;
+      return (data?.email || '').trim() || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!userOrEmail || !password) {
+      Alert.alert('Ops', 'Informe login e senha.');
+      return;
+    }
+    try {
+      setBusy(true);
+      let email = await resolveEmailIfUsername(userOrEmail);
+      if (!email) {
+        Alert.alert('Conta não encontrada', 'Verifique seu e-mail/usuário.');
+        return;
+      }
+      await signInWithEmailAndPassword(auth, email, password);
+
+      // ✅ navega para as tabs
+      router.replace('/(tabs)/pet');
+      // se preferir, pode usar: router.replace('/(tabs)/index');
+    } catch (e: any) {
+      const msg =
+        e?.code === 'auth/invalid-credential' ? 'Credenciais inválidas.' :
+        e?.code === 'auth/too-many-requests' ? 'Muitas tentativas. Tente mais tarde.' :
+        'Não foi possível entrar. Tente novamente.';
+      Alert.alert('Erro no login', msg);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#085f37' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
@@ -12,28 +64,43 @@ export default function Login() {
           </View>
 
           <Text style={{ color: '#fff', fontWeight: '800', marginBottom: 6 }}>Login:</Text>
-          <TextInput style={s.in} placeholder="email ou usuário" placeholderTextColor="#666" autoCapitalize="none" />
+          <TextInput
+            style={s.in}
+            placeholder="email ou usuário"
+            placeholderTextColor="#666"
+            autoCapitalize="none"
+            value={userOrEmail}
+            onChangeText={setUserOrEmail}
+          />
+
           <Text style={{ color: '#fff', fontWeight: '800', marginTop: 12, marginBottom: 6 }}>Senha:</Text>
-          <TextInput style={s.in} placeholder="••••••••" placeholderTextColor="#666" secureTextEntry />
+          <TextInput
+            style={s.in}
+            placeholder="••••••••"
+            placeholderTextColor="#666"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
 
           {/* ABRE ESQUECEU SENHA */}
           <Pressable onPress={() => router.push('/auth/forgot-password')}>
             <Text style={{ color: '#dfeee6' , alignSelf:'flex-end' , marginTop:6 }}>*Esqueceu a senha?</Text>
           </Pressable>
 
-
-          {/* LOGIN → TABS */}
-          <Pressable onPress={() => router.replace('./(tabs)')} style={({ pressed }) => ({
-            marginTop: 16,
-            backgroundColor: pressed ? '#c6d8cd' : '#d3e3d9',
-            borderRadius: 16,
-            paddingVertical: 16,
-          })}
+          {/* LOGIN → TABS (sem mudar visual) */}
+          <Pressable
+            onPress={busy ? undefined : handleLogin}
+            style={({ pressed }) => ({
+              marginTop: 16,
+              backgroundColor: pressed ? '#c6d8cd' : '#d3e3d9',
+              borderRadius: 16,
+              paddingVertical: 16,
+            })}
           >
-            <Text style={s.btnt}>Login</Text>
+            <Text style={s.btnt}>{busy ? '...' : 'Login'}</Text>
           </Pressable>
 
-          {/* ABRE CADASTRO */}
           {/* ABRE CADASTRO */}
           <Link href="/auth/register" asChild>
             <Pressable>
@@ -42,7 +109,6 @@ export default function Login() {
               </Text>
             </Pressable>
           </Link>
-
         </View>
 
         <View
@@ -54,9 +120,7 @@ export default function Login() {
             alignItems: 'center',
           }}
         >
-
           <Image source={require('../../assets/images/Wordmark.png')} style={{ width: 180, height: 28 }} />
-
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
