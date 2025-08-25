@@ -1,9 +1,10 @@
 // app/(tabs)/pet.tsx
 import { auth } from "@/services/firebase";
-import { addPet, deletePetById, Pet, subscribeMyPets, updatePet } from "@/services/pets";
+import * as ImagePicker from "expo-image-picker"; // 👈 novo
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Button, FlatList, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Button, FlatList, Image, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, TouchableOpacity, View } from "react-native"; // 👈 Image, Pressable
+import { addPet, deletePetById, Pet, subscribeMyPets, updatePet, uploadPetImageLocal } from "services/pets"; // 👈 import novo
 
 type Row = Pet & { id?: string };
 
@@ -19,6 +20,7 @@ export default function PetTab() {
   const [species, setSpecies] = useState("");
   const [breed, setBreed] = useState("");
   const [age, setAge] = useState<string>(""); // input string
+  const [photoUri, setPhotoUri] = useState<string | null>(null); // 👈 novo preview local
 
   // subscribe to my pets
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function PetTab() {
     setSpecies("");
     setBreed("");
     setAge("");
+    setPhotoUri(null); // 👈 novo
   };
 
   const startEdit = (row: Row) => {
@@ -43,6 +46,23 @@ export default function PetTab() {
     setSpecies(row.species ?? "");
     setBreed(row.breed ?? "");
     setAge(row.age ? String(row.age) : "");
+    setPhotoUri(null); // 👈 só envia nova foto se escolher outra
+  };
+
+  // 👇 escolher imagem da galeria
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permissão necessária", "Autorize o acesso às fotos.");
+      return;
+    }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+      aspect: [1, 1],
+    });
+    if (!res.canceled) setPhotoUri(res.assets[0].uri);
   };
 
   const submit = async () => {
@@ -54,12 +74,25 @@ export default function PetTab() {
       Alert.alert("Nome obrigatório", "Informe o nome do pet.");
       return;
     }
+
+    // 👇 faz upload local (se escolheu foto) e pega a URL
+    let photoUrl: string | undefined;
+    if (photoUri) {
+      try {
+        photoUrl = await uploadPetImageLocal(photoUri);
+      } catch (e: any) {
+        Alert.alert("Erro ao enviar foto", e?.message ?? "Tente novamente.");
+        return;
+      }
+    }
+
     const payload: Pet = {
       name: name.trim(),
       userId: uid,
       species: species.trim() || undefined,
       breed: breed.trim() || undefined,
       age: age ? Number(age) : undefined,
+      photoUrl: photoUrl || undefined, // 👈 só inclui se existir
     };
 
     try {
@@ -96,6 +129,15 @@ export default function PetTab() {
         {/* Formulário simples */}
         <View style={{ gap: 8, borderWidth: 1, borderRadius: 12, padding: 12 }}>
           <Text style={{ fontWeight: "600" }}>{isEditing ? "Editar pet" : "Adicionar pet"}</Text>
+
+          {/* preview + botão escolher foto (sem mudar seu estilo geral) */}
+          {photoUri ? (
+            <Image source={{ uri: photoUri }} style={{ width: 100, height: 100, borderRadius: 12, backgroundColor: "#eee" }} />
+          ) : null}
+          <Pressable onPress={pickImage} style={{ alignSelf: "flex-start", paddingVertical: 6, paddingHorizontal: 10, borderWidth: 1, borderRadius: 8 }}>
+            <Text>Escolher foto</Text>
+          </Pressable>
+
           <TextInput placeholder="Nome *" value={name} onChangeText={setName} style={input} />
           <TextInput placeholder="Espécie (cão, gato...)" value={species} onChangeText={setSpecies} style={input} />
           <TextInput placeholder="Raça" value={breed} onChangeText={setBreed} style={input} />
@@ -113,6 +155,11 @@ export default function PetTab() {
           ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
           renderItem={({ item }) => (
             <View style={{ padding: 12, borderWidth: 1, borderRadius: 12 }}>
+              {/* miniatura se tiver */}
+              {item.photoUrl ? (
+                <Image source={{ uri: item.photoUrl }} style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: "#eee", marginBottom: 8 }} />
+              ) : null}
+
               <Text style={{ fontSize: 16, fontWeight: "600" }}>{item.name}</Text>
               <Text>Espécie: {item.species ?? "-"}</Text>
               <Text>Raça: {item.breed ?? "-"}</Text>
