@@ -1,6 +1,6 @@
 import { FlatList, View } from 'react-native';
-import LostPetCard from '../components/LostPetCard';
-import { pets } from '../constantes/mock';
+import LostPetCard from '../../components/LostPetCard';
+import { pets } from '../../constants/mock';
 
 export default function Lost() {
   // mock: mistura de DESAPARECIDO e SEGURO

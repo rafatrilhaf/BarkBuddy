@@ -1,7 +1,7 @@
 import { FlatList, TextInput, View } from 'react-native';
-import PostCard from '../components/PostCard';
-import { posts } from '../constantes/mock';
-import theme from '../constantes/theme';
+import PostCard from '../../components/PostCard';
+import { posts } from '../../constants/mock';
+import theme from '../../constants/theme';
 
 export default function Blog() {
   return (

@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import { Image, Pressable, Text, View } from 'react-native';
-import { owner } from '../constantes/mock';
-import theme from '../constantes/theme';
+import { owner } from '../../constants/mock';
+import theme from '../../constants/theme';
 
 export default function Tutor() {
   return (
     <View style={{ flex:1, backgroundColor:'#fff', padding:20 }}>
-      <Pressable onPress={()=>router.push('/about')} style={{ position:'absolute', top:12, right:12, padding:8, backgroundColor: theme.green, borderRadius:999 }}>
+      <Pressable onPress={()=>router.push('../web/about')} style={{ position:'absolute', top:12, right:12, padding:8, backgroundColor: theme.green, borderRadius:999 }}>
         <Text style={{ color:'#fff' }}>💬</Text>
       </Pressable>
 

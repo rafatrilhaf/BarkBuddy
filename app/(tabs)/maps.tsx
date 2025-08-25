@@ -1,6 +1,7 @@
-import { Linking, Pressable, Text, View } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import theme from '../constantes/theme';
+import { Linking, Pressable, Text, View } from "react-native";
+import MapView, { Marker } from "../../components/Map";
+import theme from "../../constants/theme";
+
 
 export default function Localizacao() {
   const region = { latitude: -23.006, longitude: -46.841, latitudeDelta: 0.01, longitudeDelta: 0.01 };
