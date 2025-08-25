@@ -1,13 +1,22 @@
-import { Stack } from 'expo-router';
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+
 export default function RootLayout() {
   return (
-    <Stack screenOptions={{ headerShown:false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="auth/login" />
-      <Stack.Screen name="auth/register" />
-      <Stack.Screen name="auth/forgot-password" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="about" options={{ presentation:'transparentModal', animation:'fade' }} />
-    </Stack>
+    <>
+      <StatusBar style="light" />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: "#085f37" },
+          headerTintColor: "#fff",
+          headerTitleStyle: { fontWeight: "700" },
+        }}
+      >
+        {/* As telas abaixo são resolvidas automaticamente por nome de arquivo */}
+        <Stack.Screen name="index" options={{ title: "BarkBuddy" }} />
+        <Stack.Screen name="about" options={{ title: "Sobre" }} />
+        <Stack.Screen name="pet/[petId]" options={{ title: "Pet" }} />
+      </Stack>
+    </>
   );
 }
