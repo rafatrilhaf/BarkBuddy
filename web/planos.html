@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planos — BarkBuddy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <nav class="container nav">
+      <button id="navToggle" class="nav-toggle" aria-expanded="false" aria-controls="navMenu">Menu</button>
+      <ul id="navMenu" class="menu" hidden><!-- preenchido via script.js --></ul>
+      <img src="assets/images/logo_white.png" class="mini-logo" alt="BarkBuddy logo branca" />
+    </nav>
+  </header>
+
+  <section class="plans-hero">
+    <div class="container">
+      <h1>Conheça nossos planos</h1>
+      <p>Assine e tenha recursos avançados para cuidar do seu pet.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container plans-grid">
+      <article class="plan-card">
+        <h3>Básico</h3>
+        <p class="price"><strong>R$ 19,90</strong>/mês</p>
+        <ul>
+          <li>Localização periódica</li>
+          <li>Histórico de 24h</li>
+          <li>Suporte por e-mail</li>
+        </ul>
+        <a class="btn btn-primary" href="adquira.html">Assinar</a>
+      </article>
+
+      <article class="plan-card highlight">
+        <div class="badge">Mais popular</div>
+        <h3>Essencial</h3>
+        <p class="price"><strong>R$ 29,90</strong>/mês</p>
+        <ul>
+          <li>Localização em tempo real</li>
+          <li>Histórico de 7 dias</li>
+          <li>Alertas de área segura</li>
+          <li>Suporte prioritário</li>
+        </ul>
+        <a class="btn btn-primary" href="adquira.html">Assinar</a>
+      </article>
+
+      <article class="plan-card">
+        <h3>Premium</h3>
+        <p class="price"><strong>R$ 49,90</strong>/mês</p>
+        <ul>
+          <li>Tempo real + rotas</li>
+          <li>Histórico de 30 dias</li>
+          <li>Compartilhamento com família</li>
+          <li>Seguro antiperca</li>
+          <li>Suporte 24/7</li>
+        </ul>
+        <a class="btn btn-primary" href="adquira.html">Assinar</a>
+      </article>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <h3>Tem dúvidas?</h3>
+      <p>Fale com a nossa equipe: <a href="mailto:barkbuddy@tec.com">barkbuddy@tec.com</a></p>
+    </div>
+  </footer>
+
+  <script src="script.js" type="module"></script>
+</body>
+</html>

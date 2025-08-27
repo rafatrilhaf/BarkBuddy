@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BarkBuddy — IA Edition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Top Bar -->
+  <header class="topbar">
+    <nav class="container nav">
+      <button id="navToggle" class="nav-toggle" aria-expanded="false" aria-controls="navMenu"><img src="assets/images/icon_menu.png" alt="Abrir menu" style="height:20px;width:auto;display:block"/></button>
+      <ul id="navMenu" class="menu" hidden><!-- preenchido via script.js --></ul>
+      <img src="assets/images/logo_white.png" class="mini-logo" alt="BarkBuddy logo branca" />
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" id="sobre">
+    <div class="container hero-grid">
+      <div class="hero-media">
+        <img src="assets/ai/hero_dog.jpg" alt="Pet usando coleira tecnológica BarkBuddy"/>
+      </div>
+      <div class="hero-brand">
+        <img src="assets/images/logo_green.png" class="hero-logo" alt="BarkBuddy logo verde"/>
+        <h1 class="hero-title-main">BarkBuddy</h1>
+        <p class="hero-subtitle">por que amar também é cuidar de onde ele está!</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="planos.html">Conheça os planos</a>
+          <a class="btn btn-outline" href="adquira.html">Adquira já</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pitch -->
+  <section class="pitch">
+    <div class="container">
+      <p class="pitch-text">
+        Acompanhe cada passo do seu pet em tempo real, com<br/>
+        segurança e tranquilidade na palma da sua mão.
+      </p>
+      <div class="cards3">
+        <div class="card img-card"><img src="assets/ai/dog_card1_chihuahua.jpg" alt="Cachorro com coleira"/></div>
+        <div class="card phone-card"><img src="assets/ai/phone_map.jpg" alt="Mapa no celular"/></div>
+        <div class="card img-card"><img src="assets/ai/dog_pink.jpg" alt="Cão com coleira"/></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Galeria -->
+  <section class="gallery">
+    <div class="container">
+      <p class="gallery-text">
+        A coleira que conecta você ao seu pet, onde quer que ele esteja.<br/>
+        Segurança, conforto e tecnologia em uma única coleira: rastreie, cuide e fique sempre por perto.
+      </p>
+      <div class="pets4">
+        <div class="pet"><img src="assets/ai/cat2_white.jpg" alt="Gato branco com coleira"/></div>
+        <div class="pet"><img src="assets/ai/dog2_bluebg.jpg" alt="Cachorro com coleira"/></div>
+        <div class="pet"><img src="assets/ai/cat3_gray.jpg" alt="Gato cinza com coleira"/></div>
+        <div class="pet"><img src="assets/ai/dog4_purple.jpg" alt="Cachorro com coleira"/></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Equipe (6 espaços para fotos) -->
+  <section class="team" id="equipe">
+    <div class="container">
+      <h2 class="team-title">Nossa equipe</h2>
+      <p class="team-text">
+        Seis lugares reservados para você inserir as fotos reais (ou IA) da equipe.
+      </p>
+      <div class="roles people six">
+        <!-- 6 slots fixos -->
+        <div class="role person">
+          <img src="assets/ai/team_placeholder1.jpg" alt="Integrante da equipe 1" />
+          <span class="role-title">Membro 1</span>
+          <p class="role-desc">Função</p>
+        </div>
+        <div class="role person">
+          <img src="assets/ai/team_placeholder2.jpg" alt="Integrante da equipe 2" />
+          <span class="role-title">Membro 2</span>
+          <p class="role-desc">Função</p>
+        </div>
+        <div class="role person">
+          <img src="assets/ai/team_placeholder3.jpg" alt="Integrante da equipe 3" />
+          <span class="role-title">Membro 3</span>
+          <p class="role-desc">Função</p>
+        </div>
+        <div class="role person">
+          <img src="assets/ai/team_placeholder4.jpg" alt="Integrante da equipe 4" />
+          <span class="role-title">Membro 4</span>
+          <p class="role-desc">Função</p>
+        </div>
+        <div class="role person">
+          <img src="assets/ai/team_placeholder5.jpg" alt="Integrante da equipe 5" />
+          <span class="role-title">Membro 5</span>
+          <p class="role-desc">Função</p>
+        </div>
+        <div class="role person">
+          <img src="assets/ai/team_placeholder6.jpg" alt="Integrante da equipe 6" />
+          <span class="role-title">Membro 6</span>
+          <p class="role-desc">Função</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <h2>Dúvidas frequentes</h2>
+      <div class="faq-list">
+        <button class="faq-item">1. Como funciona a coleira rastreadora?<span class="chev">⌄</span></button>
+        <div class="faq-panel"><p>A coleira possui identificação por NFC/QR Code e um dispositivo que envia a posição para o app. Quando alguém aproxima o celular ou escaneia o QR, abre-se o perfil do pet com seus contatos. Com os planos de rastreamento, a localização é atualizada no mapa do aplicativo.</p></div>
+
+        <button class="faq-item">2. A coleira é confortável para o meu pet?<span class="chev">⌄</span></button>
+        <div class="faq-panel"><p>Sim. Usamos materiais leves e hipoalergênicos, fivela ajustável e tamanhos P/M/G para se adaptar ao porte do animal. O acabamento evita atrito em pelos e pele.</p></div>
+
+        <button class="faq-item">3. O app funciona em qualquer celular?<span class="chev">⌄</span></button>
+        <div class="faq-panel"><p>Sim. O app funciona em Android 8+ e iOS 13+. A leitura do QR Code funciona em qualquer celular com câmera; o NFC depende de aparelhos compatíveis.</p></div>
+
+        <button class="faq-item">4. Posso rastrear mais de um pet ao mesmo tempo?<span class="chev">⌄</span></button>
+        <div class="faq-panel"><p>Sim. Você pode cadastrar vários pets, alternar entre eles no app e compartilhar o acesso com familiares ou cuidadores.</p></div>
+
+        <button class="faq-item">5. A coleira é resistente à água?<span class="chev">⌄</span></button>
+        <div class="faq-panel"><p>Resistente a respingos e chuva (uso diário). Para maior vida útil, evite imersão prolongada/banho e limpe com pano úmido após atividades ao ar livre.</p></div>
+
+        <button class="faq-item">6. Preciso de internet para rastrear meu pet?<span class="chev">⌄</span></button>
+        <div class="faq-panel"><p>Para visualizar o mapa, enviar alertas e atualizar posições, sim. A leitura da tag NFC/QR pode ser feita sem internet; os dados sincronizam quando o aparelho voltar a ter conexão.</p></div>
+
+        <button class="faq-item">7. Preciso pagar mensalidade para usar o app?<span class="chev">⌄</span></button>
+        <div class="faq-panel"><p>Não obrigatoriamente. Há um plano gratuito com perfil do pet e QR/NFC. Planos pagos (Plus/Pro) oferecem histórico de locais, notificações avançadas e suporte prioritário.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" id="contato">
+    <div class="container">
+      <h3>Entre em contato e baixe o app!</h3>
+      <div class="contacts">
+        <div class="contact-list">
+          <div>@barkbuddy</div>
+          <div>Bark Buddy</div>
+          <div>barkbuddy@tec.com</div>
+          <div>SENAI Itatiba - R. Alfredo Massareti, 191 – Lot. Rei de Ouro, Itatiba - SP, 13251–360</div>
+        </div>
+        <div class="stores">
+          <a class="store-btn" href="#" aria-label="Google Play badge">GET IT ON Google Play</a>
+          <a class="store-btn" href="#" aria-label="App Store badge">Disponível na App Store</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js" type="module"></script>
+</body>
+</html>
