@@ -42,7 +42,7 @@ export default function Login() {
       await signInWithEmailAndPassword(auth, email, password);
 
       // ✅ navega para as tabs
-      router.replace('/(tabs)/pet');
+      router.replace('/(tabs)/blog');
       // se preferir, pode usar: router.replace('/(tabs)/index');
     } catch (e: any) {
       const msg =

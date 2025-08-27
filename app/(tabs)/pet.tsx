@@ -185,7 +185,10 @@ export default function PetTab() {
       </View>
     </KeyboardAvoidingView>
   );
+
+
 }
 
 const input = { borderWidth: 1, borderRadius: 8, padding: 10 } as const;
 const link = { color: "#2563eb", fontWeight: "600" } as const;
+
