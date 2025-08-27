@@ -11,30 +11,27 @@ import {
   updateDoc,
   where
 } from "firebase/firestore";
-import { Platform } from "react-native"; // 👈 novo
 import { db } from "./firebase";
 
-// 👇 base do servidor local
-const BASE_URL =
-  Platform.OS === "android" ? "http://10.0.2.2:8080" : // emulador Android
-  "http://localhost:8080";                               // web/iOS simulador/desktop
+// 👇 testing on Android emulator
+const BASE_URL = "http://10.0.2.2:8080";
 
 export type Pet = {
   name: string;
   userId: string;
-  species?: string;   // cão, gato...
+  species?: string;
   breed?: string;
   age?: number;
   notes?: string;
   lost?: boolean;
-  photoUrl?: string;  // 👈 novo
+  photoUrl?: string;
   createdAt?: any;
   updatedAt?: any;
 };
 
 const col = collection(db, "pets");
 
-// 🔧 helper: tira chaves undefined (Firestore não aceita undefined)
+// remove undefined (Firestore doesn't like undefined)
 function stripUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
   const out: Record<string, any> = {};
   for (const k of Object.keys(obj)) {
@@ -44,13 +41,15 @@ function stripUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
   return out as Partial<T>;
 }
 
-// 👉 Upload local usando Blob (funciona no Android/iOS/Web)
+/**
+ * Upload de imagem usando FormData padrão do RN:
+ * - NÃO faz fetch(localUri).blob() (instável no Expo Android)
+ * - Usa form.append('file', { uri, name, type })
+ * Retorna a URL completa para usar no <Image />
+ */
 export const uploadPetImageLocal = async (localUri: string) => {
-  // 1) lê o arquivo e cria um Blob
-  const fileResp = await fetch(localUri);
-  let blob = await fileResp.blob();
-
-  // 2) Garante um content-type de imagem (alguns retornam application/octet-stream)
+  console.log("uploadPetImageLocal -> localUri:", localUri);
+  // Detecta mime e filename
   const guessExt = (uri: string) => {
     const ext = uri.split("?")[0].split("#")[0].split(".").pop()?.toLowerCase();
     if (ext === "png") return { mime: "image/png", filename: "photo.png" };
@@ -59,31 +58,40 @@ export const uploadPetImageLocal = async (localUri: string) => {
     return { mime: "image/jpeg", filename: "photo.jpg" };
   };
   const { mime, filename } = guessExt(localUri);
-  if (!blob.type || blob.type === "application/octet-stream") {
-    // redefine o tipo do blob (mantém os bytes, muda o MIME)
-    blob = blob.slice(0, blob.size, mime);
-  }
 
-  // 3) monta o FormData com Blob + filename
+  // Monta FormData do jeito que o React Native espera
   const form = new FormData();
-  // Algumas definições de tipo do RN pedem "as any" aqui
-  form.append("file", blob as any, filename);
+  form.append("file", {
+    uri: localUri,
+    name: filename,
+    type: mime
+  } as any);
 
-  // 4) envia
-  const resp = await fetch(`${BASE_URL}/upload`, {
+  console.log("POST ->", `${BASE_URL}/files/upload`);
+  // Faz upload
+  const resp = await fetch(`${BASE_URL}/files/upload`, {
     method: "POST",
     body: form,
-    // NÃO defina manualmente "Content-Type"
+    // NÃO definir headers 'Content-Type' manualmente
+  }).catch(err => {
+    console.error("fetch upload error:", err);
+    throw new Error("Network request failed");
   });
 
   if (!resp.ok) {
     const t = await resp.text().catch(() => "");
+    console.error("Upload response not ok:", resp.status, t);
     throw new Error(`Falha no upload (${resp.status}) ${t}`);
   }
+
   const json = await resp.json();
-  return json.publicUrl as string;
+  // backend retorna { url: "/files/download/xxx" } -> precisa prefixar com BASE_URL
+  const fullUrl = json.url?.startsWith("http") ? json.url : `${BASE_URL}${json.url}`;
+  console.log("Upload OK ->", fullUrl);
+  return fullUrl as string;
 };
 
+// CRUD Firestore (sem mudanças)
 export const addPet = (pet: Pet) =>
   addDoc(col, {
     ...stripUndefined(pet),
@@ -102,14 +110,13 @@ export const deletePetById = (id: string) =>
   deleteDoc(doc(db, "pets", id));
 
 export const getMyPets = async (userId: string) => {
-  const q = query(col, where("userId", "==", userId), orderBy("createdAt","desc")); // 👈 ordenado
+  const q = query(col, where("userId", "==", userId), orderBy("createdAt","desc"));
   const ss = await getDocs(q);
   return ss.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
 };
 
-// live updates
 export const subscribeMyPets = (userId: string, cb: (pets: any[]) => void) => {
-  const q = query(col, where("userId", "==", userId), orderBy("createdAt","desc")); // 👈 ordenado
+  const q = query(col, where("userId", "==", userId), orderBy("createdAt","desc"));
   return onSnapshot(q, (ss) => {
     cb(ss.docs.map(d => ({ id: d.id, ...d.data() })));
   });
