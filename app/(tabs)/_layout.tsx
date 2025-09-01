@@ -12,7 +12,6 @@ export default function TabsLayout() {
     }}>
       <Tabs.Screen name="index" options={{ title:'Localização', tabBarIcon:({color,size})=><Ionicons name="home" color={color} size={size}/> }} />
       <Tabs.Screen name="blog"  options={{ title:'Blog',        tabBarIcon:({color,size})=><Ionicons name="paw"  color={color} size={size}/> }} />
-      <Tabs.Screen name="lost"  options={{ title:'Perdidos',    tabBarIcon:({color,size})=><Ionicons name="search" color={color} size={size}/> }} />
       <Tabs.Screen name="pet"   options={{ title:'Pet',         tabBarIcon:({color,size})=><Ionicons name="medkit" color={color} size={size}/> }} />
       <Tabs.Screen name="tutor" options={{ title:'Tutor',       tabBarIcon:({color,size})=><Ionicons name="person" color={color} size={size}/> }} />
     </Tabs>
