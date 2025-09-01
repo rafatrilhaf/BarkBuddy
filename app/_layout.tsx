@@ -12,8 +12,10 @@ export default function RootLayout() {
           headerTitleStyle: { fontWeight: "700" },
         }}
       >
-        {/* As telas abaixo são resolvidas automaticamente por nome de arquivo */}
-        <Stack.Screen name="index" options={{ title: "BarkBuddy" }} />
+        {/* aqui fica só UM Stack.Screen para o grupo de abas */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+        {/* outras telas normais */}
         <Stack.Screen name="about" options={{ title: "Sobre" }} />
         <Stack.Screen name="pet/[petId]" options={{ title: "Pet" }} />
       </Stack>
