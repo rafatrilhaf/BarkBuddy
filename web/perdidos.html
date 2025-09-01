@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BarkBuddy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+</head>
+<body>
+  <!-- Top Bar -->
+  <header class="topbar">
+    <nav class="container nav">
+      <button id="navToggle" class="nav-toggle" aria-expanded="false" aria-controls="navMenu"><img src="assets/images/icon_menu.png" alt="Abrir menu" style="height:20px;width:auto;display:block"/></button>
+      <ul id="navMenu" class="menu" hidden><!-- preenchido via script.js --></ul>
+      <a href="index.html">
+      <img src="assets/images/logo_white.png" class="mini-logo" alt="BarkBuddy logo branca" />
+      </a>
+    </nav>
+  </header>
+
+
+  <section class="lost-hero">
+  <div class="container">
+    <h1>Pets Perdidos</h1>
+    <p>Ajude a comunidade a reencontrar seus melhores amigos.</p>
+  </div>
+</section>
+
+<section class="lost-list container">
+  <div id="petsGrid" class="pets-grid"></div>
+</section>
+
+  <!-- Footer -->
+  <footer class="footer" id="contato">
+    <div class="container">
+      <h3>Entre em contato e baixe o app!</h3>
+      <div class="contacts">
+        <div class="contact-list">
+          <div>@barkbuddy</div>
+          <div>Bark Buddy</div>
+          <div>barkbuddy@tec.com</div>
+          <div>SENAI Itatiba - R. Alfredo Massareti, 191 – Lot. Rei de Ouro, Itatiba - SP, 13251–360</div>
+        </div>
+        <div class="stores">
+          <a class="store-btn" href="#" aria-label="Google Play badge">GET IT ON Google Play</a>
+          <a class="store-btn" href="#" aria-label="App Store badge">Disponível na App Store</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js" type="module"></script>
+</body>
+</html>
