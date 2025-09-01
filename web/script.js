@@ -120,6 +120,7 @@ async function carregarPets() {
   grid.innerHTML = `<div class="loading">Carregando pets perdidos…</div>`;
 
   try {
+    // Query pets perdidos
     const q = query(collection(db, "pets"), where("lost", "==", true));
     const snap = await getDocs(q);
 
@@ -129,17 +130,23 @@ async function carregarPets() {
       return;
     }
 
+    // Itera pelos documentos
     for (const d of snap.docs) {
       const pet = { id: d.id, ...d.data() };
+
+      // 1️⃣ Pega a imagem cadastrada, ou default
       const imgSrc = pet.photoUrl || "assets/ai/dog_sample.jpg";
+
       const name = pet.name || "Pet perdido";
       const breed = pet.breed || "Sem raça definida";
       const species = pet.species || "Pet";
       const city = pet.city || pet.lastSeenCity || "";
       const state = pet.state || pet.lastSeenState || "";
 
+      // link para detalhes
       const link = `detalhes.html?petId=${encodeURIComponent(pet.id)}`;
 
+      // cria card
       const card = document.createElement("article");
       card.classList.add("pet-card");
       card.innerHTML = `
@@ -157,6 +164,7 @@ async function carregarPets() {
     grid.innerHTML = `<p>Não foi possível carregar os pets agora.</p>`;
   }
 }
+
 
 // =================== Detalhes do Pet (detalhes.html) ===================
 function getQS(name) {

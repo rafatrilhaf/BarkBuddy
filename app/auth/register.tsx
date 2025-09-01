@@ -34,7 +34,7 @@ export default function Register() {
         createdAt: serverTimestamp(),
       });
 
-      router.replace("/(tabs)");
+      router.replace("/(tabs)/pet");
     } catch (e: any) {
       const msg =
         e?.code === "auth/email-already-in-use" ? "E-mail já cadastrado." :

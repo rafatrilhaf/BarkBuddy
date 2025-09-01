@@ -1,4 +1,5 @@
 // src/services/pets.ts
+import * as ImageManipulator from 'expo-image-manipulator';
 import {
   addDoc, collection,
   deleteDoc,
@@ -13,7 +14,6 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
-// 👇 testing on Android emulator
 const BASE_URL = "http://10.0.2.2:8080";
 
 export type Pet = {
@@ -41,57 +41,34 @@ function stripUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
   return out as Partial<T>;
 }
 
-/**
- * Upload de imagem usando FormData padrão do RN:
- * - NÃO faz fetch(localUri).blob() (instável no Expo Android)
- * - Usa form.append('file', { uri, name, type })
- * Retorna a URL completa para usar no <Image />
- */
-export const uploadPetImageLocal = async (localUri: string) => {
-  console.log("uploadPetImageLocal -> localUri:", localUri);
-  // Detecta mime e filename
-  const guessExt = (uri: string) => {
-    const ext = uri.split("?")[0].split("#")[0].split(".").pop()?.toLowerCase();
-    if (ext === "png") return { mime: "image/png", filename: "photo.png" };
-    if (ext === "webp") return { mime: "image/webp", filename: "photo.webp" };
-    if (ext === "jpg" || ext === "jpeg") return { mime: "image/jpeg", filename: "photo.jpg" };
-    return { mime: "image/jpeg", filename: "photo.jpg" };
-  };
-  const { mime, filename } = guessExt(localUri);
+// ---------------- compressão + upload ----------------
+async function compressAndUpload(uri: string) {
+  // Reduz tamanho da imagem para largura máxima 1024px
+  const manipResult = await ImageManipulator.manipulateAsync(uri, [
+    { resize: { width: 1024 } }
+  ], { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG });
 
-  // Monta FormData do jeito que o React Native espera
+  // Detecta mime e filename
+  const filename = "photo.jpg";
+  const mime = "image/jpeg";
+
   const form = new FormData();
   form.append("file", {
-    uri: localUri,
+    uri: manipResult.uri,
     name: filename,
     type: mime
   } as any);
 
-  console.log("POST ->", `${BASE_URL}/files/upload`);
-  // Faz upload
-  const resp = await fetch(`${BASE_URL}/files/upload`, {
-    method: "POST",
-    body: form,
-    // NÃO definir headers 'Content-Type' manualmente
-  }).catch(err => {
-    console.error("fetch upload error:", err);
-    throw new Error("Network request failed");
-  });
-
-  if (!resp.ok) {
-    const t = await resp.text().catch(() => "");
-    console.error("Upload response not ok:", resp.status, t);
-    throw new Error(`Falha no upload (${resp.status}) ${t}`);
-  }
-
+  const resp = await fetch(`${BASE_URL}/files/upload`, { method: "POST", body: form });
+  if (!resp.ok) throw new Error(`Falha no upload (${resp.status})`);
   const json = await resp.json();
-  // backend retorna { url: "/files/download/xxx" } -> precisa prefixar com BASE_URL
-  const fullUrl = json.url?.startsWith("http") ? json.url : `${BASE_URL}${json.url}`;
-  console.log("Upload OK ->", fullUrl);
-  return fullUrl as string;
-};
+  return json.url?.startsWith("http") ? json.url : `${BASE_URL}${json.url}`;
+}
 
-// CRUD Firestore (sem mudanças)
+// Upload de imagem do pet
+export const uploadPetImageLocal = compressAndUpload;
+
+// CRUD Firestore
 export const addPet = (pet: Pet) =>
   addDoc(col, {
     ...stripUndefined(pet),
