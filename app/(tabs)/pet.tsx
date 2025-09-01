@@ -4,6 +4,7 @@ import * as ImagePicker from "expo-image-picker"; // 👈 novo
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { Alert, Button, FlatList, Image, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, TouchableOpacity, View } from "react-native"; // 👈 Image, Pressable
+import QRCode from "react-native-qrcode-svg";
 import { addPet, deletePetById, Pet, subscribeMyPets, updatePet, uploadPetImageLocal } from "services/pets"; // 👈 import novo
 
 type Row = Pet & { id?: string };
@@ -149,31 +150,55 @@ export default function PetTab() {
         </View>
 
         {/* Lista */}
+        {/* Lista */}
         <FlatList
           data={pets}
           keyExtractor={(item) => item.id!}
           ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-          renderItem={({ item }) => (
-            <View style={{ padding: 12, borderWidth: 1, borderRadius: 12 }}>
-              {/* miniatura se tiver */}
-              {item.photoUrl ? (
-                <Image source={{ uri: item.photoUrl }} style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: "#eee", marginBottom: 8 }} />
-              ) : null}
+          renderItem={({ item }) => {
+            const petUrl = `https://barkbuddy-bd.web.app/${item.id}`;
+            return (
+              <View style={{ padding: 12, borderWidth: 1, borderRadius: 12 }}>
+                {/* miniatura se tiver */}
+                {item.photoUrl ? (
+                  <Image
+                    source={{ uri: item.photoUrl }}
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 12,
+                      backgroundColor: "#eee",
+                      marginBottom: 8,
+                    }}
+                  />
+                ) : null}
 
-              <Text style={{ fontSize: 16, fontWeight: "600" }}>{item.name}</Text>
-              <Text>Espécie: {item.species ?? "-"}</Text>
-              <Text>Raça: {item.breed ?? "-"}</Text>
-              <Text>Idade: {item.age ?? "-"}</Text>
-              <View style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
-                <TouchableOpacity onPress={() => startEdit(item)}>
-                  <Text style={link}>Editar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => remove(item.id)}>
-                  <Text style={[link, { color: "crimson" }]}>Excluir</Text>
-                </TouchableOpacity>
+                <Text style={{ fontSize: 16, fontWeight: "600" }}>{item.name}</Text>
+                <Text>Espécie: {item.species ?? "-"}</Text>
+                <Text>Raça: {item.breed ?? "-"}</Text>
+                <Text>
+                  Idade: {typeof item.age === "number" && !Number.isNaN(item.age) ? item.age : "-"}
+                </Text>
+
+                {/* QR Code com o link do site + id */}
+                <View style={{ alignItems: "center", marginTop: 10 }}>
+                  <QRCode value={petUrl} size={140} />
+                  <Text style={{ fontSize: 12, marginTop: 4 }} selectable>
+                    {petUrl}
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
+                  <TouchableOpacity onPress={() => startEdit(item)}>
+                    <Text style={link}>Editar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => remove(item.id)}>
+                    <Text style={[link, { color: "crimson" }]}>Excluir</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-          )}
+            );
+          }}
           ListEmptyComponent={<Text>Nenhum pet cadastrado ainda.</Text>}
         />
 
@@ -184,6 +209,8 @@ export default function PetTab() {
         </View>
       </View>
     </KeyboardAvoidingView>
+
+
   );
 
 
