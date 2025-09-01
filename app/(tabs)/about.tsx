@@ -11,10 +11,11 @@ function open(url: string) {
 export default function About() {
   return (
     <ImageBackground
-      source={{ uri: "https://i.ibb.co/0fhv5yw/bg-patas.png" }} // pode trocar para uma imagem sua
-      style={{ flex: 1, padding: 24 }}
-      imageStyle={{ opacity: 0.1 }} // deixa a imagem discreta
-    >
+  source={require("../../assets/images/fundoabout.png")}
+  style={{ flex: 1, padding: 24 }}
+  imageStyle={{ opacity: 0.9 }}
+>
+
       <View style={{ flex: 1, justifyContent: "center", gap: 16 }}>
         {[
           { title: "Sobre os produtores", url: "https://barkbuddyofficial.netlify.app/#produtores" },
