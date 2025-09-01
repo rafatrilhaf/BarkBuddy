@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adquira já — BarkBuddy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <nav class="container nav">
+      <button id="navToggle" class="nav-toggle" aria-expanded="false" aria-controls="navMenu">Menu</button>
+      <ul id="navMenu" class="menu" hidden><!-- preenchido via script.js --></ul>
+      <img src="assets/images/logo_white.png" class="mini-logo" alt="BarkBuddy logo branca" />
+    </nav>
+  </header>
+
+  <section class="checkout-hero">
+    <div class="container">
+      <h1>Adquira sua coleira BarkBuddy</h1>
+      <p>Segurança, conforto e tecnologia para seu pet</p>
+    </div>
+  </section>
+
+  <section class="checkout-wrap">
+    <div class="container checkout-grid">
+      <div class="card-elev">
+        <form id="checkoutForm" class="checkout" novalidate>
+          <div class="inline">
+            <div>
+              <label for="nome">Seu nome</label>
+              <input id="nome" name="nome" type="text" placeholder="Ex.: Giovanna Luz" required />
+            </div>
+            <div>
+              <label for="email">E-mail</label>
+              <input id="email" name="email" type="email" placeholder="voce@email.com" required />
+            </div>
+          </div>
+          <div class="inline">
+            <div>
+              <label for="telefone">Telefone (WhatsApp)</label>
+              <input id="telefone" name="telefone" type="tel" inputmode="tel" placeholder="(11) 99999-9999" required />
+            </div>
+            <div>
+              <label for="petNome">Nome do pet</label>
+              <input id="petNome" name="petNome" type="text" placeholder="Ex.: Luna" required />
+            </div>
+          </div>
+          <div class="inline">
+            <div>
+              <label for="tamanho">Tamanho da coleira</label>
+              <select id="tamanho" name="tamanho" required>
+                <option value="" selected disabled>Selecione</option>
+                <option value="P">P</option>
+                <option value="M">M</option>
+                <option value="G">G</option>
+                <option value="GG">GG</option>
+              </select>
+            </div>
+            <div>
+              <label for="cor">Preferência de cor</label>
+              <select id="cor" name="cor" required>
+                <option value="" selected disabled>Selecione</option>
+                <option value="Verde BarkBuddy">Verde BarkBuddy</option>
+                <option value="Preta">Preta</option>
+                <option value="Roxa">Roxa</option>
+                <option value="Rosa">Rosa</option>
+                <option value="Outra">Outra (preencher abaixo)</option>
+              </select>
+            </div>
+          </div>
+          <label for="corOutro" id="corOutroLabel" style="display:none">Outra cor (qual?)</label>
+          <input id="corOutro" name="corOutro" type="text" placeholder="Descreva a cor desejada" style="display:none" />
+          <label for="endereco">Endereço para entrega</label>
+          <textarea id="endereco" name="endereco" placeholder="Rua, nº, complemento, bairro, cidade/UF, CEP" required></textarea>
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">Enviar pedido</button>
+            <a class="btn btn-outline" href="planos.html">Voltar</a>
+          </div>
+          <div id="okMsg" class="ok" role="status" aria-live="polite">Pedido preparado! Abriremos seu app de e-mail com os dados preenchidos.</div>
+          <div id="errMsg" class="err" role="alert">Verifique os campos obrigatórios e tente novamente.</div>
+        </form>
+      </div>
+
+      <aside class="summary" aria-label="Resumo do pedido">
+        <h3>Resumo</h3>
+        <ul>
+          <li><span>Produto</span><strong>Coleira BarkBuddy</strong></li>
+          <li><span>Rastreamento</span><strong>GPS + App</strong></li>
+          <li><span>Conforto</span><strong>Ajustável e leve</strong></li>
+          <li><span>Suporte</span><strong>Equipe BarkBuddy</strong></li>
+        </ul>
+        <p style="margin-top:10px; opacity:.85;">Após enviar o pedido, entraremos em contato para confirmar frete e pagamento.</p>
+      </aside>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <h3>Tem dúvidas?</h3>
+      <p>Fale com a nossa equipe: <a href="mailto:barkbuddy@tec.com">barkbuddy@tec.com</a></p>
+    </div>
+  </footer>
+
+  <script src="script.js" type="module"></script>
+</body>
+</html>
