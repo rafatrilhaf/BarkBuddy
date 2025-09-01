@@ -1,11 +1,30 @@
 // app/(tabs)/pet.tsx
 import { auth } from "@/services/firebase";
-import * as ImagePicker from "expo-image-picker"; // 👈 novo
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Button, FlatList, Image, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, TouchableOpacity, View } from "react-native"; // 👈 Image, Pressable
+import {
+  Alert,
+  Button,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import { addPet, deletePetById, Pet, subscribeMyPets, updatePet, uploadPetImageLocal } from "services/pets"; // 👈 import novo
+import {
+  addPet,
+  deletePetById,
+  Pet,
+  subscribeMyPets,
+  updatePet,
+  uploadPetImageLocal,
+} from "services/pets";
 
 type Row = Pet & { id?: string };
 
@@ -15,15 +34,16 @@ export default function PetTab() {
 
   const [pets, setPets] = useState<Row[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({}); // controla expansão por card
+  const [showForm, setShowForm] = useState(false); // controla exibição do formulário
 
   // form state
   const [name, setName] = useState("");
   const [species, setSpecies] = useState("");
   const [breed, setBreed] = useState("");
-  const [age, setAge] = useState<string>(""); // input string
-  const [photoUri, setPhotoUri] = useState<string | null>(null); // 👈 novo preview local
+  const [age, setAge] = useState<string>("");
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
 
-  // subscribe to my pets
   useEffect(() => {
     if (!uid) return;
     const unsub = subscribeMyPets(uid, setPets);
@@ -38,7 +58,13 @@ export default function PetTab() {
     setSpecies("");
     setBreed("");
     setAge("");
-    setPhotoUri(null); // 👈 novo
+    setPhotoUri(null);
+    setShowForm(false);
+  };
+
+  const startCreate = () => {
+    setEditingId(null);
+    setShowForm(true);
   };
 
   const startEdit = (row: Row) => {
@@ -47,10 +73,11 @@ export default function PetTab() {
     setSpecies(row.species ?? "");
     setBreed(row.breed ?? "");
     setAge(row.age ? String(row.age) : "");
-    setPhotoUri(null); // 👈 só envia nova foto se escolher outra
+    setPhotoUri(null);
+    setShowForm(true);
   };
 
-  // 👇 escolher imagem da galeria
+  // escolher imagem
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -76,7 +103,6 @@ export default function PetTab() {
       return;
     }
 
-    // 👇 faz upload local (se escolheu foto) e pega a URL
     let photoUrl: string | undefined;
     if (photoUri) {
       try {
@@ -93,7 +119,7 @@ export default function PetTab() {
       species: species.trim() || undefined,
       breed: breed.trim() || undefined,
       age: age ? Number(age) : undefined,
-      photoUrl: photoUrl || undefined, // 👈 só inclui se existir
+      photoUrl: photoUrl || undefined,
     };
 
     try {
@@ -116,106 +142,206 @@ export default function PetTab() {
         text: "Excluir",
         style: "destructive",
         onPress: async () => {
-          try { await deletePetById(id); } catch (e: any) { Alert.alert("Erro", e.message); }
-        }
-      }
+          try {
+            await deletePetById(id);
+          } catch (e: any) {
+            Alert.alert("Erro", e.message);
+          }
+        },
+      },
     ]);
   };
 
+  const toggleExpand = (id: string) =>
+    setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={{ flex: 1 }}
+    >
       <View style={{ padding: 16, gap: 12, flex: 1 }}>
         <Text style={{ fontSize: 22, fontWeight: "700" }}>Meus Pets</Text>
 
-        {/* Formulário simples */}
-        <View style={{ gap: 8, borderWidth: 1, borderRadius: 12, padding: 12 }}>
-          <Text style={{ fontWeight: "600" }}>{isEditing ? "Editar pet" : "Adicionar pet"}</Text>
-
-          {/* preview + botão escolher foto (sem mudar seu estilo geral) */}
-          {photoUri ? (
-            <Image source={{ uri: photoUri }} style={{ width: 100, height: 100, borderRadius: 12, backgroundColor: "#eee" }} />
-          ) : null}
-          <Pressable onPress={pickImage} style={{ alignSelf: "flex-start", paddingVertical: 6, paddingHorizontal: 10, borderWidth: 1, borderRadius: 8 }}>
-            <Text>Escolher foto</Text>
+        {/* Botão topo para abrir formulário */}
+        {!showForm && (
+          <Pressable
+            onPress={startCreate}
+            style={{
+              alignSelf: "flex-start",
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+              borderWidth: 1,
+              borderRadius: 10,
+              backgroundColor: "#e8f5ee",
+              borderColor: "#0c6b41",
+            }}
+          >
+            <Text style={{ fontWeight: "700", color: "#0c6b41" }}>
+              + Adicionar um pet
+            </Text>
           </Pressable>
+        )}
 
-          <TextInput placeholder="Nome *" value={name} onChangeText={setName} style={input} />
-          <TextInput placeholder="Espécie (cão, gato...)" value={species} onChangeText={setSpecies} style={input} />
-          <TextInput placeholder="Raça" value={breed} onChangeText={setBreed} style={input} />
-          <TextInput placeholder="Idade (anos)" value={age} onChangeText={setAge} keyboardType="numeric" style={input} />
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Button title={isEditing ? "Salvar alterações" : "Adicionar"} onPress={submit} />
-            {isEditing && <Button title="Cancelar" onPress={resetForm} />}
+        {/* Formulário (colapsável) */}
+        {showForm && (
+          <View
+            style={{
+              gap: 8,
+              borderWidth: 1,
+              borderRadius: 12,
+              padding: 12,
+              borderColor: "#d1d5db",
+              backgroundColor: "#fff",
+            }}
+          >
+            <Text style={{ fontWeight: "700" }}>
+              {isEditing ? "Editar pet" : "Adicionar pet"}
+            </Text>
+
+            {photoUri ? (
+              <Image
+                source={{ uri: photoUri }}
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 12,
+                  backgroundColor: "#eee",
+                }}
+              />
+            ) : null}
+
+            <Pressable
+              onPress={pickImage}
+              style={{
+                alignSelf: "flex-start",
+                paddingVertical: 6,
+                paddingHorizontal: 10,
+                borderWidth: 1,
+                borderRadius: 8,
+              }}
+            >
+              <Text>Escolher foto</Text>
+            </Pressable>
+
+            <TextInput placeholder="Nome *" value={name} onChangeText={setName} style={input} />
+            <TextInput placeholder="Espécie (cão, gato...)" value={species} onChangeText={setSpecies} style={input} />
+            <TextInput placeholder="Raça" value={breed} onChangeText={setBreed} style={input} />
+            <TextInput placeholder="Idade (anos)" value={age} onChangeText={setAge} keyboardType="numeric" style={input} />
+
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Button title={isEditing ? "Salvar alterações" : "Adicionar"} onPress={submit} />
+              <Button title="Cancelar" onPress={resetForm} />
+            </View>
           </View>
-        </View>
+        )}
 
-        {/* Lista */}
-        {/* Lista */}
+        {/* Lista de pets (cards colapsáveis) */}
         <FlatList
           data={pets}
           keyExtractor={(item) => item.id!}
           ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
           renderItem={({ item }) => {
             const petUrl = `https://barkbuddy-bd.web.app/${item.id}`;
+            const expanded = !!expandedIds[item.id!];
+
             return (
-              <View style={{ padding: 12, borderWidth: 1, borderRadius: 12 }}>
-                {/* miniatura se tiver */}
-                {item.photoUrl ? (
+              <View style={{ borderWidth: 1, borderRadius: 12, overflow: "hidden", backgroundColor: "#fff" }}>
+                {/* Cabeçalho clicável: foto + nome */}
+                <Pressable
+                  onPress={() => toggleExpand(item.id!)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: 12,
+                    backgroundColor: "#f7f7f7",
+                  }}
+                >
                   <Image
-                    source={{ uri: item.photoUrl }}
-                    style={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: 12,
-                      backgroundColor: "#eee",
-                      marginBottom: 8,
-                    }}
+                    source={
+                      item.photoUrl
+                        ? { uri: item.photoUrl }
+                        : { uri: "https://placekitten.com/160/160" }
+                    }
+                    style={{ width: 56, height: 56, borderRadius: 12, backgroundColor: "#eee" }}
                   />
-                ) : null}
+                  <Text style={{ fontSize: 16, fontWeight: "700" }}>{item.name}</Text>
+                  <View style={{ marginLeft: "auto" }}>
+                    <Text style={{ opacity: 0.6 }}>{expanded ? "▲" : "▼"}</Text>
+                  </View>
+                </Pressable>
 
-                <Text style={{ fontSize: 16, fontWeight: "600" }}>{item.name}</Text>
-                <Text>Espécie: {item.species ?? "-"}</Text>
-                <Text>Raça: {item.breed ?? "-"}</Text>
-                <Text>
-                  Idade: {typeof item.age === "number" && !Number.isNaN(item.age) ? item.age : "-"}
-                </Text>
+                {/* Conteúdo expandido */}
+                {expanded && (
+                  <View style={{ padding: 12, gap: 6 }}>
+                    <Text>Espécie: {item.species ?? "-"}</Text>
+                    <Text>Raça: {item.breed ?? "-"}</Text>
+                    <Text>
+                      Idade:{" "}
+                      {typeof item.age === "number" && !Number.isNaN(item.age) ? item.age : "-"}
+                    </Text>
 
-                {/* QR Code com o link do site + id */}
-                <View style={{ alignItems: "center", marginTop: 10 }}>
-                  <QRCode value={petUrl} size={140} />
-                  <Text style={{ fontSize: 12, marginTop: 4 }} selectable>
-                    {petUrl}
-                  </Text>
-                </View>
+                    <View style={{ alignItems: "center", marginTop: 10 }}>
+                      <QRCode value={petUrl} size={140} />
+                      <Text style={{ fontSize: 12, marginTop: 4 }} selectable>
+                        {petUrl}
+                      </Text>
+                    </View>
 
-                <View style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
-                  <TouchableOpacity onPress={() => startEdit(item)}>
-                    <Text style={link}>Editar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => remove(item.id)}>
-                    <Text style={[link, { color: "crimson" }]}>Excluir</Text>
-                  </TouchableOpacity>
-                </View>
+                    <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
+                      <TouchableOpacity onPress={() => startEdit(item)}>
+                        <Text style={link}>Editar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => remove(item.id)}>
+                        <Text style={[link, { color: "crimson" }]}>Excluir</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
               </View>
             );
           }}
           ListEmptyComponent={<Text>Nenhum pet cadastrado ainda.</Text>}
+          contentContainerStyle={{ paddingBottom: 96 }}
         />
 
-        {/* Reserva para Dashboard */}
+        {/* placeholder do dashboard */}
         <View style={{ gap: 8 }}>
           <Button title="Abrir dashboard (em breve)" onPress={() => router.push("/pet")} />
-          <Text style={{ fontSize: 12, opacity: 0.7 }}>Esta rota será criada só como placeholder agora.</Text>
+          <Text style={{ fontSize: 12, opacity: 0.7 }}>
+            Esta rota será criada só como placeholder agora.
+          </Text>
         </View>
+
+        {/* FAB “+” no canto inferior direito */}
+        {!showForm && (
+          <Pressable
+            onPress={startCreate}
+            style={{
+              position: "absolute",
+              right: 20,
+              bottom: 24,
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#0c6b41",
+              shadowColor: "#000",
+              shadowOpacity: 0.25,
+              shadowRadius: 6,
+              elevation: 6,
+            }}
+            accessibilityLabel="Adicionar um pet"
+          >
+            <Text style={{ color: "#fff", fontSize: 28, lineHeight: 28 }}>＋</Text>
+          </Pressable>
+        )}
       </View>
     </KeyboardAvoidingView>
-
-
   );
-
-
 }
 
 const input = { borderWidth: 1, borderRadius: 8, padding: 10 } as const;
 const link = { color: "#2563eb", fontWeight: "600" } as const;
-
