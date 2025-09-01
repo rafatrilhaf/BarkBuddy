@@ -15,10 +15,18 @@ export default function Splash() {
       <Image source={require('../assets/images/Wordmark.png')} style={{ width: 260, height: 56, marginBottom: 24 }} resizeMode="contain" />
       {/*<Text style={{ color:'#fff', fontSize:40, fontWeight:'900', marginBottom:24 }}>BarkBuddy</Text>*/}
 
-      <Pressable onPress={() => router.replace('./auth/login')}
-        style={{ backgroundColor: '#ececec', borderRadius: 16, padding: 14, width: '100%', marginBottom: 12 }}>
-        <Text style={{ textAlign: 'center', fontWeight: '900', color: '#0e3b28', fontSize: 22 }}>Sou dono de pet</Text>
+      // app/index.tsx
+      // ...
+      <Pressable
+        // troque replace -> push
+        onPress={() => router.push('/auth/login')}
+        style={{ backgroundColor: '#ececec', borderRadius: 16, padding: 14, width: '100%', marginBottom: 12 }}
+      >
+        <Text style={{ textAlign: 'center', fontWeight: '900', color: '#0e3b28', fontSize: 22 }}>
+          Sou dono de pet
+        </Text>
       </Pressable>
+
 
       <Link href="https://barktestsofi.netlify.app" asChild>
         <Pressable style={{ borderWidth: 2, borderColor: '#ececec', borderRadius: 16, padding: 14, width: '100%' }}>

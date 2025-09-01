@@ -52,7 +52,7 @@ function toDate(val: any): Date | null {
     if (val instanceof Date) return val;
     if (typeof val === "number") return new Date(val);
     if (typeof val?.toDate === "function") return val.toDate(); // Firestore Timestamp
-  } catch {}
+  } catch { }
   return null;
 }
 
@@ -102,7 +102,7 @@ export default function Localizacao() {
     });
 
     return () => {
-      try { unsubscribe && unsubscribe(); } catch {}
+      try { unsubscribe && unsubscribe(); } catch { }
     };
   }, [uid]);
 

@@ -1,3 +1,4 @@
+// app/_layout.tsx
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
@@ -12,10 +13,16 @@ export default function RootLayout() {
           headerTitleStyle: { fontWeight: "700" },
         }}
       >
-        {/* aqui fica só UM Stack.Screen para o grupo de abas */}
+        {/* splash/index - raiz do app */}
+        <Stack.Screen name="index" options={{ title: "Início" }} />
+
+        {/* grupo das abas */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
-        {/* outras telas normais */}
+        {/* auth group */}
+        <Stack.Screen name="auth" options={{ headerShown: false }} />
+
+        {/* telas extras */}
         <Stack.Screen name="about" options={{ title: "Sobre" }} />
         <Stack.Screen name="pet/[petId]" options={{ title: "Pet" }} />
       </Stack>
