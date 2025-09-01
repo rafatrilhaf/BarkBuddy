@@ -1,5 +1,6 @@
-// app/about.tsx
-import { Alert, Button, Linking, View } from "react-native";
+// app/(tabs)/about.tsx
+import { Alert, ImageBackground, Linking, Pressable, Text, View } from "react-native";
+import theme from "../../constants/theme";
 
 function open(url: string) {
   Linking.openURL(url).catch(() =>
@@ -9,19 +10,33 @@ function open(url: string) {
 
 export default function About() {
   return (
-    <View style={{ flex: 1, justifyContent: "center", gap: 12, padding: 24 }}>
-      <Button
-        title="Sobre os produtores"
-        onPress={() => open("https://barkbuddyofficial.netlify.app/#produtores")}
-      />
-      <Button
-        title="Atendimento"
-        onPress={() => open("https://barkbuddyofficial.netlify.app/#contato")}
-      />
-      <Button
-        title="Perguntas frequentes"
-        onPress={() => open("https://barkbuddyofficial.netlify.app/#faq")}
-      />
-    </View>
+    <ImageBackground
+      source={{ uri: "https://i.ibb.co/0fhv5yw/bg-patas.png" }} // pode trocar para uma imagem sua
+      style={{ flex: 1, padding: 24 }}
+      imageStyle={{ opacity: 0.1 }} // deixa a imagem discreta
+    >
+      <View style={{ flex: 1, justifyContent: "center", gap: 16 }}>
+        {[
+          { title: "Sobre os produtores", url: "https://barkbuddyofficial.netlify.app/#produtores" },
+          { title: "Atendimento", url: "https://barkbuddyofficial.netlify.app/#contato" },
+          { title: "Perguntas frequentes", url: "https://barkbuddyofficial.netlify.app/#faq" },
+        ].map((item) => (
+          <Pressable
+            key={item.url}
+            onPress={() => open(item.url)}
+            style={{
+              backgroundColor: theme.green,
+              paddingVertical: 14,
+              borderRadius: 12,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
+              {item.title}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    </ImageBackground>
   );
 }
