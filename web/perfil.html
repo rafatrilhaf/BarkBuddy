@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BarkBuddy — Meu Perfil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+</head>
+<body>
+  <!-- Top Bar -->
+  <header class="topbar">
+    <nav class="container nav">
+      <button id="navToggle" class="nav-toggle" aria-expanded="false" aria-controls="navMenu">
+        <img src="assets/images/icon_menu.png" alt="Abrir menu" style="height:20px;width:auto;display:block"/>
+      </button>
+      <ul id="navMenu" class="menu" hidden><!-- preenchido via script.js --></ul>
+      <a href="index.html">
+        <img src="assets/images/logo_white.png" class="mini-logo" alt="BarkBuddy logo branca" />
+      </a>
+    </nav>
+  </header>
+
+  <!-- Hero do perfil (reaproveitando o padrão das seções) -->
+  <section class="plans-hero">
+    <div class="container">
+      <h1 style="margin:0">Meu Perfil</h1>
+      <p style="margin:6px 0 0;color:#0d3b2a">Gerencie seu nome, e-mail e WhatsApp. Você escolhe se quer exibir o contato publicamente.</p>
+    </div>
+  </section>
+
+  <!-- Conteúdo -->
+  <section class="checkout-wrap">
+    <div class="container" style="padding:0">
+      <div class="checkout-grid">
+        <!-- Coluna principal -->
+        <div class="card-elev">
+            <!-- Box de autenticação (E-mail/Senha) -->
+<div id="authBox">
+  <p>Faça login para editar seu perfil.</p>
+
+  <div class="inline" style="margin-top:8px">
+    <input id="authEmail" type="email" placeholder="seu@email.com" />
+    <input id="authPass" type="password" placeholder="senha (mín. 6)" />
+  </div>
+
+  <div class="actions">
+    <button id="btnSignup" class="btn btn-primary" type="button">Criar conta</button>
+    <button id="btnLogin"  class="btn btn-outline"  type="button">Entrar</button>
+  </div>
+
+  <p id="authErr" class="err" style="display:none"></p>
+</div>
+          <!-- Formulário do perfil (aparece após login) -->
+          <form id="perfilForm" class="checkout" style="display:none">
+            <label for="name">Nome</label>
+            <input id="name" type="text" placeholder="Seu nome" required />
+
+            <div class="inline">
+              <div>
+                <label for="email">E-mail</label>
+                <input id="email" type="email" placeholder="seu@email.com" />
+              </div>
+              <div>
+                <label for="phone">WhatsApp (só números)</label>
+                <input id="phone" type="tel" placeholder="11999999999" />
+              </div>
+            </div>
+
+            <label style="display:flex;gap:8px;align-items:center;margin-top:12px">
+              <input id="shareContact" type="checkbox" />
+              Compartilhar meu e-mail/WhatsApp publicamente
+            </label>
+
+            <div class="actions">
+              <button class="btn btn-primary" type="submit">Salvar</button>
+              <button id="logout" class="btn btn-outline" type="button">Sair</button>
+            </div>
+
+            <div id="ok" class="ok">Perfil salvo!</div>
+            <div id="err" class="err">Erro ao salvar. Tente novamente.</div>
+          </form>
+        </div>
+
+        <!-- Coluna lateral (ajuda) -->
+        <aside class="summary">
+          <h3 style="margin-top:0">Como funciona</h3>
+          <ul style="margin:0;padding-left:18px;line-height:1.6">
+            <li>Se marcar “compartilhar contato”, criamos/atualizamos <code>usersPublic/{seuUID}</code>.</li>
+            <li>A página do pet lê esses dados para mostrar e-mail e WhatsApp quando clicarem em “Entrar em contato”.</li>
+            <li>Você pode desativar quando quiser (desmarca e salva).</li>
+          </ul>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" id="contato">
+    <div class="container">
+      <h3>Entre em contato e baixe o app!</h3>
+      <div class="contacts">
+        <div class="contact-list">
+          <div>@barkbuddy</div>
+          <div>Bark Buddy</div>
+          <div>barkbuddy@tec.com</div>
+          <div>SENAI Itatiba - R. Alfredo Massareti, 191 – Lot. Rei de Ouro, Itatiba - SP, 13251–360</div>
+        </div>
+        <div class="stores">
+          <a class="store-btn" href="#" aria-label="Google Play badge">GET IT ON Google Play</a>
+          <a class="store-btn" href="#" aria-label="App Store badge">Disponível na App Store</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="script.js" type="module"></script>
+  <script src="perfil.js" type="module"></script>
+</body>
+</html>
