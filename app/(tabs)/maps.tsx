@@ -1,14 +1,7 @@
 // app/(tabs)/Localizacao.tsx
-import { Picker } from "@react-native-picker/picker"; // npx expo install @react-native-picker/picker
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Linking, Pressable, Text, View } from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
 import MapView, { Marker } from "../../components/Map";
 import theme from "../../constants/theme";
 
@@ -18,15 +11,15 @@ import { subscribeMyPets, updatePet } from "services/pets";
 type LastLocation = {
   latitude: number;
   longitude: number;
-  updatedAt?: any; // Date | number | Firestore Timestamp
+  updatedAt?: any;
   address?: string;
 };
 
 type TrackablePet = {
   id: string;
   name?: string;
-  lost?: boolean;             // ✅ usa "lost" (igual no seu services)
-  lastLocation?: LastLocation; // campo opcional (ajuste o nome no map se precisar)
+  lost?: boolean;
+  lastLocation?: LastLocation;
 };
 
 const FALLBACK_REGION = {
@@ -51,7 +44,7 @@ function toDate(val: any): Date | null {
     if (!val) return null;
     if (val instanceof Date) return val;
     if (typeof val === "number") return new Date(val);
-    if (typeof val?.toDate === "function") return val.toDate(); // Firestore Timestamp
+    if (typeof val?.toDate === "function") return val.toDate();
   } catch { }
   return null;
 }
@@ -70,55 +63,44 @@ function fmtDateTime(val: any) {
 
 export default function Localizacao() {
   const uid = auth?.currentUser?.uid;
-
   const [pets, setPets] = useState<TrackablePet[]>([]);
-  const [selectedId, setSelectedId] = useState<string | undefined>();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // se não tiver usuário autenticado ainda
+  // Dropdown state
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState<{ label: string; value: string }[]>([]);
+
   useEffect(() => {
     if (!uid) {
       setLoading(false);
+      return;
     }
-  }, [uid]);
-
-  // Assinatura em tempo real dos pets do usuário (usa a assinatura: userId + callback)
-  useEffect(() => {
-    if (!uid) return;
     setLoading(true);
 
     const unsubscribe = subscribeMyPets(uid, (rows: any[]) => {
-      // mapeia campos comuns; ajuste "location" ou "lastLocation" conforme seu doc
-      const mapped: TrackablePet[] = rows.map((r: any) => ({
+      const mapped: TrackablePet[] = rows.map(r => ({
         id: r.id ?? "",
         name: r.name,
-        lost: r.lost ?? false,                                     // ✅ usa "lost"
-        lastLocation: r.lastLocation ?? r.location ?? undefined,   // 👈 cobre 2 nomes possíveis
+        lost: r.lost ?? false,
+        lastLocation: r.lastLocation ?? r.location ?? undefined,
       }));
 
       setPets(mapped);
-      setSelectedId((prev) => prev ?? mapped[0]?.id);
+      setItems(mapped.map(p => ({ label: p.name || `Pet ${p.id.slice(0, 5)}`, value: p.id })));
+      setSelectedId(prev => prev ?? mapped[0]?.id ?? null);
       setLoading(false);
     });
 
-    return () => {
-      try { unsubscribe && unsubscribe(); } catch { }
-    };
+    return () => { try { unsubscribe?.(); } catch { } };
   }, [uid]);
 
-  const selected = useMemo(
-    () => pets.find((p) => p.id === selectedId),
-    [pets, selectedId]
-  );
-
+  const selected = useMemo(() => pets.find(p => p.id === selectedId), [pets, selectedId]);
   const region = useMemo(() => toRegion(selected?.lastLocation), [selected]);
-
   const updatedText = useMemo(() => {
-    const when = selected?.lastLocation?.updatedAt;
-    const ts = fmtDateTime(when);
+    const ts = fmtDateTime(selected?.lastLocation?.updatedAt);
     return ts === "—" ? "Sem atualização ainda" : `Atualizado pela última vez • ${ts}`;
   }, [selected]);
-
   const address = selected?.lastLocation?.address;
 
   async function openMaps() {
@@ -133,9 +115,8 @@ export default function Localizacao() {
 
   async function toggleLost() {
     if (!selected?.id) return;
-    const next = !selected?.lost;
+    const next = !selected.lost;
     try {
-      // ✅ usa campo "lost" (seu schema)
       await updatePet(selected.id, { lost: next });
       Alert.alert(
         next ? "Alerta ativado" : "Alerta desativado",
@@ -160,12 +141,8 @@ export default function Localizacao() {
   if (!uid) {
     return (
       <View style={{ flex: 1, padding: 24, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ color: "#333", fontWeight: "700", fontSize: 18, textAlign: "center" }}>
-          Faça login para ver seus pets
-        </Text>
-        <Text style={{ color: "#666", marginTop: 8, textAlign: "center" }}>
-          Não encontramos um usuário autenticado.
-        </Text>
+        <Text style={{ color: "#333", fontWeight: "700", fontSize: 18, textAlign: "center" }}>Faça login para ver seus pets</Text>
+        <Text style={{ color: "#666", marginTop: 8, textAlign: "center" }}>Não encontramos um usuário autenticado.</Text>
       </View>
     );
   }
@@ -173,55 +150,51 @@ export default function Localizacao() {
   if (!pets.length) {
     return (
       <View style={{ flex: 1, padding: 24, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ color: "#333", fontWeight: "700", fontSize: 18, textAlign: "center" }}>
-          Você ainda não tem pets para rastrear
-        </Text>
-        <Text style={{ color: "#666", marginTop: 8, textAlign: "center" }}>
-          Cadastre um pet para começar a acompanhar a localização.
-        </Text>
+        <Text style={{ color: "#333", fontWeight: "700", fontSize: 18, textAlign: "center" }}>Você ainda não tem pets para rastrear</Text>
+        <Text style={{ color: "#666", marginTop: 8, textAlign: "center" }}>Cadastre um pet para começar a acompanhar a localização.</Text>
       </View>
     );
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      {/* Seletor de Pet */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 0 }}>
-        <View
-          style={{
-            borderWidth: 1,
-            borderColor: "#e5e5e5",
-            borderRadius: 12,
-            overflow: "hidden",
-            backgroundColor: "#fafafa",
-            height: 44, // reduz altura do campo
-            justifyContent: "center",
-          }}
-        >
-          <Picker
-            selectedValue={selectedId ?? pets[0]?.id ?? ""}
-            onValueChange={(val) => setSelectedId(String(val))}
-            style={{ color: "#111", fontSize: 16, height: 44 }} // cor preta e altura menor
-            itemStyle={{ color: "#111" }} // cor preta nos itens (iOS)
-          >
-            {pets.map((p) => (
-              <Picker.Item key={p.id} label={p.name || `Pet ${p.id.slice(0, 5)}`} value={p.id} />
-            ))}
-          </Picker>
-        </View>
-      </View>
+      {/* Dropdown de Pet */}
+<View style={{ paddingHorizontal: 16, paddingTop: 8, marginBottom: 12 }}>
+  <DropDownPicker
+    open={open}
+    value={selectedId}
+    items={items}
+    setOpen={setOpen}
+    setValue={setSelectedId}
+    setItems={setItems}
+    containerStyle={{ height: 40 }}
+    style={{ 
+      backgroundColor: "#fafafa", 
+      borderColor: "#006B41", // cor do app
+      borderRadius: 12 
+    }}
+    dropDownContainerStyle={{ 
+      borderColor: "#006B41", 
+      borderRadius: 12 
+    }}
+    textStyle={{ color: "#111", fontSize: 15, fontWeight: "500" }}
+    placeholder="Selecione um pet"
+  />
+</View>
 
-      {/* Mapa — seu wrapper costuma aceitar initialRegion (não region) */}
-      <MapView
-        key={selectedId ?? "map"}
-        style={{ flex: 1 }}
-        initialRegion={region}
-      >
-        <Marker
-          coordinate={{ latitude: region.latitude, longitude: region.longitude }}
-          title={selected?.name ? `${selected.name} está aqui!` : "Seu pet está aqui!"}
-        />
-      </MapView>
+{/* Mapa */}
+<MapView
+  key={selectedId ?? "map"}
+  style={{ flex: 1, marginTop: 4 }} // deixa um pouquinho de espaçamento no topo
+  initialRegion={region}
+>
+  <Marker
+    coordinate={{ latitude: region.latitude, longitude: region.longitude }}
+    title={selected?.name ? `${selected.name} está aqui!` : "Seu pet está aqui!"}
+  />
+</MapView>
+
+
 
       {/* Painel inferior */}
       <View style={{ padding: 16, gap: 10 }}>
@@ -238,9 +211,7 @@ export default function Localizacao() {
             }}
             numberOfLines={2}
           >
-            {address
-              ? address
-              : `${region.latitude.toFixed(5)}, ${region.longitude.toFixed(5)} (abrir no mapa)`}
+            {address ? address : `${region.latitude.toFixed(5)}, ${region.longitude.toFixed(5)} (abrir no mapa)`}
           </Text>
         </Pressable>
 

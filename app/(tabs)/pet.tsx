@@ -336,7 +336,7 @@ export default function PetTab() {
         if (type === "HEALTH" && subtype) {
           // se agg.HEALTH existir e value == subtype, usa; senão null
           const h = agg?.HEALTH;
-          if (h && String(h.value) === String(subtype)) setLastModalRecord(h);
+          if (h && String(h.values) === String(subtype)) setLastModalRecord(h);
           else setLastModalRecord(null);
         } else {
           setLastModalRecord(agg ? agg[type] ?? null : null);

@@ -134,26 +134,28 @@ export const addPetRecord = async (petId: string, record: { type: string; value:
  * Retorno: { WALK?: {...}, WEIGHT?: {...}, HEALTH?: {...} }
  * Observação: limita a leitura para N (padrão 20) para economizar reads.
  */
-export const getLastRecordsForPet = async (petId: string, limitCount = 20) => {
+export const getLastRecordsForPet = async (petId: string, limitCount = 50) => {
   const recordsRef = collection(db, "pets", petId, "records");
   const q = query(recordsRef, orderBy("createdAt", "desc"), limit(limitCount));
   const ss = await getDocs(q);
-  const out: Record<string, any> = {};
+
+  const out: Record<string, any[]> = {};
   ss.docs.forEach(d => {
     const data = d.data();
     const t = data.type;
-    if (!out[t]) {
-      out[t] = {
-        id: d.id,
-        type: data.type,
-        value: data.value,
-        note: data.note ?? null,
-        createdAt: data.createdAt ?? null
-      };
-    }
+    if (!out[t]) out[t] = [];
+    out[t].push({
+      id: d.id,
+      type: data.type,
+      value: data.value,
+      note: data.note ?? null,
+      createdAt: data.createdAt ?? null
+    });
   });
-  return out; // ex: { WALK: {...}, WEIGHT: {...}, HEALTH: {...} }
+
+  return out; // ex: { WALK: [...], WEIGHT: [...], HEALTH: [...], NOTE: [...] }
 };
+
 
 // pega o último record por tipo, opcionalmente filtrando pelo value (útil para HEALTH subtype)
 export const getLastRecordForType = async (petId: string, type: string, value?: any) => {
