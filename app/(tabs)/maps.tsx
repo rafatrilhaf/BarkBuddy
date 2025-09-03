@@ -186,7 +186,7 @@ export default function Localizacao() {
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Seletor de Pet */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 0 }}>
         <View
           style={{
             borderWidth: 1,
@@ -194,11 +194,15 @@ export default function Localizacao() {
             borderRadius: 12,
             overflow: "hidden",
             backgroundColor: "#fafafa",
+            height: 44, // reduz altura do campo
+            justifyContent: "center",
           }}
         >
           <Picker
-            selectedValue={selectedId ?? pets[0]?.id ?? ""} // evita undefined no primeiro render
+            selectedValue={selectedId ?? pets[0]?.id ?? ""}
             onValueChange={(val) => setSelectedId(String(val))}
+            style={{ color: "#111", fontSize: 16, height: 44 }} // cor preta e altura menor
+            itemStyle={{ color: "#111" }} // cor preta nos itens (iOS)
           >
             {pets.map((p) => (
               <Picker.Item key={p.id} label={p.name || `Pet ${p.id.slice(0, 5)}`} value={p.id} />
