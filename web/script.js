@@ -150,13 +150,20 @@ async function carregarPets() {
       const card = document.createElement("article");
       card.classList.add("pet-card");
       card.innerHTML = `
-        <a href="${link}" class="thumb-link" aria-label="Abrir detalhes de ${name}">
-          <img src="${imgSrc}" alt="${name}" />
-        </a>
-        <h3><a href="${link}">${name}</a></h3>
-        <p>${breed} • ${species} ${city || state ? `• ${city}${state ? " - " + state : ""}` : ""}</p>
-        <a class="btn btn-primary" href="${link}">Ver detalhes</a>
-      `;
+  <a href="${link}" class="thumb" aria-label="Abrir detalhes de ${name}">
+    <img src="${imgSrc}" alt="${name}">
+    <span class="badge">Perdido</span>
+  </a>
+
+  <h3><a href="${link}">${name}</a></h3>
+  <p>
+    ${breed} • ${species}
+    ${city || state ? ` • ${city}${state ? " - " + state : ""}` : ""}
+  </p>
+
+  <a class="btn btn-primary" href="${link}">Ver detalhes</a>
+`;
+
       grid.appendChild(card);
     }
   } catch (err) {
