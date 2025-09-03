@@ -24,7 +24,7 @@ export default function RootLayout() {
 
         {/* telas extras */}
         <Stack.Screen name="about" options={{ title: "Sobre" }} />
-        <Stack.Screen name="pet/[petId]" options={{ title: "Pet" }} />
+        <Stack.Screen name="pet/[Id]" options={{ title: "Pet" }} />
       </Stack>
     </>
   );
