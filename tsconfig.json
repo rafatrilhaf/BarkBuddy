@@ -3,9 +3,12 @@
   "compilerOptions": {
     "baseUrl": ".",
     "strict": true,
-    "paths": {"@/*": ["./*"]},
-     "moduleResolution": "Bundler",
-    "moduleSuffixes": [".native", ".ios", ".android", ".web", ""]
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "moduleResolution": "Bundler",
+    "moduleSuffixes": [".native", ".ios", ".android", ".web", ""],
+    "jsx": "react-jsx"   // ESTA LINHA É FUNDAMENTAL
   },
   "include": [
     "**/*.ts",
