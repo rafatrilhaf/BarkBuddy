@@ -11,14 +11,10 @@ export default function Splash() {
         resizeMode="contain"
       />
 
-      {/* WORDMARK: só funciona se o arquivo existir. Se ainda não tiver, deixe o <Text> por enquanto */}
       <Image source={require('../assets/images/Wordmark.png')} style={{ width: 260, height: 56, marginBottom: 24 }} resizeMode="contain" />
-      {/*<Text style={{ color:'#fff', fontSize:40, fontWeight:'900', marginBottom:24 }}>BarkBuddy</Text>*/}
-
-      // app/index.tsx
-      // ...
+      
       <Pressable
-        // troque replace -> push
+    
         onPress={() => router.push('/auth/login')}
         style={{ backgroundColor: '#ececec', borderRadius: 16, padding: 14, width: '100%', marginBottom: 12 }}
       >
