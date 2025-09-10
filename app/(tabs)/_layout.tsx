@@ -95,6 +95,7 @@ export default function TabsLayout() {
         name="pet"
         options={{
           title: "Pet",
+          
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="paw" color={color} size={size} />
           ),
