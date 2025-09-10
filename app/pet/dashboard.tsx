@@ -1,20 +1,14 @@
 // app/pet/dashboard.tsx
 import { auth } from "@/services/firebase";
 import { getLastRecordsForPet, getMyPets } from "@/services/pets";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Dimensions, FlatList, Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { BarChart, LineChart } from "react-native-chart-kit";
 import DropDownPicker from "react-native-dropdown-picker";
 
 const screenWidth = Dimensions.get("window").width;
 
-import type { StackNavigationProp } from '@react-navigation/stack';
-
-type PetDashboardProps = {
-  navigation: StackNavigationProp<any>;
-};
-
-export default function PetDashboard({ navigation }: PetDashboardProps) {
+export default function PetDashboard() {
   const user = auth.currentUser;
   const uid = user?.uid;
 
@@ -88,20 +82,12 @@ export default function PetDashboard({ navigation }: PetDashboardProps) {
     propsForDots: { r: "5", strokeWidth: "2", stroke: "#006B41" },
   };
 
-  // Configuração do cabeçalho
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      title: '', // Remove o título
-      headerLeft: () => (
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={{ fontSize: 20, color: '#006B41' }}>{"<"}</Text> {/* Ou qualquer ícone de voltar */}
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
-
   const dashboardContent = () => (
     <View style={{ padding: 16 }}>
+      <Text style={{ fontSize: 24, fontWeight: "800", color: "#006B41", marginBottom: 12 }}>
+        Dashboard do Pet
+      </Text>
+
       <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 6 }}>Selecione o pet</Text>
       <DropDownPicker
         open={open}
