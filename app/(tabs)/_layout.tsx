@@ -1,17 +1,35 @@
+//BarkBuddy\app\(tabs)\_layout.tsx
 import { auth } from "@/services/firebase";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, router } from "expo-router";
-import { Text, TouchableOpacity } from "react-native";
+import { Alert, Text, TouchableOpacity } from "react-native";
 import theme from "../../constants/theme";
 
 export default function TabsLayout() {
-  const logout = async () => {
-    try {
-      await auth.signOut();
-      router.replace("/auth/login");
-    } catch (e: any) {
-      console.error("Erro ao sair:", e.message);
-    }
+  const logout = () => {
+    Alert.alert(
+      "Sair da conta", 
+      "Deseja realmente sair da sua conta?", 
+      [
+        { 
+          text: "Cancelar", 
+          style: "cancel" 
+        },
+        {
+          text: "Sair",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await auth.signOut();
+              router.replace("/auth/login");
+            } catch (e: any) {
+              console.error("Erro ao sair:", e.message);
+              Alert.alert("Erro", "Não foi possível sair. Tente novamente.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (

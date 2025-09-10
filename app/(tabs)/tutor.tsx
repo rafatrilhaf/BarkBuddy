@@ -2,38 +2,48 @@
 import { auth } from "@/services/firebase";
 import { uploadPetImageLocal } from "@/services/pets";
 import { getUser, subscribeUser, updateUser, UserProfile } from "@/services/users";
+import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, Pressable, Text, TextInput, View } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import theme from "../../constants/theme";
 
 export default function Tutor() {
+  /* ───────────────────────────  auth / guards  ─────────────────────────── */
   const user = auth.currentUser;
   useEffect(() => {
-    if (!user) router.replace("/auth/login"); // protege rota
+    if (!user) router.replace("/auth/login");
   }, [user]);
 
   const uid = user?.uid;
   const [loading, setLoading] = useState(false);
 
-  // estado local do perfil
+  /* ───────────────────────  perfil realtime + edição  ───────────────────── */
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [editing, setEditing] = useState(false);
 
-  // campos editáveis
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
-  const [localPhotoUri, setLocalPhotoUri] = useState<string | null>(null); // preview local (before upload)
+  const [localPhotoUri, setLocalPhotoUri] = useState<string | null>(null);
 
-  // subscribe realtime ao doc do usuário
+  /* subscribe */
   useEffect(() => {
     if (!uid) return;
     const unsub = subscribeUser(uid, (u) => {
       setProfile(u);
-      if (!editing && u) { // atualiza campos se não estiver editando
+      if (!editing && u) {
         setName(u.name ?? "");
         setPhone(u.phone ?? "");
         setAddress(u.address ?? "");
@@ -43,17 +53,17 @@ export default function Tutor() {
     return unsub;
   }, [uid, editing]);
 
-  // caso não tenha doc, tenta criar a partir do auth (on demand)
+  /* cria doc se não existir */
   useEffect(() => {
     if (!uid) return;
     (async () => {
       const existing = await getUser(uid);
       if (!existing) {
-        const initial = {
+        const initial: UserProfile = {
           name: user?.displayName ?? "",
           email: user?.email ?? "",
-          photoUrl: user?.photoURL ?? ""
-        } as UserProfile;
+          photoUrl: "",
+        };
         await updateUser(uid, initial).catch(() => {});
         setProfile(initial);
         setName(initial.name ?? "");
@@ -62,6 +72,8 @@ export default function Tutor() {
     })();
   }, [uid]);
 
+  /* ─────────────────────────  handlers  ───────────────────────── */
+  /** escolhe nova imagem */
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -74,11 +86,25 @@ export default function Tutor() {
       quality: 0.8,
       aspect: [1, 1],
     });
-    if (!res.canceled) {
-      setLocalPhotoUri(res.assets[0].uri);
-    }
+    if (!res.canceled) setLocalPhotoUri(res.assets[0].uri);
   };
 
+  /** remove foto atual */
+  const removePhoto = () => {
+    Alert.alert("Remover foto", "Tem certeza?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Remover",
+        style: "destructive",
+        onPress: () => {
+          setLocalPhotoUri(null);
+          updateUser(uid!, { photoUrl: "" }).catch(() => {});
+        },
+      },
+    ]);
+  };
+
+  /** salvar atualização */
   const onSave = async () => {
     if (!uid) return;
     if (!name.trim()) {
@@ -90,98 +116,132 @@ export default function Tutor() {
     try {
       let remotePhoto = profile?.photoUrl;
       if (localPhotoUri) {
-        // upload via seu backend Java (reaproveita uploadPetImageLocal)
-        const uploaded = await uploadPetImageLocal(localPhotoUri);
-        // uploadPetImageLocal deve retornar URL pública (ex: http://.../files/download/xxx)
-        remotePhoto = uploaded;
+        remotePhoto = await uploadPetImageLocal(localPhotoUri);
+        setLocalPhotoUri(null);
       }
 
-      // atualiza Firestore
       await updateUser(uid, {
         name: name.trim(),
         phone: phone.trim() || undefined,
         address: address.trim() || undefined,
         email: email.trim() || undefined,
-        photoUrl: remotePhoto || undefined,
+        photoUrl: remotePhoto || "",
       });
 
+      Alert.alert("Salvo", "Informações atualizadas.");
       setEditing(false);
-      setLocalPhotoUri(null);
-      Alert.alert("Salvo", "Informações atualizadas com sucesso.");
     } catch (err: any) {
-      console.error("Erro salvar perfil:", err);
-      Alert.alert("Erro", err?.message ?? "Falha ao salvar. Tente novamente.");
+      Alert.alert("Erro", err?.message ?? "Falha ao salvar.");
     } finally {
       setLoading(false);
     }
   };
 
-  const onEdit = () => {
-    // ativa edição e popula campos com info atual
-    setEditing(true);
-    setName(profile?.name ?? "");
-    setPhone(profile?.phone ?? "");
-    setAddress(profile?.address ?? "");
-    setEmail(profile?.email ?? (user?.email ?? ""));
+  const onCancel = () => {
+    setEditing(false);
+    setLocalPhotoUri(null);
   };
 
+  /* ────────────────────────────  UI  ──────────────────────────── */
+  const avatar = localPhotoUri || profile?.photoUrl;
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff", padding: 20 }}>
-      <Pressable
-        onPress={() => router.push("../web/about")}
-        style={{ position: "absolute", top: 12, right: 12, padding: 8, backgroundColor: theme.green, borderRadius: 999 }}
-      >
-        <Text style={{ color: "#fff" }}>💬</Text>
-      </Pressable>
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        {/* avatar + ações */}
+        <View style={{ alignItems: "center", marginTop: 30 }}>
+          <View style={{ position: "relative" }}>
+            {avatar ? (
+              <Image
+                source={{ uri: avatar }}
+                style={{ width: 140, height: 140, borderRadius: 100 }}
+              />
+            ) : (
+              <View
+                style={{
+                  width: 140,
+                  height: 140,
+                  borderRadius: 100,
+                  backgroundColor: "#e0e0e0",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons name="person" size={70} color="#9e9e9e" />
+              </View>
+            )}
 
-      <View style={{ alignItems: "center", marginTop: 8 }}>
-        <Pressable onPress={editing ? pickImage : undefined}>
-          <Image
-            source={{ uri: localPhotoUri || profile?.photoUrl || "https://i.pravatar.cc/300" }}
-            style={{ width: 140, height: 140, borderRadius: 100 }}
-          />
-          {editing && <Text style={{ textAlign: "center", marginTop: 8, color: theme.green }}>Trocar foto</Text>}
-        </Pressable>
-      </View>
+            {editing && (
+              <>
+                {/* editar foto */}
+                <Pressable
+                  onPress={pickImage}
+                  style={{
+                    position: "absolute",
+                    bottom: 4,
+                    right: 4,
+                    backgroundColor: theme.green,
+                    borderRadius: 20,
+                    padding: 6,
+                  }}
+                >
+                  <Ionicons name="pencil" color="#fff" size={16} />
+                </Pressable>
 
-      <View style={{ marginTop: 12 }}>
-        {/* Nome */}
-        <Text style={{ color: theme.green, fontSize: 20, fontWeight: "900", textAlign: "center" }}>{profile?.name ?? ""}</Text>
+                {/* remover foto */}
+                {avatar && (
+                  <Pressable
+                    onPress={removePhoto}
+                    style={{
+                      position: "absolute",
+                      bottom: 4,
+                      left: 4,
+                      backgroundColor: "#d32f2f",
+                      borderRadius: 20,
+                      padding: 6,
+                    }}
+                  >
+                    <Ionicons name="trash" color="#fff" size={16} />
+                  </Pressable>
+                )}
+              </>
+            )}
+          </View>
 
-        {/* Campos editáveis */}
-        <View style={{ gap: 10, marginTop: 16 }}>
+          <Text
+            style={{
+              color: theme.green,
+              fontSize: 20,
+              fontWeight: "900",
+              marginTop: 8,
+            }}
+          >
+            {profile?.name ?? ""}
+          </Text>
+        </View>
+
+        {/* campos formulario */}
+        <View style={{ gap: 12, marginTop: 24 }}>
           <TextInput
             value={name}
             onChangeText={setName}
             placeholder="Nome"
             editable={editing}
-            style={{
-              borderWidth: 1,
-              borderRadius: 12,
-              padding: 10,
-            }}
+            style={styles.input}
           />
           <TextInput
             value={phone}
             onChangeText={setPhone}
             placeholder="Telefone"
             editable={editing}
-            style={{
-              borderWidth: 1,
-              borderRadius: 12,
-              padding: 10,
-            }}
+            keyboardType="phone-pad"
+            style={styles.input}
           />
           <TextInput
             value={address}
             onChangeText={setAddress}
             placeholder="Endereço"
             editable={editing}
-            style={{
-              borderWidth: 1,
-              borderRadius: 12,
-              padding: 10,
-            }}
+            style={styles.input}
           />
           <TextInput
             value={email}
@@ -189,34 +249,57 @@ export default function Tutor() {
             placeholder="Email"
             editable={editing}
             keyboardType="email-address"
-            style={{
-              borderWidth: 1,
-              borderRadius: 12,
-              padding: 10,
-            }}
+            style={styles.input}
           />
         </View>
 
-        <View style={{ marginTop: 16 }}>
+        {/* botões inferiores */}
+        <View style={{ marginTop: 24, gap: 12 }}>
           {loading ? (
             <ActivityIndicator />
           ) : editing ? (
-            <Pressable
-              onPress={onSave}
-              style={{ backgroundColor: theme.green, padding: 14, borderRadius: 16 }}
-            >
-              <Text style={{ color: "#fff", fontWeight: "800", textAlign: "center" }}>Salvar</Text>
-            </Pressable>
+            <>
+              <Pressable
+                onPress={onSave}
+                style={[styles.btn, { backgroundColor: theme.green }]}
+              >
+                <Text style={styles.btnTxt}>Salvar</Text>
+              </Pressable>
+              <Pressable
+                onPress={onCancel}
+                style={[styles.btn, { backgroundColor: "#9e9e9e" }]}
+              >
+                <Text style={styles.btnTxt}>Cancelar</Text>
+              </Pressable>
+            </>
           ) : (
             <Pressable
-              onPress={onEdit}
-              style={{ backgroundColor: theme.green, padding: 14, borderRadius: 16 }}
+              onPress={() => setEditing(true)}
+              style={[styles.btn, { backgroundColor: theme.green }]}
             >
-              <Text style={{ color: "#fff", fontWeight: "800", textAlign: "center" }}>Editar informações</Text>
+              <Text style={styles.btnTxt}>Editar informações</Text>
             </Pressable>
           )}
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
+
+const styles = {
+  input: {
+    borderWidth: 1,
+    borderColor: "#cfcfcf",
+    borderRadius: 12,
+    padding: 12,
+  },
+  btn: {
+    padding: 14,
+    borderRadius: 16,
+  },
+  btnTxt: {
+    color: "#fff",
+    fontWeight: "800",
+    textAlign: "center",
+  },
+} as const;
