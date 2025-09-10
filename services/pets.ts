@@ -13,6 +13,7 @@ import {
   serverTimestamp,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { Platform } from "react-native";
 import { db } from "./firebase";
@@ -43,6 +44,7 @@ export type PetLocation = {
   latitude: number;
   longitude: number;
   address?: string | null;
+  accuracy?: number | null; // ✅ ADICIONADO: campo accuracy
   updatedAt?: any; // timestamp do Firestore
   createdAt?: any; // para subcoleções
 };
@@ -125,6 +127,7 @@ export const addPetLocation = async (petId: string, loc: PetLocation) => {
     latitude: loc.latitude,
     longitude: loc.longitude,
     address: loc.address ?? null,
+    accuracy: loc.accuracy ?? null, // ✅ ADICIONADO: accuracy
     createdAt: serverTimestamp(),
   });
 };
@@ -219,5 +222,54 @@ export const getLastRecordForType = async (
     if (ss.empty) return null;
     const d = ss.docs[0];
     return { id: d.id, ...d.data() };
+  }
+};
+
+// ✅ === SCRIPT DE MIGRAÇÃO ===
+// Execute uma vez para adicionar o campo accuracy em documentos existentes
+export const migrateAccuracyField = async () => {
+  try {
+    console.log("🔄 Iniciando migração do campo accuracy...");
+    
+    const snapshot = await getDocs(col);
+    const batch = writeBatch(db);
+    let updatedCount = 0;
+
+    snapshot.forEach((document) => {
+      const data = document.data();
+      
+      // Se o pet tem lastLocation mas não tem accuracy
+      if (data.lastLocation && data.lastLocation.accuracy === undefined) {
+        batch.update(document.ref, {
+          "lastLocation.accuracy": null // Define como null por padrão
+        });
+        updatedCount++;
+      }
+    });
+
+    if (updatedCount > 0) {
+      await batch.commit();
+      console.log(`✅ Migração concluída: ${updatedCount} pets atualizados com campo accuracy`);
+      return {
+        success: true,
+        message: `${updatedCount} pets atualizados com sucesso`,
+        updatedCount
+      };
+    } else {
+      console.log("ℹ️ Nenhum pet precisava de migração");
+      return {
+        success: true,
+        message: "Nenhum pet precisava de migração",
+        updatedCount: 0
+      };
+    }
+    
+  } catch (error) {
+    console.error("❌ Erro na migração:", error);
+    return {
+      success: false,
+      message: `Erro na migração: ${error}`,
+      updatedCount: 0
+    };
   }
 };

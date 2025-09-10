@@ -238,6 +238,14 @@ export default function PetTab() {
   const toggleExpand = (id: string) =>
     setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
 
+  // ✅ ADIÇÃO 1: Função para navegar para tela de adicionar coleira
+  const addCollarToPet = (petId: string, petName: string) => {
+    router.push({
+      pathname: "/pet/addCollar",
+      params: { petId, petName }
+    });
+  };
+
   /* ------------------------- ✅ SPEED DIAL MELHORADO ------------------------- */
   const [dialOpen, setDialOpen] = useState(false);
   const anim = useRef(new Animated.Value(0)).current;
@@ -574,12 +582,18 @@ export default function PetTab() {
                       </Text>
                     </View>
 
-                    <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
+                    {/* ✅ ADIÇÃO 2: Botões com o novo botão Adicionar Coleira */}
+                    <View style={{ flexDirection: "row", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
                       <TouchableOpacity onPress={() => startEdit(item)}>
                         <Text style={link}>Editar</Text>
                       </TouchableOpacity>
                       <TouchableOpacity onPress={() => remove(item.id)}>
                         <Text style={[link, { color: "crimson" }]}>Excluir</Text>
+                      </TouchableOpacity>
+                      
+                      {/* ✅ NOVO BOTÃO: Adicionar Coleira */}
+                      <TouchableOpacity onPress={() => addCollarToPet(item.id!, item.name!)}>
+                        <Text style={[link, { color: "#0c6b41" }]}>🔗 Adicionar Coleira</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -916,5 +930,5 @@ export default function PetTab() {
   );
 }
 
-const input = { borderWidth: 1, borderRadius: 8, padding: 10 } as const;
-const link = { color: "#2563eb", fontWeight: "600" } as const;
+        const input = { borderWidth: 1, borderRadius: 8, padding: 10 } as const;
+        const link = { color: "#2563eb", fontWeight: "600" } as const;
