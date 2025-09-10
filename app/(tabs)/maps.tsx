@@ -1,14 +1,43 @@
-// app/(tabs)/Localizacao.tsx
+// app/(tabs)/Localizacao.tsx - VERSÃO FINAL COMPLETA
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from "expo-location";
-import { serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Linking,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
+} from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import MapView, { Circle, Marker, UrlTile } from "react-native-maps";
 
-import { auth } from "@/services/firebase";
+import { auth, db } from "@/services/firebase";
 import { subscribeMyPets, updatePet } from "services/pets";
+
+// ================== INTERFACES ==================
+interface GeofenceZone {
+  id: string;
+  name: string;
+  center: {
+    latitude: number;
+    longitude: number;
+  };
+  radius: number;
+  color: string;
+  type: 'circle' | 'polygon';
+  coordinates?: Array<{ latitude: number; longitude: number }>;
+  createdAt: any;
+  petId: string;
+}
 
 type LastLocation = {
   latitude: number;
@@ -25,6 +54,7 @@ type TrackablePet = {
   lastLocation: LastLocation;
 };
 
+// ================== CONSTANTES ==================
 const FALLBACK_REGION = {
   latitude: -23.006,
   longitude: -46.841,
@@ -33,6 +63,24 @@ const FALLBACK_REGION = {
 };
 
 const OSM_TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+// ================== FUNÇÕES UTILITÁRIAS ==================
+function calculateDistance(point1: { latitude: number; longitude: number }, point2: { latitude: number; longitude: number }): number {
+  const R = 6371000;
+  const dLat = (point2.latitude - point1.latitude) * Math.PI / 180;
+  const dLon = (point2.longitude - point1.longitude) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(point1.latitude * Math.PI / 180) * Math.cos(point2.latitude * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function isInsideZone(petLocation: { latitude: number; longitude: number }, zone: GeofenceZone): boolean {
+  const distance = calculateDistance(petLocation, zone.center);
+  return distance <= zone.radius;
+}
 
 function toRegion(loc: LastLocation) {
   if (!loc) return FALLBACK_REGION;
@@ -84,6 +132,7 @@ function timeAgo(val: any): string {
   return `${days} dias atrás`;
 }
 
+// ================== COMPONENTE PRINCIPAL ==================
 export default function Localizacao() {
   const uid = auth?.currentUser?.uid;
   const [pets, setPets] = useState<TrackablePet[]>([]);
@@ -92,87 +141,138 @@ export default function Localizacao() {
   const [isRealtime, setIsRealtime] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [mapReady, setMapReady] = useState(false);
-  const [isCentered, setIsCentered] = useState(false); // ✅ NOVO: estado do botão centralizar
+  const [isCentered, setIsCentered] = useState(false);
+
+  // Estados para Geofencing
+  const [zones, setZones] = useState<GeofenceZone[]>([]);
+  const [creatingZone, setCreatingZone] = useState(false);
+  const [newZoneCenter, setNewZoneCenter] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [newZoneRadius, setNewZoneRadius] = useState(100);
+  const [zoneModalVisible, setZoneModalVisible] = useState(false);
+  const [zoneName, setZoneName] = useState("");
+  const [selectedZoneColor, setSelectedZoneColor] = useState("#22C55E");
+  const [showZoneManager, setShowZoneManager] = useState(false);
 
   // Dropdown
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<{ label: string; value: string }[]>([]);
 
-  // Interval ref
+  // Referencias
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mapRef = useRef<MapView>(null);
 
+  // Computadas
   const selected = useMemo(() => pets.find((p) => p.id === selectedId), [pets, selectedId]);
   const region = useMemo(() => toRegion(selected?.lastLocation ?? null), [selected]);
-  
-  const updatedText = useMemo(() => {
-    const timeAgoText = timeAgo(selected?.lastLocation?.updatedAt);
-    const fmtText = fmtDateTime(selected?.lastLocation?.updatedAt);
-    return fmtText === "—" ? "Sem atualização ainda" : `${timeAgoText} • ${fmtText}`;
-  }, [selected]);
-  
-  const address = selected?.lastLocation?.address;
 
-  // Funções de controle de refresh
-  function stopAutoRefresh() {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setIsRealtime(false);
-  }
-
-  function startAutoRefresh(ms: number) {
-    stopAutoRefresh();
-    intervalRef.current = setInterval(fetchAndUpdateLocation, ms);
-  }
-
-  async function fetchAndUpdateLocation() {
-    if (!selected?.id) return;
-    
-    try {
-      setLocationLoading(true);
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permissão necessária", "Autorize o acesso à localização para rastrear seu pet.");
-        return;
-      }
-      
-      const loc = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
-
-      // ✅ Tratamento robusto do accuracy
-      const locationData: any = {
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
-        updatedAt: serverTimestamp(),
+  // ✅ NOVO: Status inteligente baseado em zona
+  const petLocationStatus = useMemo(() => {
+    if (!selected?.lastLocation || zones.length === 0) {
+      return {
+        text: fmtDateTime(selected?.lastLocation?.updatedAt) === "—" 
+          ? "Sem localização ainda" 
+          : `Última vez visto ${timeAgo(selected?.lastLocation?.updatedAt)}`,
+        inZone: false,
+        zoneName: null
       };
-
-      if (typeof loc.coords.accuracy === 'number' && loc.coords.accuracy > 0) {
-        locationData.accuracy = loc.coords.accuracy;
-      }
-
-      await updatePet(selected.id, {
-        lastLocation: locationData,
-      });
-
-      if (mapRef.current && mapReady) {
-        mapRef.current.animateToRegion({
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-          latitudeDelta: 0.005,
-          longitudeDelta: 0.005,
-        }, 1000);
-      }
-
-    } catch (e) {
-      console.error("Erro ao atualizar localização", e);
-      Alert.alert("Erro", "Não foi possível obter a localização. Verifique se o GPS está ativado.");
-    } finally {
-      setLocationLoading(false);
     }
-  }
+
+    // Verificar se está dentro de alguma zona
+    const currentZone = zones.find(zone => 
+      isInsideZone(selected.lastLocation!, zone)
+    );
+
+    if (currentZone) {
+      const timeAgoText = timeAgo(selected.lastLocation.updatedAt);
+      return {
+        text: `🏠 Em "${currentZone.name}" • ${timeAgoText}`,
+        inZone: true,
+        zoneName: currentZone.name
+      };
+    } else {
+      const timeAgoText = timeAgo(selected.lastLocation.updatedAt);
+      const fmtText = fmtDateTime(selected.lastLocation.updatedAt);
+      return {
+        text: fmtText === "—" ? "Sem localização ainda" : `📍 Fora das zonas • ${timeAgoText}`,
+        inZone: false,
+        zoneName: null
+      };
+    }
+  }, [selected, zones]);
+
+  // Cores disponíveis para zonas
+  const zoneColors = [
+    { name: "Verde", value: "#22C55E" },
+    { name: "Azul", value: "#3B82F6" },
+    { name: "Vermelho", value: "#EF4444" },
+    { name: "Amarelo", value: "#F59E0B" },
+    { name: "Roxo", value: "#8B5CF6" },
+    { name: "Rosa", value: "#EC4899" }
+  ];
+
+  // ================== FUNÇÕES DE UI ==================
+  
+  const startCreatingZone = () => {
+    setCreatingZone(true);
+    Alert.alert(
+      "Criar Zona Segura",
+      "Toque no mapa para definir o centro da zona segura.",
+      [
+        { 
+          text: "Cancelar", 
+          onPress: () => {
+            setCreatingZone(false);
+            setNewZoneCenter(null);
+            setZoneName("");
+            setNewZoneRadius(100);
+            setSelectedZoneColor("#22C55E");
+          }
+        },
+        { text: "OK" }
+      ]
+    );
+  };
+
+  const resetZoneCreation = () => {
+    setZoneModalVisible(false);
+    setCreatingZone(false);
+    setNewZoneCenter(null);
+    setZoneName("");
+    setNewZoneRadius(100);
+    setSelectedZoneColor("#22C55E");
+  };
+
+  const cancelZoneCreation = () => {
+    resetZoneCreation();
+  };
+
+  const handleMapPress = (event: any) => {
+    if (creatingZone) {
+      setNewZoneCenter(event.nativeEvent.coordinate);
+      setZoneModalVisible(true);
+    }
+  };
+
+  const confirmCreateZone = async () => {
+    if (!newZoneCenter || !zoneName.trim()) {
+      Alert.alert("Erro", "Informe um nome para a zona.");
+      return;
+    }
+
+    const newZone: Omit<GeofenceZone, 'id'> = {
+      name: zoneName.trim(),
+      center: newZoneCenter,
+      radius: newZoneRadius,
+      color: selectedZoneColor,
+      type: 'circle',
+      petId: selectedId!,
+      createdAt: new Date().toISOString()
+    };
+
+    await saveZone(newZone);
+    resetZoneCreation();
+    Alert.alert("✅ Sucesso", `Zona "${zoneName.trim()}" criada com sucesso!`);
+  };
 
   async function openMaps() {
     if (!selected?.lastLocation) {
@@ -205,11 +305,10 @@ export default function Localizacao() {
     );
   }
 
-  // ✅ MELHORADO: Centralizar com feedback visual
   function centerOnPet() {
     if (!selected?.lastLocation || !mapRef.current || !mapReady) return;
     
-    setIsCentered(true); // ✅ Ativa indicador visual
+    setIsCentered(true);
     
     mapRef.current.animateToRegion({
       latitude: selected.lastLocation.latitude,
@@ -218,7 +317,6 @@ export default function Localizacao() {
       longitudeDelta: 0.005,
     }, 1000);
 
-    // ✅ Remove indicador após 3 segundos
     setTimeout(() => {
       setIsCentered(false);
     }, 3000);
@@ -240,9 +338,9 @@ export default function Localizacao() {
           onPress: async () => {
             try {
               await updatePet(selected.id, { lost: newStatus });
-              Alert.alert("Sucesso", `${selected.name} marcado como ${action}.`);
-            } catch (e) {
-              Alert.alert("Erro", "Não foi possível atualizar o status.");
+              Alert.alert("✅ Sucesso", `${selected.name} marcado como ${action}.`);
+            } catch (e: any) {
+              Alert.alert("❌ Erro", "Não foi possível atualizar o status.");
             }
           }
         }
@@ -250,22 +348,188 @@ export default function Localizacao() {
     );
   }
 
-  // Lógica de atualização baseada no status
+  // ================== FUNÇÕES DE GEOFENCING ==================
+  const loadZones = async () => {
+    if (!selectedId || !uid) return;
+    
+    try {
+      const petZonesRef = doc(db, 'petZones', selectedId);
+      const petZonesSnap = await getDoc(petZonesRef);
+      
+      if (petZonesSnap.exists()) {
+        const data = petZonesSnap.data();
+        setZones(data.zones || []);
+      } else {
+        setZones([]);
+      }
+    } catch (error: any) {
+      console.error("Erro ao carregar zonas:", error);
+      setZones([]);
+    }
+  };
+
+  const saveZone = async (zone: Omit<GeofenceZone, 'id'>) => {
+    if (!selectedId || !uid) return;
+    
+    try {
+      const zoneWithId = {
+        ...zone,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString()
+      };
+
+      const currentZones = zones || [];
+      const updatedZones = [...currentZones, zoneWithId];
+
+      const docData = {
+        petId: selectedId,
+        userId: uid,
+        zones: updatedZones,
+        updatedAt: new Date().toISOString()
+      };
+
+      await setDoc(doc(db, 'petZones', selectedId), docData);
+      setZones(updatedZones);
+      
+    } catch (error: any) {
+      console.error("Erro ao salvar zona:", error);
+      Alert.alert("❌ Erro", `Falha ao salvar zona: ${error.message}`);
+    }
+  };
+
+  const deleteZone = async (zoneId: string) => {
+    if (!selectedId || !uid) return;
+    
+    try {
+      const updatedZones = zones.filter(zone => zone.id !== zoneId);
+      
+      await setDoc(doc(db, 'petZones', selectedId), {
+        petId: selectedId,
+        userId: uid,
+        zones: updatedZones,
+        updatedAt: new Date().toISOString()
+      });
+
+      setZones(updatedZones);
+      Alert.alert("✅ Sucesso", "Zona excluída!");
+    } catch (error: any) {
+      console.error("Erro ao excluir zona:", error);
+      Alert.alert("❌ Erro", `Não foi possível excluir: ${error.message}`);
+    }
+  };
+
+  const checkGeofencing = async (petLocation: { latitude: number; longitude: number }) => {
+    if (!selectedId || zones.length === 0) return;
+
+    for (const zone of zones) {
+      const isInside = isInsideZone(petLocation, zone);
+      const wasInside = selected?.lastLocation ? isInsideZone(selected.lastLocation, zone) : false;
+
+      if (isInside && !wasInside) {
+        Alert.alert(
+          "🟢 Pet entrou na zona segura",
+          `${selected?.name || 'Seu pet'} entrou na zona "${zone.name}"`,
+          [{ text: "OK" }]
+        );
+      } else if (!isInside && wasInside) {
+        Alert.alert(
+          "🔴 Pet saiu da zona segura",
+          `${selected?.name || 'Seu pet'} saiu da zona "${zone.name}"`,
+          [{ text: "OK" }]
+        );
+      }
+    }
+  };
+
+  // ================== FUNÇÕES DE LOCALIZAÇÃO ==================
+  function stopAutoRefresh() {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setIsRealtime(false);
+  }
+
+  function startAutoRefresh(ms: number) {
+    stopAutoRefresh();
+    intervalRef.current = setInterval(fetchAndUpdateLocation, ms);
+  }
+
+  async function fetchAndUpdateLocation() {
+    if (!selected?.id) return;
+    
+    try {
+      setLocationLoading(true);
+      
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permissão necessária", "Autorize o acesso à localização para rastrear seu pet.");
+        return;
+      }
+      
+      const loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      const newLocation = {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude
+      };
+
+      await checkGeofencing(newLocation);
+
+      const locationData = {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+        updatedAt: serverTimestamp(),
+        address: null,
+        accuracy: typeof loc.coords.accuracy === 'number' && loc.coords.accuracy > 0 
+          ? loc.coords.accuracy 
+          : null
+      };
+
+      await updatePet(selected.id, {
+        lastLocation: locationData,
+      });
+        
+      if (mapRef.current && mapReady) {
+        mapRef.current.animateToRegion({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        }, 1000);
+      }
+
+    } catch (e: any) {
+      console.error("Erro ao obter localização:", e);
+      Alert.alert("❌ Erro GPS", "Não foi possível obter a localização. Verifique se o GPS está ativado.");
+    } finally {
+      setLocationLoading(false);
+    }
+  }
+
+  // ================== EFFECTS ==================
   useEffect(() => {
     if (!selected?.id) return;
 
     fetchAndUpdateLocation();
 
     if (!selected.lost) {
-      startAutoRefresh(30 * 60 * 1000); // 30 min
+      startAutoRefresh(30 * 60 * 1000);
     } else {
-      startAutoRefresh(10 * 60 * 1000); // 10 min
+      startAutoRefresh(10 * 60 * 1000);
     }
 
     return () => stopAutoRefresh();
   }, [selected?.id, selected?.lost]);
 
-  // Inscrição nos pets
+  useEffect(() => {
+    if (selectedId) {
+      loadZones();
+    }
+  }, [selectedId]);
+
   useEffect(() => {
     if (!uid) {
       setLoading(false);
@@ -297,6 +561,7 @@ export default function Localizacao() {
     };
   }, [uid]);
 
+  // ================== ESTADOS DE LOADING ==================
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -326,9 +591,10 @@ export default function Localizacao() {
     );
   }
 
+  // ================== RENDER PRINCIPAL ==================
   return (
     <View style={styles.container}>
-      {/* ✅ HEADER MELHORADO: dropdown e botão com mesma altura */}
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.dropdownContainer}>
           <DropDownPicker
@@ -338,11 +604,13 @@ export default function Localizacao() {
             setOpen={setOpen}
             setValue={setSelectedId}
             setItems={setItems}
-            containerStyle={{ height: 46 }} // ✅ Altura aumentada
+            containerStyle={{ height: 46 }}
             style={styles.dropdown}
             dropDownContainerStyle={styles.dropdownList}
             textStyle={styles.dropdownText}
             placeholder="Selecione um pet"
+            closeAfterSelecting={true}
+            searchable={false}
           />
         </View>
 
@@ -361,7 +629,36 @@ export default function Localizacao() {
         )}
       </View>
 
-      {/* Mapa com OpenStreetMap */}
+      {/* ✅ BARRA DE FERRAMENTAS LIMPA */}
+      <View style={styles.geofenceToolbar}>
+        <Pressable
+          onPress={startCreatingZone}
+          style={[styles.toolbarButton, creatingZone && styles.toolbarButtonActive]}
+        >
+          <Ionicons name="add-circle" size={20} color={creatingZone ? "#fff" : "#006B41"} />
+          <Text style={[styles.toolbarButtonText, creatingZone && styles.toolbarButtonTextActive]}>
+            {creatingZone ? "Toque no mapa" : "Nova Zona"}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setShowZoneManager(!showZoneManager)}
+          style={[styles.toolbarButton, { backgroundColor: showZoneManager ? "#F3F4F6" : "transparent" }]}
+        >
+          <Ionicons name="settings" size={20} color="#006B41" />
+          <Text style={styles.toolbarButtonText}>
+            Gerenciar ({zones.length})
+          </Text>
+        </Pressable>
+
+        {zones.length > 0 && (
+          <View style={styles.zoneCounter}>
+            <Text style={styles.zoneCounterText}>{zones.length} zona{zones.length !== 1 ? 's' : ''}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Mapa */}
       <View style={styles.mapContainer}>
         {!mapReady && (
           <View style={styles.mapLoading}>
@@ -378,6 +675,7 @@ export default function Localizacao() {
           showsUserLocation={true}
           showsMyLocationButton={false}
           onMapReady={() => setMapReady(true)}
+          onPress={handleMapPress}
           mapType="none"
         >
           <UrlTile
@@ -386,6 +684,7 @@ export default function Localizacao() {
             flipY={false}
           />
 
+          {/* Pet marker */}
           {selected?.lastLocation && (
             <>
               <Marker
@@ -394,8 +693,11 @@ export default function Localizacao() {
                   longitude: selected.lastLocation.longitude 
                 }}
                 title={selected?.name ? `${selected.name} está aqui!` : "Seu pet está aqui!"}
-                description={updatedText}
-                pinColor={selected.lost ? "#DC2626" : "#22C55E"}
+                description={petLocationStatus.inZone 
+                  ? `🏠 Zona segura: ${petLocationStatus.zoneName}` 
+                  : "📍 Fora das zonas seguras"
+                }
+                pinColor={selected.lost ? "#DC2626" : petLocationStatus.inZone ? "#22C55E" : "#F59E0B"}
               />
               
               {selected.lastLocation.accuracy && (
@@ -412,23 +714,50 @@ export default function Localizacao() {
               )}
             </>
           )}
+
+          {/* Zonas de geofencing */}
+          {zones.map(zone => (
+            <Circle
+              key={zone.id}
+              center={zone.center}
+              radius={zone.radius}
+              fillColor={`${zone.color}20`}
+              strokeColor={zone.color}
+              strokeWidth={2}
+            />
+          ))}
+
+          {/* Preview da nova zona */}
+          {newZoneCenter && creatingZone && (
+            <Circle
+              center={newZoneCenter}
+              radius={newZoneRadius}
+              fillColor={`${selectedZoneColor}30`}
+              strokeColor={selectedZoneColor}
+              strokeWidth={2}
+            />
+          )}
         </MapView>
       </View>
 
-      {/* Painel inferior */}
+      {/* ✅ PAINEL INFERIOR MELHORADO */}
       <View style={styles.bottomPanel}>
         <View style={styles.statusRow}>
           <Text style={[styles.statusIndicator, { 
-            color: selected?.lost ? "#DC2626" : "#22C55E" 
+            color: selected?.lost ? "#DC2626" : petLocationStatus.inZone ? "#22C55E" : "#F59E0B" 
           }]}>
-            {selected?.lost ? "🚨 Pet perdido" : "✅ Pet seguro"}
+            {selected?.lost 
+              ? "🚨 Pet perdido" 
+              : petLocationStatus.inZone 
+                ? `🏠 Em zona segura` 
+                : "⚠️ Fora das zonas"
+            }
           </Text>
           {locationLoading && <ActivityIndicator size="small" color="#666" />}
         </View>
         
-        <Text style={styles.updatedText}>{updatedText}</Text>
+        <Text style={styles.updatedText}>{petLocationStatus.text}</Text>
 
-        {/* ✅ BOTÕES DE AÇÃO MELHORADOS */}
         <View style={styles.actionRow}>
           <Pressable 
             onPress={fetchAndUpdateLocation} 
@@ -441,10 +770,9 @@ export default function Localizacao() {
             </Text>
           </Pressable>
 
-          {/* ✅ BOTÃO CENTRALIZAR MELHORADO com indicador visual */}
           <Pressable onPress={centerOnPet} style={[
             styles.actionButton,
-            isCentered && styles.actionButtonActive // ✅ Estilo ativo
+            isCentered && styles.actionButtonActive
           ]}>
             <Ionicons 
               name={isCentered ? "radio-button-on" : "locate"} 
@@ -498,11 +826,180 @@ export default function Localizacao() {
           Mapas fornecidos por OpenStreetMap
         </Text>
       </View>
+
+      {/* ✅ MODAL MELHORADO PARA CRIAR ZONA */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={zoneModalVisible}
+        onRequestClose={cancelZoneCreation}
+      >
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalContainer}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Nova Zona Segura</Text>
+              <Pressable onPress={cancelZoneCreation} style={styles.modalCloseButton}>
+                <Ionicons name="close" size={24} color="#666" />
+              </Pressable>
+            </View>
+            
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalLabel}>Nome da zona:</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Ex: Casa, Parque, Veterinário"
+                value={zoneName}
+                onChangeText={setZoneName}
+                autoFocus
+                maxLength={30}
+              />
+
+              <Text style={styles.modalLabel}>Raio da zona ({newZoneRadius}m):</Text>
+              <View style={styles.radiusContainer}>
+                {[50, 100, 200, 500].map(radius => (
+                  <Pressable
+                    key={radius}
+                    onPress={() => setNewZoneRadius(radius)}
+                    style={[
+                      styles.radiusButton,
+                      { backgroundColor: newZoneRadius === radius ? "#006B41" : "#F3F4F6" }
+                    ]}
+                  >
+                    <Text style={[
+                      styles.radiusButtonText,
+                      { color: newZoneRadius === radius ? "#fff" : "#374151" }
+                    ]}>
+                      {radius}m
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <Text style={styles.modalLabel}>Cor da zona:</Text>
+              <View style={styles.colorContainer}>
+                {zoneColors.map(color => (
+                  <Pressable
+                    key={color.value}
+                    onPress={() => setSelectedZoneColor(color.value)}
+                    style={[
+                      styles.colorButton,
+                      { backgroundColor: color.value },
+                      selectedZoneColor === color.value && styles.colorButtonSelected
+                    ]}
+                  >
+                    {selectedZoneColor === color.value && (
+                      <Ionicons name="checkmark" size={16} color="#fff" />
+                    )}
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalButtons}>
+              <Pressable
+                onPress={cancelZoneCreation}
+                style={[styles.modalButton, styles.modalButtonSecondary]}
+              >
+                <Text style={styles.modalButtonTextSecondary}>Cancelar</Text>
+              </Pressable>
+              <Pressable
+                onPress={confirmCreateZone}
+                style={[styles.modalButton, styles.modalButtonPrimary]}
+                disabled={!zoneName.trim()}
+              >
+                <Text style={[
+                  styles.modalButtonTextPrimary,
+                  !zoneName.trim() && { opacity: 0.5 }
+                ]}>
+                  Criar Zona
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* ✅ MODAL MELHORADO DE GERENCIAMENTO */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showZoneManager}
+        onRequestClose={() => setShowZoneManager(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={[styles.modalContent, { maxHeight: '80%' }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Zonas Seguras</Text>
+              <Pressable 
+                onPress={() => setShowZoneManager(false)} 
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </Pressable>
+            </View>
+            
+            {zones.length === 0 ? (
+              <View style={styles.noZonesContainer}>
+                <Ionicons name="location-outline" size={64} color="#D1D5DB" />
+                <Text style={styles.noZonesText}>Nenhuma zona criada</Text>
+                <Text style={styles.noZonesSubtitle}>
+                  Crie zonas seguras para monitorar automaticamente quando seu pet entra ou sai de áreas importantes
+                </Text>
+              </View>
+            ) : (
+              <ScrollView showsVerticalScrollIndicator={false} style={styles.zonesList}>
+                {zones.map(zone => (
+                  <View key={zone.id} style={styles.zoneItem}>
+                    <View style={[styles.zoneColorIndicator, { backgroundColor: zone.color }]} />
+                    <View style={styles.zoneInfo}>
+                      <Text style={styles.zoneName}>{zone.name}</Text>
+                      <Text style={styles.zoneDetails}>
+                        📏 {zone.radius}m de raio
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={() => {
+                        Alert.alert(
+                          "Excluir zona",
+                          `Tem certeza que deseja excluir a zona "${zone.name}"?\n\nEsta ação não pode ser desfeita.`,
+                          [
+                            { text: "Cancelar", style: "cancel" },
+                            { 
+                              text: "Excluir", 
+                              style: "destructive", 
+                              onPress: () => deleteZone(zone.id) 
+                            }
+                          ]
+                        );
+                      }}
+                      style={styles.deleteButton}
+                    >
+                      <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                    </Pressable>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+
+            <View style={styles.modalButtons}>
+              <Pressable
+                onPress={() => setShowZoneManager(false)}
+                style={[styles.modalButton, styles.modalButtonPrimary, { flex: 1 }]}
+              >
+                <Text style={styles.modalButtonTextPrimary}>Fechar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
-// ✅ STYLES ATUALIZADOS
+// ================== ESTILOS ATUALIZADOS ==================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -539,16 +1036,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     marginBottom: 8,
-    gap: 12, // ✅ Espaçamento aumentado
+    gap: 12,
   },
   dropdownContainer: {
-    flex: 1, // ✅ Ocupa espaço restante
+    flex: 1,
   },
   dropdown: {
     backgroundColor: "#fafafa",
     borderColor: "#006B41",
     borderRadius: 12,
-    height: 46, // ✅ Mesma altura do botão
+    height: 46,
   },
   dropdownList: {
     borderColor: "#006B41",
@@ -560,18 +1057,62 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   statusButton: {
-    paddingHorizontal: 16, // ✅ Largura aumentada
-    paddingVertical: 12,   // ✅ Altura aumentada
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 12,
-    width: 120, // ✅ Largura fixa
-    height: 46, // ✅ Mesma altura do dropdown
+    width: 120,
+    height: 46,
     alignItems: "center",
     justifyContent: "center",
   },
   statusButtonText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: 13, // ✅ Fonte ligeiramente maior
+    fontSize: 13,
+  },
+  geofenceToolbar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#F9FAFB",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  toolbarButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#006B41",
+    marginRight: 12,
+  },
+  toolbarButtonActive: {
+    backgroundColor: "#006B41",
+  },
+  toolbarButtonText: {
+    marginLeft: 6,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#006B41",
+  },
+  toolbarButtonTextActive: {
+    color: "#fff",
+  },
+  zoneCounter: {
+    marginLeft: "auto",
+    backgroundColor: "#E8F5EE",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  zoneCounterText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#006B41",
   },
   mapContainer: {
     flex: 1,
@@ -616,6 +1157,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#666",
     fontSize: 14,
+    lineHeight: 20,
   },
   actionRow: {
     flexDirection: "row",
@@ -634,7 +1176,6 @@ const styles = StyleSheet.create({
     borderColor: "#006B41",
     gap: 4,
   },
-  // ✅ NOVO: Estilo ativo para botão centralizar
   actionButtonActive: {
     backgroundColor: "#e8f5ee",
     borderColor: "#22C55E",
@@ -644,7 +1185,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 12,
   },
-  // ✅ NOVO: Texto ativo para botão centralizar
   actionButtonTextActive: {
     color: "#22C55E",
   },
@@ -667,5 +1207,161 @@ const styles = StyleSheet.create({
     color: "#999",
     fontSize: 11,
     marginTop: 4,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 20,
+    width: "92%",
+    maxHeight: "85%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1F2937",
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    backgroundColor: "#F9FAFB",
+  },
+  radiusContainer: {
+    flexDirection: "row",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  radiusButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  radiusButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  colorContainer: {
+    flexDirection: "row",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  colorButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  colorButtonSelected: {
+    borderWidth: 3,
+    borderColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 24,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  modalButtonPrimary: {
+    backgroundColor: "#006B41",
+  },
+  modalButtonSecondary: {
+    backgroundColor: "#F3F4F6",
+  },
+  modalButtonTextPrimary: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  modalButtonTextSecondary: {
+    color: "#374151",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  noZonesContainer: {
+    alignItems: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+  },
+  noZonesText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#6B7280",
+    marginTop: 16,
+    textAlign: "center",
+  },
+  noZonesSubtitle: {
+    fontSize: 14,
+    color: "#9CA3AF",
+    textAlign: "center",
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  zonesList: {
+    maxHeight: 400,
+  },
+  zoneItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  zoneColorIndicator: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginRight: 16,
+  },
+  zoneInfo: {
+    flex: 1,
+  },
+  zoneName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1F2937",
+    marginBottom: 2,
+  },
+  zoneDetails: {
+    fontSize: 14,
+    color: "#6B7280",
+  },
+  deleteButton: {
+    padding: 12,
   },
 });
