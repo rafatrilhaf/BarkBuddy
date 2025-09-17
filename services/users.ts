@@ -15,8 +15,8 @@ export type UserProfile = {
 // 🔧 Configura BASE_URL para qualquer dispositivo na mesma rede
 const BASE_URL =
   Platform.OS === "android"
-    ? "http://192.168.1.185:8080" // ⚠️ Coloque o IP da sua máquina
-    : "http://192.168.1.185:8080";
+    ? "http://192.168.1.172:8080" // ⚠️ Coloque o IP da sua máquina
+    : "http://192.168.1.172:8080";
 
 export async function uploadUserPhoto(uri: string) {
   // Compressão simples

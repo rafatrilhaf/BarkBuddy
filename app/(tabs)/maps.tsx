@@ -1,4 +1,4 @@
-// app/(tabs)/Localizacao.tsx - VERSÃO FINAL COMPLETA
+// app/(tabs)/Localizacao.tsx - VERSÃO HÍBRIDA WebView Android + MapView iOS
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from "expo-location";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
@@ -18,7 +18,8 @@ import {
   View
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
-import MapView, { Circle, Marker, UrlTile } from "react-native-maps";
+import MapView, { Circle, Marker } from "react-native-maps";
+import { WebView } from 'react-native-webview';
 
 import { auth, db } from "@/services/firebase";
 import { subscribeMyPets, updatePet } from "services/pets";
@@ -61,8 +62,6 @@ const FALLBACK_REGION = {
   latitudeDelta: 0.01,
   longitudeDelta: 0.01,
 };
-
-const OSM_TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 // ================== FUNÇÕES UTILITÁRIAS ==================
 function calculateDistance(point1: { latitude: number; longitude: number }, point2: { latitude: number; longitude: number }): number {
@@ -117,19 +116,122 @@ function fmtDateTime(val: any) {
 function timeAgo(val: any): string {
   const d = toDate(val);
   if (!d) return "Nunca";
-  
+
   const now = new Date();
   const diff = now.getTime() - d.getTime();
   const minutes = Math.floor(diff / (1000 * 60));
-  
+
   if (minutes < 1) return "Agora mesmo";
   if (minutes < 60) return `${minutes} min atrás`;
-  
+
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h atrás`;
-  
+
   const days = Math.floor(hours / 24);
   return `${days} dias atrás`;
+}
+
+// ✅ FUNÇÃO PARA GERAR HTML DO MAPA LEAFLET (ANDROID)
+function generateMapHTML(location: LastLocation, zones: GeofenceZone[]): string {
+  const lat = location?.latitude || FALLBACK_REGION.latitude;
+  const lng = location?.longitude || FALLBACK_REGION.longitude;
+
+  const zonesJS = zones.map(zone => ({
+    id: zone.id,
+    name: zone.name,
+    lat: zone.center.latitude,
+    lng: zone.center.longitude,
+    radius: zone.radius,
+    color: zone.color
+  }));
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; width: 100vw; }
+        .custom-div-icon {
+            background: none;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        // Inicializar mapa
+        var map = L.map('map').setView([${lat}, ${lng}], 16);
+
+        // Tile layer OpenStreetMap
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Marcador do pet
+        ${location ? `
+        var petIcon = L.divIcon({
+            html: '<div style="background: #F59E0B; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+            iconSize: [20, 20],
+            className: 'custom-div-icon'
+        });
+        L.marker([${lat}, ${lng}], {icon: petIcon})
+         .addTo(map)
+         .bindPopup('Seu pet está aqui!');
+        ` : ''}
+
+        // Zonas de segurança
+        var zones = ${JSON.stringify(zonesJS)};
+        zones.forEach(function(zone) {
+            L.circle([zone.lat, zone.lng], {
+                radius: zone.radius,
+                color: zone.color,
+                fillColor: zone.color,
+                fillOpacity: 0.2,
+                weight: 2
+            }).addTo(map).bindPopup('Zona: ' + zone.name);
+        });
+
+        // Comunicação com React Native
+        function sendMessage(type, data) {
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: type,
+                    data: data
+                }));
+            }
+        }
+
+        // Capturar cliques no mapa
+        map.on('click', function(e) {
+            sendMessage('mapPress', {
+                latitude: e.latlng.lat,
+                longitude: e.latlng.lng
+            });
+        });
+
+        // Centralizar no pet
+        function centerOnPet() {
+            map.setView([${lat}, ${lng}], 17);
+        }
+
+        // Adicionar zona (será chamado do React Native)
+        function addZone(zone) {
+            L.circle([zone.center.latitude, zone.center.longitude], {
+                radius: zone.radius,
+                color: zone.color,
+                fillColor: zone.color,
+                fillOpacity: 0.2,
+                weight: 2
+            }).addTo(map).bindPopup('Zona: ' + zone.name);
+        }
+    </script>
+</body>
+</html>`;
 }
 
 // ================== COMPONENTE PRINCIPAL ==================
@@ -160,12 +262,13 @@ export default function Localizacao() {
   // Referencias
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mapRef = useRef<MapView>(null);
+  const webViewRef = useRef<WebView>(null);
 
   // Computadas
   const selected = useMemo(() => pets.find((p) => p.id === selectedId), [pets, selectedId]);
   const region = useMemo(() => toRegion(selected?.lastLocation ?? null), [selected]);
 
-  // ✅ NOVO: Status inteligente baseado em zona
+  // Status inteligente baseado em zona
   const petLocationStatus = useMemo(() => {
     if (!selected?.lastLocation || zones.length === 0) {
       return {
@@ -177,7 +280,6 @@ export default function Localizacao() {
       };
     }
 
-    // Verificar se está dentro de alguma zona
     const currentZone = zones.find(zone => 
       isInsideZone(selected.lastLocation!, zone)
     );
@@ -210,8 +312,25 @@ export default function Localizacao() {
     { name: "Rosa", value: "#EC4899" }
   ];
 
+  // ✅ HANDLER PARA MENSAGENS DO WEBVIEW (ANDROID)
+  const handleWebViewMessage = (event: any) => {
+    try {
+      const message = JSON.parse(event.nativeEvent.data);
+
+      if (message.type === 'mapPress' && creatingZone) {
+        setNewZoneCenter({
+          latitude: message.data.latitude,
+          longitude: message.data.longitude
+        });
+        setZoneModalVisible(true);
+      }
+    } catch (e) {
+      console.error('Erro ao processar mensagem do WebView:', e);
+    }
+  };
+
   // ================== FUNÇÕES DE UI ==================
-  
+
   const startCreatingZone = () => {
     setCreatingZone(true);
     Alert.alert(
@@ -247,7 +366,7 @@ export default function Localizacao() {
   };
 
   const handleMapPress = (event: any) => {
-    if (creatingZone) {
+    if (creatingZone && Platform.OS === 'ios') {
       setNewZoneCenter(event.nativeEvent.coordinate);
       setZoneModalVisible(true);
     }
@@ -283,7 +402,7 @@ export default function Localizacao() {
     const lat = selected.lastLocation.latitude;
     const lng = selected.lastLocation.longitude;
     const label = encodeURIComponent(selected.name || "Pet");
-    
+
     Alert.alert(
       "Abrir mapa",
       "Escolha onde abrir a localização:",
@@ -306,16 +425,24 @@ export default function Localizacao() {
   }
 
   function centerOnPet() {
-    if (!selected?.lastLocation || !mapRef.current || !mapReady) return;
-    
+    if (!selected?.lastLocation) return;
+
     setIsCentered(true);
-    
-    mapRef.current.animateToRegion({
-      latitude: selected.lastLocation.latitude,
-      longitude: selected.lastLocation.longitude,
-      latitudeDelta: 0.005,
-      longitudeDelta: 0.005,
-    }, 1000);
+
+    if (Platform.OS === 'ios' && mapRef.current && mapReady) {
+      mapRef.current.animateToRegion({
+        latitude: selected.lastLocation.latitude,
+        longitude: selected.lastLocation.longitude,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      }, 1000);
+    } else if (Platform.OS === 'android' && webViewRef.current) {
+      // Centralizar no WebView
+      webViewRef.current.injectJavaScript(`
+        map.setView([${selected.lastLocation.latitude}, ${selected.lastLocation.longitude}], 17);
+        true;
+      `);
+    }
 
     setTimeout(() => {
       setIsCentered(false);
@@ -324,10 +451,10 @@ export default function Localizacao() {
 
   async function togglePetStatus() {
     if (!selected) return;
-    
+
     const newStatus = !selected.lost;
     const action = newStatus ? "perdido" : "encontrado";
-    
+
     Alert.alert(
       `Marcar como ${action}`, 
       `Deseja marcar ${selected.name} como ${action}?`,
@@ -351,11 +478,11 @@ export default function Localizacao() {
   // ================== FUNÇÕES DE GEOFENCING ==================
   const loadZones = async () => {
     if (!selectedId || !uid) return;
-    
+
     try {
       const petZonesRef = doc(db, 'petZones', selectedId);
       const petZonesSnap = await getDoc(petZonesRef);
-      
+
       if (petZonesSnap.exists()) {
         const data = petZonesSnap.data();
         setZones(data.zones || []);
@@ -370,7 +497,7 @@ export default function Localizacao() {
 
   const saveZone = async (zone: Omit<GeofenceZone, 'id'>) => {
     if (!selectedId || !uid) return;
-    
+
     try {
       const zoneWithId = {
         ...zone,
@@ -390,7 +517,7 @@ export default function Localizacao() {
 
       await setDoc(doc(db, 'petZones', selectedId), docData);
       setZones(updatedZones);
-      
+
     } catch (error: any) {
       console.error("Erro ao salvar zona:", error);
       Alert.alert("❌ Erro", `Falha ao salvar zona: ${error.message}`);
@@ -399,10 +526,10 @@ export default function Localizacao() {
 
   const deleteZone = async (zoneId: string) => {
     if (!selectedId || !uid) return;
-    
+
     try {
       const updatedZones = zones.filter(zone => zone.id !== zoneId);
-      
+
       await setDoc(doc(db, 'petZones', selectedId), {
         petId: selectedId,
         userId: uid,
@@ -457,16 +584,16 @@ export default function Localizacao() {
 
   async function fetchAndUpdateLocation() {
     if (!selected?.id) return;
-    
+
     try {
       setLocationLoading(true);
-      
+
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         Alert.alert("Permissão necessária", "Autorize o acesso à localização para rastrear seu pet.");
         return;
       }
-      
+
       const loc = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
@@ -491,8 +618,8 @@ export default function Localizacao() {
       await updatePet(selected.id, {
         lastLocation: locationData,
       });
-        
-      if (mapRef.current && mapReady) {
+
+      if (Platform.OS === 'ios' && mapRef.current && mapReady) {
         mapRef.current.animateToRegion({
           latitude: loc.coords.latitude,
           longitude: loc.coords.longitude,
@@ -629,7 +756,7 @@ export default function Localizacao() {
         )}
       </View>
 
-      {/* ✅ BARRA DE FERRAMENTAS LIMPA */}
+      {/* Barra de ferramentas */}
       <View style={styles.geofenceToolbar}>
         <Pressable
           onPress={startCreatingZone}
@@ -658,89 +785,102 @@ export default function Localizacao() {
         )}
       </View>
 
-      {/* Mapa */}
+      {/* ✅ MAPA HÍBRIDO: WEBVIEW NO ANDROID, MAPVIEW NO iOS */}
       <View style={styles.mapContainer}>
-        {!mapReady && (
-          <View style={styles.mapLoading}>
-            <ActivityIndicator size="large" color="#006B41" />
-            <Text style={styles.mapLoadingText}>Carregando mapa...</Text>
-          </View>
-        )}
-        
-        <MapView 
-          ref={mapRef}
-          key={selectedId ?? "osm-map"} 
-          style={styles.map} 
-          initialRegion={region}
-          showsUserLocation={true}
-          showsMyLocationButton={false}
-          onMapReady={() => setMapReady(true)}
-          onPress={handleMapPress}
-          mapType="none"
-        >
-          <UrlTile
-            urlTemplate={OSM_TILE_URL}
-            maximumZ={19}
-            flipY={false}
+        {Platform.OS === 'android' ? (
+          // Android: WebView com Leaflet
+          <WebView
+            ref={webViewRef}
+            source={{ html: generateMapHTML(selected?.lastLocation ?? null, zones) }}
+            style={styles.map}
+            onMessage={handleWebViewMessage}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            startInLoadingState={true}
+            renderLoading={() => (
+              <View style={styles.webViewLoading}>
+                <ActivityIndicator size="large" color="#006B41" />
+                <Text style={styles.loadingText}>Carregando mapa...</Text>
+              </View>
+            )}
           />
-
-          {/* Pet marker */}
-          {selected?.lastLocation && (
-            <>
-              <Marker
-                coordinate={{ 
-                  latitude: selected.lastLocation.latitude, 
-                  longitude: selected.lastLocation.longitude 
-                }}
-                title={selected?.name ? `${selected.name} está aqui!` : "Seu pet está aqui!"}
-                description={petLocationStatus.inZone 
-                  ? `🏠 Zona segura: ${petLocationStatus.zoneName}` 
-                  : "📍 Fora das zonas seguras"
-                }
-                pinColor={selected.lost ? "#DC2626" : petLocationStatus.inZone ? "#22C55E" : "#F59E0B"}
-              />
-              
-              {selected.lastLocation.accuracy && (
-                <Circle
-                  center={{
-                    latitude: selected.lastLocation.latitude,
-                    longitude: selected.lastLocation.longitude,
+        ) : (
+          // iOS: MapView nativo
+          <MapView 
+            ref={mapRef}
+            key={selectedId ?? "ios-map"} 
+            style={styles.map} 
+            initialRegion={region}
+            showsUserLocation={true}
+            showsMyLocationButton={false}
+            onMapReady={() => {
+              console.log("✅ iOS Map ready");
+              setMapReady(true);
+            }}
+            onPress={handleMapPress}
+            scrollEnabled={true}
+            zoomEnabled={true}
+            pitchEnabled={false}
+            rotateEnabled={false}
+          >
+            {/* Pet marker no iOS */}
+            {selected?.lastLocation && (
+              <>
+                <Marker
+                  coordinate={{ 
+                    latitude: selected.lastLocation.latitude, 
+                    longitude: selected.lastLocation.longitude 
                   }}
-                  radius={selected.lastLocation.accuracy}
-                  fillColor="rgba(0, 107, 65, 0.1)"
-                  strokeColor="rgba(0, 107, 65, 0.5)"
-                  strokeWidth={1}
+                  title={selected?.name ? `${selected.name} está aqui!` : "Seu pet está aqui!"}
+                  description={petLocationStatus.inZone 
+                    ? `🏠 Zona segura: ${petLocationStatus.zoneName}` 
+                    : "📍 Fora das zonas seguras"
+                  }
+                  pinColor={selected.lost ? "#DC2626" : petLocationStatus.inZone ? "#22C55E" : "#F59E0B"}
                 />
-              )}
-            </>
-          )}
 
-          {/* Zonas de geofencing */}
-          {zones.map(zone => (
-            <Circle
-              key={zone.id}
-              center={zone.center}
-              radius={zone.radius}
-              fillColor={`${zone.color}20`}
-              strokeColor={zone.color}
-              strokeWidth={2}
-            />
-          ))}
+                {selected.lastLocation.accuracy && (
+                  <Circle
+                    center={{
+                      latitude: selected.lastLocation.latitude,
+                      longitude: selected.lastLocation.longitude,
+                    }}
+                    radius={selected.lastLocation.accuracy}
+                    fillColor="rgba(0, 107, 65, 0.1)"
+                    strokeColor="rgba(0, 107, 65, 0.5)"
+                    strokeWidth={1}
+                  />
+                )}
+              </>
+            )}
 
-          {/* Preview da nova zona */}
-          {newZoneCenter && creatingZone && (
-            <Circle
-              center={newZoneCenter}
-              radius={newZoneRadius}
-              fillColor={`${selectedZoneColor}30`}
-              strokeColor={selectedZoneColor}
-              strokeWidth={2}
-            />
-          )}
-        </MapView>
+            {/* Zonas de geofencing no iOS */}
+            {zones.map(zone => (
+              <Circle
+                key={zone.id}
+                center={zone.center}
+                radius={zone.radius}
+                fillColor={`${zone.color}20`}
+                strokeColor={zone.color}
+                strokeWidth={2}
+              />
+            ))}
+
+            {/* Preview da nova zona no iOS */}
+            {newZoneCenter && creatingZone && (
+              <Circle
+                center={newZoneCenter}
+                radius={newZoneRadius}
+                fillColor={`${selectedZoneColor}30`}
+                strokeColor={selectedZoneColor}
+                strokeWidth={2}
+              />
+            )}
+          </MapView>
+        )}
       </View>
 
-      {/* ✅ PAINEL INFERIOR MELHORADO */}
+      {/* Painel inferior */}
       <View style={styles.bottomPanel}>
         <View style={styles.statusRow}>
           <Text style={[styles.statusIndicator, { 
@@ -755,7 +895,7 @@ export default function Localizacao() {
           </Text>
           {locationLoading && <ActivityIndicator size="small" color="#666" />}
         </View>
-        
+
         <Text style={styles.updatedText}>{petLocationStatus.text}</Text>
 
         <View style={styles.actionRow}>
@@ -823,11 +963,14 @@ export default function Localizacao() {
         </Pressable>
 
         <Text style={styles.osmCredit}>
-          Mapas fornecidos por OpenStreetMap
+          {Platform.OS === 'ios' 
+            ? 'Mapas fornecidos pela Apple' 
+            : 'Mapa fornecido por OpenStreetMap'
+          }
         </Text>
       </View>
 
-      {/* ✅ MODAL MELHORADO PARA CRIAR ZONA */}
+      {/* Modais (mesmo código anterior) */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -845,7 +988,7 @@ export default function Localizacao() {
                 <Ionicons name="close" size={24} color="#666" />
               </Pressable>
             </View>
-            
+
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={styles.modalLabel}>Nome da zona:</Text>
               <TextInput
@@ -922,7 +1065,6 @@ export default function Localizacao() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* ✅ MODAL MELHORADO DE GERENCIAMENTO */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -940,7 +1082,7 @@ export default function Localizacao() {
                 <Ionicons name="close" size={24} color="#666" />
               </Pressable>
             </View>
-            
+
             {zones.length === 0 ? (
               <View style={styles.noZonesContainer}>
                 <Ionicons name="location-outline" size={64} color="#D1D5DB" />
@@ -999,7 +1141,7 @@ export default function Localizacao() {
   );
 }
 
-// ================== ESTILOS ATUALIZADOS ==================
+// ================== ESTILOS ==================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -1118,7 +1260,10 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
   },
-  mapLoading: {
+  map: {
+    flex: 1,
+  },
+  webViewLoading: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -1128,14 +1273,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#f5f5f5',
     zIndex: 1000,
-  },
-  mapLoadingText: {
-    marginTop: 12,
-    color: "#666",
-    fontSize: 16,
-  },
-  map: {
-    flex: 1,
   },
   bottomPanel: {
     padding: 16,
