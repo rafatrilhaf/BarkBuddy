@@ -20,16 +20,18 @@ import {
   type TextPost,
 } from "../../services/post";
 
-// seu PostCard atual espera { id, user, text, images: string[], createdAt: string }
+// seu PostCard atualizado que agora espera authorId e likes
 import PostCard from "../../components/PostCard";
 
-// tipo auxiliar do componente existente
+// tipo atualizado para o PostCard modificado
 type PostCardShape = {
   id: string;
   user: string;
   text: string;
   images: string[];   // sempre []
   createdAt: string;  // "HH:mm" (derivado de createdAtTS)
+  authorId: string;   // ✅ ADICIONADO - necessário para buscar foto do usuário
+  likes: number;      // ✅ ADICIONADO - necessário para mostrar curtidas
 };
 
 export default function Blog() {
@@ -57,15 +59,17 @@ export default function Blog() {
     }
   }
 
-  // 2) Mapear para o formato que o PostCard já usa
+  // 2) Mapear para o formato que o PostCard ATUALIZADO usa
   const uiPosts: PostCardShape[] = useMemo(
     () =>
       posts.map((p) => ({
         id: p.id,
         user: p.authorName ?? "Tutor",
         text: p.text ?? "",
-        images: [],                    // sem imagens (apenas texto)
+        images: [],                      // sem imagens (apenas texto)
         createdAt: fmtHHmm(p.createdAtTS), // <- string derivada
+        authorId: p.authorId,            // ✅ PASSAR authorId para buscar foto
+        likes: p.likes ?? 0,             // ✅ PASSAR likes para mostrar contador
       })),
     [posts]
   );
@@ -170,6 +174,16 @@ export default function Blog() {
         keyExtractor={(i) => i.id}
         renderItem={({ item }) => <PostCard post={item} />}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={{ padding: 32, alignItems: "center" }}>
+            <Text style={{ color: "#999", fontSize: 16, textAlign: "center" }}>
+              Nenhum post ainda
+            </Text>
+            <Text style={{ color: "#999", fontSize: 14, marginTop: 4, textAlign: "center" }}>
+              Seja o primeiro a compartilhar algo!
+            </Text>
+          </View>
+        }
       />
 
       {/* Composer (só texto) */}
@@ -179,42 +193,74 @@ export default function Blog() {
         onRequestClose={() => setComposerOpen(false)}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", padding: 16 }}>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: theme.greenDark, marginBottom: 12 }}>
-            Novo post
-          </Text>
+          <View style={{ 
+            flexDirection: "row", 
+            alignItems: "center", 
+            justifyContent: "space-between", 
+            marginBottom: 20 
+          }}>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: theme.greenDark }}>
+              Novo post
+            </Text>
+            <TouchableOpacity onPress={() => setComposerOpen(false)}>
+              <Ionicons name="close" size={24} color={theme.greenDark} />
+            </TouchableOpacity>
+          </View>
 
           <TextInput
             placeholder="Escreva algo..."
+            placeholderTextColor="#999"
             value={text}
             onChangeText={setText}
             multiline
+            autoFocus
             style={{
               minHeight: 140,
               borderColor: "#ddd",
               borderWidth: 1,
               borderRadius: 12,
-              padding: 12,
+              padding: 16,
               textAlignVertical: "top",
+              fontSize: 16,
+              lineHeight: 22,
             }}
           />
 
-          <View style={{ flexDirection: "row", gap: 12, marginTop: 16 }}>
+          <View style={{ flexDirection: "row", gap: 12, marginTop: 20 }}>
             <TouchableOpacity
               onPress={handlePublish}
               disabled={busy || !text.trim()}
               style={{
-                paddingVertical: 12,
-                paddingHorizontal: 18,
-                backgroundColor: theme.greenDark,
+                flex: 1,
+                paddingVertical: 16,
+                backgroundColor: (busy || !text.trim()) ? "#ddd" : theme.greenDark,
                 borderRadius: 12,
-                opacity: busy || !text.trim() ? 0.5 : 1,
+                alignItems: "center",
               }}
             >
-              <Text style={{ color: "#fff" }}>{busy ? "Publicando..." : "Publicar"}</Text>
+              <Text style={{ 
+                color: (busy || !text.trim()) ? "#999" : "#fff", 
+                fontWeight: "600",
+                fontSize: 16
+              }}>
+                {busy ? "Publicando..." : "Publicar"}
+              </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => setComposerOpen(false)} style={{ padding: 12 }}>
-              <Text style={{ color: theme.greenDark }}>Cancelar</Text>
+            <TouchableOpacity 
+              onPress={() => setComposerOpen(false)} 
+              style={{ 
+                paddingVertical: 16,
+                paddingHorizontal: 24,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: theme.greenDark,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: theme.greenDark, fontWeight: "600", fontSize: 16 }}>
+                Cancelar
+              </Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
