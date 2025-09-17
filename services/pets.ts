@@ -1,5 +1,5 @@
 // src/services/pets.ts
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import {
   addDoc,
   collection,
