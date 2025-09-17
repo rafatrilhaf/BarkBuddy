@@ -21,7 +21,7 @@ import { db } from "./firebase";
 // Config base API local
 const BASE_URL = Platform.select({
   android: "http://10.0.2.2:8080",
-  ios: "http://192.168.1.172:8080", // troque pelo IP da sua máquina
+  ios: "http://192.168.1.185:8080", // troque pelo IP da sua máquina
   default: "http://localhost:8080",
 });
 

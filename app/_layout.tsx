@@ -1,31 +1,20 @@
 // app/_layout.tsx
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { AuthProvider } from '../contexts/AuthContext';
 
 export default function RootLayout() {
   return (
-    <>
-      <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: "#085f37" },
-          headerTintColor: "#fff",
-          headerTitleStyle: { fontWeight: "700" },
-        }}
-      >
-        {/* splash/index - raiz do app */}
-        <Stack.Screen name="index" options={{ title: "Início" }} />
-
-        {/* grupo das abas */}
+    <AuthProvider>
+      <StatusBar style="auto" />
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-
-        {/* auth group */}
         <Stack.Screen name="auth" options={{ headerShown: false }} />
-
-        {/* telas extras */}
         <Stack.Screen name="about" options={{ title: "Sobre" }} />
         <Stack.Screen name="pet/[Id]" options={{ title: "Pet" }} />
+        <Stack.Screen name="+not-found" />
       </Stack>
-    </>
+    </AuthProvider>
   );
 }
