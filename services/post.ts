@@ -4,6 +4,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDocs,
   increment,
   onSnapshot,
   orderBy,
@@ -11,25 +12,35 @@ import {
   serverTimestamp,
   Timestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
-import { getUser } from "./users"; // Função para buscar dados do usuário no Firestore
+import { getUser } from "./users";
 
 export type TextPost = {
   id: string;
   authorId: string;
   authorName: string;
-  authorPhotoUrl?: string | null; // Foto do usuário (campo novo)
+  authorPhotoUrl?: string | null;
   text: string;
-  createdAtTS: Timestamp; // timestamp exigido nas regras
-  updatedAtTS: Timestamp; // timestamp exigido nas regras
-  likes: number;          // número de curtidas, exigido nas regras
+  createdAtTS: Timestamp;
+  updatedAtTS: Timestamp;
+  likes: number;
+};
+
+export type Comment = {
+  id: string;
+  authorId: string;
+  authorName: string;
+  text: string;
+  createdAt: Timestamp;
+  parentId?: string | null; // Para respostas a comentários
 };
 
 // Referência para a coleção de posts
 const postsCol = collection(db, "posts");
 
-// Criar post (somente chaves permitidas pelas regras)
+// Criar post (incluindo authorPhotoUrl)
 export async function publishTextPost(text: string) {
   const user = auth.currentUser;
   if (!user) throw new Error("Precisa estar logado.");
@@ -39,8 +50,8 @@ export async function publishTextPost(text: string) {
 
   await addDoc(postsCol, {
     authorId: user.uid,
-    authorName: user.displayName || user.email || "Tutor",
-    authorPhotoUrl: userDoc?.photoUrl || null, // Salva foto do usuário no post
+    authorName: userDoc?.name || user.displayName || user.email || "Tutor",
+    authorPhotoUrl: userDoc?.photoUrl || null,
     text: text.trim(),
     createdAtTS: serverTimestamp(),
     updatedAtTS: serverTimestamp(),
@@ -48,7 +59,7 @@ export async function publishTextPost(text: string) {
   });
 }
 
-// Ouvir posts em tempo real (ordenado por criação desc)
+// Ouvir posts em tempo real
 export function listenTextPosts(onChange: (items: TextPost[]) => void) {
   const q = query(postsCol, orderBy("createdAtTS", "desc"));
   return onSnapshot(q, (snap) => {
@@ -59,7 +70,7 @@ export function listenTextPosts(onChange: (items: TextPost[]) => void) {
         id: d.id,
         authorId: data.authorId,
         authorName: data.authorName,
-        authorPhotoUrl: data.authorPhotoUrl || null, // Inclui foto ao ouvir posts
+        authorPhotoUrl: data.authorPhotoUrl || null,
         text: data.text,
         createdAtTS: data.createdAtTS,
         updatedAtTS: data.updatedAtTS,
@@ -70,15 +81,53 @@ export function listenTextPosts(onChange: (items: TextPost[]) => void) {
   });
 }
 
-// Like com segurança (increment no servidor)
+// ✅ CORRIGIDO: Like apenas incrementa o campo likes (sem updatedAtTS)
 export async function likePost(postId: string) {
   await updateDoc(doc(db, "posts", postId), {
-    likes: increment(1),
-    updatedAtTS: serverTimestamp(),
+    likes: increment(1), // SÓ O CAMPO LIKES!
   });
 }
 
-// Excluir (as regras garantem que só o autor consegue)
+// ✅ NOVO: Sistema de comentários completo
+export async function addComment(postId: string, text: string, parentId?: string | null) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Precisa estar logado para comentar.");
+
+  const userDoc = await getUser(user.uid);
+  const commentsCol = collection(db, "posts", postId, "comments");
+
+  await addDoc(commentsCol, {
+    authorId: user.uid,
+    authorName: userDoc?.name || user.displayName || user.email || "Usuário",
+    text: text.trim(),
+    createdAt: serverTimestamp(),
+    parentId: parentId || null,
+  });
+}
+
+// ✅ NOVO: Buscar comentários de um post
+export async function getPostComments(postId: string): Promise<Comment[]> {
+  const commentsCol = collection(db, "posts", postId, "comments");
+  const q = query(commentsCol, orderBy("createdAt", "asc"));
+  const snapshot = await getDocs(q);
+  
+  const comments: Comment[] = [];
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    comments.push({
+      id: doc.id,
+      authorId: data.authorId,
+      authorName: data.authorName,
+      text: data.text,
+      createdAt: data.createdAt,
+      parentId: data.parentId || null,
+    });
+  });
+  
+  return comments;
+}
+
+// Excluir post
 export async function deleteMyPost(postId: string) {
   await deleteDoc(doc(db, "posts", postId));
 }
