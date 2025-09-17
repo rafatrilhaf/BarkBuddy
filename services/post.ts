@@ -31,8 +31,13 @@ export async function publishTextPost(text: string) {
   const user = auth.currentUser;
   if (!user) throw new Error("Precisa estar logado.");
 
-  // Buscar dados completos do usuário para pegar a foto
-  const userDoc = await getUser(user.uid);
+  // Buscar dados completos do usuário para pegar a foto e nome
+  let userDoc;
+  try {
+    userDoc = await getUser(user.uid);
+  } catch (error) {
+    console.warn("Warning: erro ao buscar dados do usuário:", error);
+  }
 
   await addDoc(postsCol, {
     authorId: user.uid,
@@ -50,7 +55,7 @@ export function listenTextPosts(onChange: (items: TextPost[]) => void) {
   return onSnapshot(q, (snap) => {
     const list: TextPost[] = [];
     snap.forEach((d) => {
-      const data = d.data() as any;
+      const data = d.data();
       list.push({
         id: d.id,
         authorId: data.authorId,
