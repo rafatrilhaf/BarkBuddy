@@ -1,3 +1,4 @@
+// services/comments.ts
 import {
   addDoc,
   collection,
@@ -49,7 +50,16 @@ export function subscribeComments(postId: string, callback: (comments: Comment[]
   return onSnapshot(q, (snapshot) => {
     const allComments: Comment[] = [];
     snapshot.forEach(doc => {
-      allComments.push({ id: doc.id, ...doc.data() } as Comment);
+      const data = doc.data();
+      allComments.push({ 
+        id: doc.id, 
+        authorId: data.authorId,
+        authorName: data.authorName,
+        authorPhotoUrl: data.authorPhotoUrl,
+        text: data.text,
+        createdAt: data.createdAt,
+        parentId: data.parentId
+      } as Comment);
     });
 
     // Organizar comentários principais e replies
@@ -64,4 +74,11 @@ export function subscribeComments(postId: string, callback: (comments: Comment[]
 
     callback(organizedComments);
   });
+}
+
+// Função para contar total de comentários (incluindo replies)
+export function countAllComments(comments: Comment[]): number {
+  return comments.reduce((total, comment) => {
+    return total + 1 + (comment.replies?.length || 0);
+  }, 0);
 }

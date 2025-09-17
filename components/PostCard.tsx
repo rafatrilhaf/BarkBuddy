@@ -1,3 +1,4 @@
+// components/PostCard.tsx
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
@@ -18,6 +19,7 @@ import {
 import theme from "../constants/theme";
 import {
   addComment,
+  countAllComments,
   subscribeComments,
   type Comment,
 } from "../services/comments";
@@ -41,8 +43,9 @@ export default function PostCard({ post }: PostCardProps) {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<Comment[]>([]);
   const [authorProfile, setAuthorProfile] = useState<UserProfile | null>(null);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null); // ID do comentário sendo respondido
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const currentUser = auth.currentUser;
   const imgs = (post.images || []).slice(0, 3);
@@ -54,7 +57,7 @@ export default function PostCard({ post }: PostCardProps) {
     }
   }, [post.authorId]);
 
-  // Ouvir comentários em tempo real
+  // Ouvir comentários em tempo real apenas quando o modal está aberto
   useEffect(() => {
     if (!showComments) return;
 
@@ -75,10 +78,14 @@ export default function PostCard({ post }: PostCardProps) {
     }
 
     try {
+      setLoading(true);
       await addComment(post.id, commentText);
       setCommentText("");
     } catch (e) {
+      console.error(e);
       Alert.alert("Erro", "Falha ao enviar comentário");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,27 +102,44 @@ export default function PostCard({ post }: PostCardProps) {
     }
 
     try {
+      setLoading(true);
       await addComment(post.id, replyText, replyingTo);
       setReplyText("");
       setReplyingTo(null);
     } catch (e) {
+      console.error(e);
       Alert.alert("Erro", "Falha ao enviar resposta");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Função compartilhar
+  // Função compartilhar melhorada
   const handleShare = async () => {
     try {
+      const shareMessage = `🐾 Confira este post do BarkBuddy:
+
+"${post.text}"
+
+📝 Compartilhado por: ${authorProfile?.name || post.user}
+
+Baixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯`;
+
       const result = await Share.share({
-        message: `Confira este post do BarkBuddy: "${post.text}" - Compartilhado por ${authorProfile?.name || post.user}`,
-        title: "Post do BarkBuddy",
+        message: shareMessage,
+        title: "Post do BarkBuddy 🐾",
       });
+
+      if (result.action === Share.sharedAction) {
+        console.log("Post compartilhado com sucesso!");
+      }
     } catch (error) {
-      Alert.alert("Erro", "Não foi possível compartilhar");
+      console.error("Erro ao compartilhar:", error);
+      Alert.alert("Erro", "Não foi possível compartilhar este post");
     }
   };
 
-  // Grid de imagens
+  // Grid de imagens (mantido para compatibilidade)
   const Grid = () => {
     if (imgs.length === 0) return null;
 
@@ -193,7 +217,7 @@ export default function PostCard({ post }: PostCardProps) {
           {item.replies.map((reply) => (
             <View key={reply.id} style={styles.replyItem}>
               <View style={styles.commentHeader}>
-                <View style={styles.commentAvatar}>
+                <View style={[styles.commentAvatar, { width: 28, height: 28 }]}>
                   {reply.authorPhotoUrl ? (
                     <Image source={{ uri: reply.authorPhotoUrl }} style={styles.avatarImage} />
                   ) : (
@@ -214,26 +238,26 @@ export default function PostCard({ post }: PostCardProps) {
 
   return (
     <>
-      <View style={{ backgroundColor: theme.greenLight, borderRadius: 16, padding: 12, elevation: 2 }}>
+      <View style={styles.postCard}>
         {/* Header */}
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-          <View style={{ width: 36, height: 36, borderRadius: 18, overflow: "hidden", backgroundColor: "#cfe3d3", marginRight: 10 }}>
+        <View style={styles.headerContainer}>
+          <View style={styles.avatarContainer}>
             {authorProfile?.photoUrl ? (
               <Image 
                 source={{ uri: authorProfile.photoUrl }} 
-                style={{ width: "100%", height: "100%" }} 
+                style={styles.authorAvatar} 
               />
             ) : (
-              <View style={{ width: "100%", height: "100%", backgroundColor: "#cfe3d3", alignItems: "center", justifyContent: "center" }}>
+              <View style={[styles.authorAvatar, styles.defaultAvatar]}>
                 <Ionicons name="person" size={18} color={theme.greenDark} />
               </View>
             )}
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: "700", color: theme.greenDark }}>
+          <View style={styles.authorInfo}>
+            <Text style={styles.authorName}>
               {authorProfile?.name || post.user}
             </Text>
-            <Text style={{ fontSize: 11, color: "#557" }}>
+            <Text style={styles.postTime}>
               publicado hoje às {post.createdAt}
             </Text>
           </View>
@@ -242,40 +266,40 @@ export default function PostCard({ post }: PostCardProps) {
           </TouchableOpacity>
         </View>
 
-        {/* Texto */}
+        {/* Texto do Post */}
         {!!post.text && (
-          <Text style={{ marginBottom: imgs.length ? 8 : 0, color: theme.greenDark, lineHeight: 20 }}>
+          <Text style={styles.postText}>
             {post.text}
           </Text>
         )}
 
-        {/* Imagens */}
+        {/* Imagens (se existirem) */}
         <Grid />
 
         {/* Contador de comentários */}
         {comments.length > 0 && (
-          <View style={{ marginTop: 8, paddingHorizontal: 4 }}>
-            <Text style={{ fontSize: 12, color: "#666" }}>
-              {comments.reduce((total, comment) => total + 1 + (comment.replies?.length || 0), 0)} {comments.length === 1 ? "comentário" : "comentários"}
+          <View style={styles.commentCounter}>
+            <Text style={styles.commentCountText}>
+              {countAllComments(comments)} comentário{countAllComments(comments) !== 1 ? "s" : ""}
             </Text>
           </View>
         )}
 
-        {/* Ações */}
-        <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: "#e8f5ee" }}>
+        {/* Ações do Post (SEM LIKE) */}
+        <View style={styles.actionsContainer}>
           <TouchableOpacity
             onPress={() => setShowComments(true)}
-            style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 8, paddingHorizontal: 16 }}
+            style={styles.actionButton}
           >
             <Ionicons name="chatbubble-ellipses-outline" size={20} color={theme.greenDark} />
-            <Text style={{ color: theme.greenDark, fontWeight: "500" }}>Comentar</Text>
+            <Text style={styles.actionText}>Comentar</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleShare}
-            style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 8, paddingHorizontal: 16 }}
+            style={styles.actionButton}
           >
             <Ionicons name="paper-plane-outline" size={20} color={theme.greenDark} />
-            <Text style={{ color: theme.greenDark, fontWeight: "500" }}>Compartilhar</Text>
+            <Text style={styles.actionText}>Compartilhar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -283,7 +307,7 @@ export default function PostCard({ post }: PostCardProps) {
       {/* Modal Comentários */}
       <Modal visible={showComments} animationType="slide" onRequestClose={() => setShowComments(false)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-          {/* Header */}
+          {/* Header do Modal */}
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={() => setShowComments(false)}>
               <Ionicons name="arrow-back" size={24} color={theme.greenDark} />
@@ -298,9 +322,15 @@ export default function PostCard({ post }: PostCardProps) {
             renderItem={renderComment}
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
             ListEmptyComponent={
-              <Text style={{ color: "#999", textAlign: "center", marginTop: 40 }}>
-                Nenhum comentário ainda. Seja o primeiro!
-              </Text>
+              <View style={styles.emptyCommentsContainer}>
+                <Ionicons name="chatbubble-ellipses-outline" size={48} color="#ccc" />
+                <Text style={styles.emptyCommentsText}>
+                  Nenhum comentário ainda
+                </Text>
+                <Text style={styles.emptyCommentsSubtext}>
+                  Seja o primeiro a comentar!
+                </Text>
+              </View>
             }
           />
 
@@ -320,14 +350,22 @@ export default function PostCard({ post }: PostCardProps) {
                 value={replyingTo ? replyText : commentText}
                 onChangeText={replyingTo ? setReplyText : setCommentText}
                 multiline
+                maxLength={500}
                 style={styles.textInput}
               />
               <TouchableOpacity
                 onPress={replyingTo ? handleReply : handleComment}
-                disabled={replyingTo ? !replyText.trim() : !commentText.trim()}
-                style={[styles.sendButton, (!commentText.trim() && !replyText.trim()) && { opacity: 0.5 }]}
+                disabled={loading || (replyingTo ? !replyText.trim() : !commentText.trim())}
+                style={[
+                  styles.sendButton, 
+                  (loading || (!commentText.trim() && !replyText.trim())) && { opacity: 0.5 }
+                ]}
               >
-                <Ionicons name="send" size={20} color="#fff" />
+                {loading ? (
+                  <Ionicons name="hourglass" size={20} color="#fff" />
+                ) : (
+                  <Ionicons name="send" size={20} color="#fff" />
+                )}
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
@@ -338,6 +376,79 @@ export default function PostCard({ post }: PostCardProps) {
 }
 
 const styles = StyleSheet.create({
+  postCard: {
+    backgroundColor: theme.greenLight,
+    borderRadius: 16,
+    padding: 12,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  avatarContainer: {
+    marginRight: 10,
+  },
+  authorAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  defaultAvatar: {
+    backgroundColor: "#cfe3d3",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  authorInfo: {
+    flex: 1,
+  },
+  authorName: {
+    fontWeight: "700",
+    color: theme.greenDark,
+    fontSize: 14,
+  },
+  postTime: {
+    fontSize: 11,
+    color: "#557",
+  },
+  postText: {
+    marginBottom: 8,
+    color: theme.greenDark,
+    lineHeight: 20,
+    fontSize: 15,
+  },
+  commentCounter: {
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  commentCountText: {
+    fontSize: 12,
+    color: "#666",
+  },
+  actionsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#e8f5ee",
+  },
+  actionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  actionText: {
+    color: theme.greenDark,
+    fontWeight: "500",
+  },
   modalHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -351,6 +462,24 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     color: theme.greenDark,
+  },
+  emptyCommentsContainer: {
+    alignItems: "center",
+    marginTop: 60,
+    paddingHorizontal: 40,
+  },
+  emptyCommentsText: {
+    color: "#999",
+    textAlign: "center",
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  emptyCommentsSubtext: {
+    color: "#999",
+    textAlign: "center",
+    marginTop: 4,
+    fontSize: 14,
   },
   commentContainer: {
     marginBottom: 16,

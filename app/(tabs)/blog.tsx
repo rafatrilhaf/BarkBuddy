@@ -20,18 +20,17 @@ import {
   type TextPost,
 } from "../../services/post";
 
-// seu PostCard atualizado que agora espera authorId e likes
+// PostCard atualizado
 import PostCard from "../../components/PostCard";
 
-// tipo atualizado para o PostCard modificado
+// tipo atualizado para o PostCard modificado (SEM LIKES)
 type PostCardShape = {
   id: string;
   user: string;
   text: string;
   images: string[];   // sempre []
   createdAt: string;  // "HH:mm" (derivado de createdAtTS)
-  authorId: string;   // ✅ ADICIONADO - necessário para buscar foto do usuário
-  likes: number;      // ✅ ADICIONADO - necessário para mostrar curtidas
+  authorId: string;   // necessário para buscar foto do usuário
 };
 
 export default function Blog() {
@@ -59,7 +58,7 @@ export default function Blog() {
     }
   }
 
-  // 2) Mapear para o formato que o PostCard ATUALIZADO usa
+  // 2) Mapear para o formato que o PostCard usa (SEM LIKES)
   const uiPosts: PostCardShape[] = useMemo(
     () =>
       posts.map((p) => ({
@@ -68,8 +67,7 @@ export default function Blog() {
         text: p.text ?? "",
         images: [],                      // sem imagens (apenas texto)
         createdAt: fmtHHmm(p.createdAtTS), // <- string derivada
-        authorId: p.authorId,            // ✅ PASSAR authorId para buscar foto
-        likes: p.likes ?? 0,             // ✅ PASSAR likes para mostrar contador
+        authorId: p.authorId,            // PASSAR authorId para buscar foto
       })),
     [posts]
   );
@@ -103,7 +101,7 @@ export default function Blog() {
             justifyContent: "center",
           }}
         >
-          <Ionicons name="home" size={22} color={theme.greenDark} />
+          <Ionicons name="chatbubbles" size={22} color={theme.greenDark} />
         </View>
       </View>
 
@@ -120,7 +118,7 @@ export default function Blog() {
           }}
         >
           <TextInput
-            placeholder="Pesquisar"
+            placeholder="Pesquisar posts..."
             placeholderTextColor="#577"
             style={{ color: theme.greenDark, fontSize: 14 }}
             // (opcional) onChangeText para busca futura
@@ -176,11 +174,12 @@ export default function Blog() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={{ padding: 32, alignItems: "center" }}>
-            <Text style={{ color: "#999", fontSize: 16, textAlign: "center" }}>
+            <Ionicons name="chatbubbles-outline" size={48} color="#ccc" style={{ marginBottom: 16 }} />
+            <Text style={{ color: "#999", fontSize: 16, textAlign: "center", fontWeight: "600" }}>
               Nenhum post ainda
             </Text>
             <Text style={{ color: "#999", fontSize: 14, marginTop: 4, textAlign: "center" }}>
-              Seja o primeiro a compartilhar algo!
+              Seja o primeiro a compartilhar algo sobre seu pet!
             </Text>
           </View>
         }
@@ -208,7 +207,7 @@ export default function Blog() {
           </View>
 
           <TextInput
-            placeholder="Escreva algo..."
+            placeholder="Escreva algo sobre seu pet..."
             placeholderTextColor="#999"
             value={text}
             onChangeText={setText}
