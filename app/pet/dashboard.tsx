@@ -308,7 +308,7 @@ export default function PetDashboard() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Dashboard do Pet</Text>
+        <Text style={styles.headerTitle}>Saúde do Pet</Text>
         <Ionicons name="analytics" size={28} color="#006B41" />
       </View>
 

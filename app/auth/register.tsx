@@ -142,7 +142,7 @@ export default function Register() {
               paddingVertical: 16,
             })}
           >
-            <Text style={s.btnt}>{busy ? '...' : 'Criar conta'}</Text>
+            <Text style={s.btnt}>{busy ? 'Carregando...' : 'Criar conta'}</Text>
           </Pressable>
 
           <Pressable onPress={() => router.replace("/auth/login")} style={{ marginTop: 12 }}>

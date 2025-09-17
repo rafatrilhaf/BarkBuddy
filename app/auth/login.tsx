@@ -117,7 +117,7 @@ export default function Login() {
               paddingVertical: 16,
             })}
           >
-            <Text style={s.btnt}>{busy ? '...' : 'Login'}</Text>
+            <Text style={s.btnt}>{busy ? 'Carregando...' : 'Login'}</Text>
           </Pressable>
 
           {/* ABRE CADASTRO */}
