@@ -15,10 +15,12 @@ import {
 } from "react-native";
 import { BarChart, LineChart } from "react-native-chart-kit";
 import DropDownPicker from "react-native-dropdown-picker";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const screenWidth = Dimensions.get("window").width;
 
-// 🧠 Interfaces para Insights (mantidas iguais)
+// Interfaces para Insights (mantidas iguais)
 interface PetInsights {
   weightTrend: "increasing" | "decreasing" | "stable";
   weightChange: number;
@@ -39,6 +41,9 @@ interface StatCard {
 }
 
 export default function PetDashboard() {
+  const { colors, fontSizes } = useTheme();
+  const { t } = useLanguage();
+  
   const user = auth.currentUser;
   const uid = user?.uid;
 
@@ -50,7 +55,7 @@ export default function PetDashboard() {
   const [notas, setNotas] = useState<any[]>([]);
   const [saudeNotas, setSaudeNotas] = useState<any[]>([]);
 
-  // 🆕 Estados para insights e estatísticas
+  // Estados para insights e estatísticas
   const [insights, setInsights] = useState<PetInsights | null>(null);
   const [statCards, setStatCards] = useState<StatCard[]>([]);
 
@@ -62,7 +67,7 @@ export default function PetDashboard() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedNote, setSelectedNote] = useState<string>("");
 
-  // 🧠 Função para calcular insights automáticos (mantida igual)
+  // Função para calcular insights automáticos (mantida igual)
   const calculateInsights = (records: any, petData: any): PetInsights => {
     const now = new Date();
     
@@ -126,7 +131,7 @@ export default function PetDashboard() {
     };
   };
 
-  // 📊 Função para gerar cards de estatísticas (mantida igual)
+  // Função para gerar cards de estatísticas (adaptada para traduções)
   const generateStatCards = (records: any, insights: PetInsights): StatCard[] => {
     const weights = records.WEIGHT || [];
     const walks = records.WALK || [];
@@ -219,7 +224,7 @@ export default function PetDashboard() {
       setNotas(records.NOTE?.map(r => ({ ...r, petName: pet.name })) || []);
       setSaudeNotas(records.HEALTH?.map(r => ({ ...r, petName: pet.name })) || []);
 
-      // 🆕 Calcular insights e estatísticas
+      // Calcular insights e estatísticas
       const petInsights = calculateInsights(records, pet);
       setInsights(petInsights);
       setStatCards(generateStatCards(records, petInsights));
@@ -228,20 +233,27 @@ export default function PetDashboard() {
     loadRecords();
   }, [selectedPetId, pets]);
 
+  // Configuração do gráfico adaptada ao tema
   const chartConfig = {
-    backgroundColor: "#e8f5ee",
-    backgroundGradientFrom: "#e8f5ee",
-    backgroundGradientTo: "#c1e3d2",
+    backgroundColor: colors.surface,
+    backgroundGradientFrom: colors.surface,
+    backgroundGradientTo: colors.background,
     decimalPlaces: 1,
-    color: (opacity = 1) => `rgba(0, 107, 65, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    color: (opacity = 1) => `${colors.primary}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`,
+    labelColor: (opacity = 1) => `${colors.text}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`,
     style: { borderRadius: 16 },
-    propsForDots: { r: "5", strokeWidth: "2", stroke: "#006B41" },
+    propsForDots: { r: "5", strokeWidth: "2", stroke: colors.primary },
   };
 
-  // 🆕 Componente do Card de Estatística (mantido igual)
+  // Componente do Card de Estatística
   const StatCardComponent = ({ stat }: { stat: StatCard }) => (
-    <View style={[styles.statCard, { borderLeftColor: stat.color }]}>
+    <View style={[
+      styles.statCard, 
+      { 
+        borderLeftColor: stat.color,
+        backgroundColor: colors.surface,
+      }
+    ]}>
       <View style={styles.statHeader}>
         <Ionicons name={stat.icon as any} size={24} color={stat.color} />
         {stat.trend && (
@@ -252,24 +264,47 @@ export default function PetDashboard() {
           />
         )}
       </View>
-      <Text style={styles.statTitle}>{stat.title}</Text>
-      <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
-      <Text style={styles.statSubtitle}>{stat.subtitle}</Text>
+      <Text style={[styles.statTitle, { 
+        color: colors.textSecondary,
+        fontSize: fontSizes.sm
+      }]}>
+        {stat.title}
+      </Text>
+      <Text style={[styles.statValue, { 
+        color: stat.color,
+        fontSize: fontSizes.xl
+      }]}>
+        {stat.value}
+      </Text>
+      <Text style={[styles.statSubtitle, { 
+        color: colors.textTertiary,
+        fontSize: fontSizes.xs
+      }]}>
+        {stat.subtitle}
+      </Text>
     </View>
   );
 
-  // 🆕 Componente de Insights (mantido igual)
+  // Componente de Insights
   const InsightsCard = ({ insights }: { insights: PetInsights }) => (
-    <View style={styles.insightsCard}>
+    <View style={[styles.insightsCard, { backgroundColor: colors.surface }]}>
       <View style={styles.insightsHeader}>
         <Ionicons name="bulb" size={24} color="#F59E0B" />
-        <Text style={styles.insightsTitle}>Insights Automáticos</Text>
+        <Text style={[styles.insightsTitle, { 
+          color: colors.text,
+          fontSize: fontSizes.lg
+        }]}>
+          Insights Automáticos
+        </Text>
       </View>
       
       {insights.nextEvent && (
         <View style={styles.insightItem}>
           <Ionicons name={insights.nextEvent.icon as any} size={20} color="#EF4444" />
-          <Text style={styles.insightText}>
+          <Text style={[styles.insightText, { 
+            color: colors.textSecondary,
+            fontSize: fontSizes.sm
+          }]}>
             {insights.nextEvent.type} recomendada em {Math.abs(insights.nextEvent.daysLeft)} dias
           </Text>
         </View>
@@ -278,7 +313,10 @@ export default function PetDashboard() {
       {insights.weightTrend !== "stable" && (
         <View style={styles.insightItem}>
           <Ionicons name="fitness" size={20} color={insights.weightTrend === "increasing" ? "#F59E0B" : "#EF4444"} />
-          <Text style={styles.insightText}>
+          <Text style={[styles.insightText, { 
+            color: colors.textSecondary,
+            fontSize: fontSizes.sm
+          }]}>
             Peso {insights.weightTrend === "increasing" ? "aumentou" : "diminuiu"} {Math.abs(insights.weightChange).toFixed(1)}kg recentemente
           </Text>
         </View>
@@ -287,7 +325,10 @@ export default function PetDashboard() {
       {insights.activityLevel === "low" && (
         <View style={styles.insightItem}>
           <Ionicons name="walk" size={20} color="#EF4444" />
-          <Text style={styles.insightText}>
+          <Text style={[styles.insightText, { 
+            color: colors.textSecondary,
+            fontSize: fontSizes.sm
+          }]}>
             Atividade baixa esta semana. Que tal um passeio extra?
           </Text>
         </View>
@@ -296,7 +337,10 @@ export default function PetDashboard() {
       {insights.activityLevel === "high" && (
         <View style={styles.insightItem}>
           <Ionicons name="trophy" size={20} color="#22C55E" />
-          <Text style={styles.insightText}>
+          <Text style={[styles.insightText, { 
+            color: colors.textSecondary,
+            fontSize: fontSizes.sm
+          }]}>
             Excelente! Seu pet está muito ativo esta semana!
           </Text>
         </View>
@@ -305,16 +349,26 @@ export default function PetDashboard() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Saúde do Pet</Text>
-        <Ionicons name="analytics" size={28} color="#006B41" />
+        <Text style={[styles.headerTitle, { 
+          color: colors.primary,
+          fontSize: fontSizes.xxl
+        }]}>
+          Saúde do Pet
+        </Text>
+        <Ionicons name="analytics" size={28} color={colors.primary} />
       </View>
 
-      {/* ✅ CORRIGIDO: Dropdown fora do ScrollView */}
+      {/* Dropdown fora do ScrollView */}
       <View style={styles.dropdownContainer}>
-        <Text style={styles.sectionLabel}>Selecione o pet</Text>
+        <Text style={[styles.sectionLabel, { 
+          color: colors.text,
+          fontSize: fontSizes.md
+        }]}>
+          Selecione o pet
+        </Text>
         <DropDownPicker
           open={open}
           value={selectedPetId}
@@ -322,25 +376,40 @@ export default function PetDashboard() {
           setOpen={setOpen}
           setValue={setSelectedPetId}
           setItems={setItems}
-          style={styles.dropdown}
-          textStyle={styles.dropdownText}
-          dropDownContainerStyle={styles.dropdownList}
+          style={[styles.dropdown, { 
+            borderColor: colors.primary,
+            backgroundColor: colors.surface
+          }]}
+          textStyle={[styles.dropdownText, { 
+            color: colors.text,
+            fontSize: fontSizes.md
+          }]}
+          dropDownContainerStyle={[styles.dropdownList, { 
+            borderColor: colors.primary,
+            backgroundColor: colors.surface
+          }]}
           placeholder="Selecione um pet"
+          placeholderStyle={{ color: colors.textSecondary }}
           zIndex={1000}
           zIndexInverse={3000}
         />
       </View>
 
-      {/* ✅ CORRIGIDO: ScrollView sem FlatList aninhada */}
+      {/* ScrollView sem FlatList aninhada */}
       <ScrollView 
         style={styles.scrollContainer} 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* 🆕 Cards de Estatísticas */}
+        {/* Cards de Estatísticas */}
         {statCards.length > 0 && (
           <View style={styles.statsSection}>
-            <Text style={styles.sectionTitle}>Resumo</Text>
+            <Text style={[styles.sectionTitle, { 
+              color: colors.text,
+              fontSize: fontSizes.lg
+            }]}>
+              Resumo
+            </Text>
             <View style={styles.statsGrid}>
               {statCards.map((stat, index) => (
                 <StatCardComponent key={index} stat={stat} />
@@ -349,7 +418,7 @@ export default function PetDashboard() {
           </View>
         )}
 
-        {/* 🆕 Insights Automáticos */}
+        {/* Insights Automáticos */}
         {insights && (
           <View style={styles.section}>
             <InsightsCard insights={insights} />
@@ -358,7 +427,12 @@ export default function PetDashboard() {
 
         {/* Gráfico de Peso */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Evolução do Peso</Text>
+          <Text style={[styles.sectionTitle, { 
+            color: colors.text,
+            fontSize: fontSizes.lg
+          }]}>
+            Evolução do Peso
+          </Text>
           {pesoData?.datasets[0].data.length > 0 ? (
             <LineChart
               data={pesoData}
@@ -369,17 +443,32 @@ export default function PetDashboard() {
               style={styles.chart}
             />
           ) : (
-            <View style={styles.noDataContainer}>
-              <Ionicons name="fitness-outline" size={48} color="#ccc" />
-              <Text style={styles.noDataText}>Sem registros de peso ainda</Text>
-              <Text style={styles.noDataSubtitle}>Registre o peso do seu pet para ver a evolução</Text>
+            <View style={[styles.noDataContainer, { backgroundColor: colors.surface }]}>
+              <Ionicons name="fitness-outline" size={48} color={colors.textTertiary} />
+              <Text style={[styles.noDataText, { 
+                color: colors.textSecondary,
+                fontSize: fontSizes.md
+              }]}>
+                Sem registros de peso ainda
+              </Text>
+              <Text style={[styles.noDataSubtitle, { 
+                color: colors.textTertiary,
+                fontSize: fontSizes.sm
+              }]}>
+                Registre o peso do seu pet para ver a evolução
+              </Text>
             </View>
           )}
         </View>
 
         {/* Gráfico de Caminhadas */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Atividade Física</Text>
+          <Text style={[styles.sectionTitle, { 
+            color: colors.text,
+            fontSize: fontSizes.lg
+          }]}>
+            Atividade Física
+          </Text>
           {caminhadaData?.datasets[0].data.length > 0 ? (
             <BarChart
               data={caminhadaData}
@@ -391,55 +480,108 @@ export default function PetDashboard() {
               yAxisLabel=""
             />
           ) : (
-            <View style={styles.noDataContainer}>
-              <Ionicons name="walk-outline" size={48} color="#ccc" />
-              <Text style={styles.noDataText}>Sem registros de caminhadas ainda</Text>
-              <Text style={styles.noDataSubtitle}>Registre as caminhadas para acompanhar a atividade</Text>
+            <View style={[styles.noDataContainer, { backgroundColor: colors.surface }]}>
+              <Ionicons name="walk-outline" size={48} color={colors.textTertiary} />
+              <Text style={[styles.noDataText, { 
+                color: colors.textSecondary,
+                fontSize: fontSizes.md
+              }]}>
+                Sem registros de caminhadas ainda
+              </Text>
+              <Text style={[styles.noDataSubtitle, { 
+                color: colors.textTertiary,
+                fontSize: fontSizes.sm
+              }]}>
+                Registre as caminhadas para acompanhar a atividade
+              </Text>
             </View>
           )}
         </View>
 
-        {/* ✅ CORRIGIDO: Notas Gerais usando map() em vez de FlatList */}
+        {/* Notas Gerais usando map() em vez de FlatList */}
         {notas.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Últimas Anotações</Text>
+            <Text style={[styles.sectionTitle, { 
+              color: colors.text,
+              fontSize: fontSizes.lg
+            }]}>
+              Últimas Anotações
+            </Text>
             {notas.slice(0, 3).map((item) => (
-              <View key={item.id} style={styles.noteCard}>
+              <View key={item.id} style={[
+                styles.noteCard, 
+                { 
+                  backgroundColor: colors.surface,
+                  borderLeftColor: colors.info || "#3B82F6"
+                }
+              ]}>
                 <View style={styles.noteHeader}>
-                  <Text style={styles.notePetName}>{item.petName}</Text>
-                  <Text style={styles.noteDate}>
+                  <Text style={[styles.notePetName, { 
+                    color: colors.primary,
+                    fontSize: fontSizes.sm
+                  }]}>
+                    {item.petName}
+                  </Text>
+                  <Text style={[styles.noteDate, { 
+                    color: colors.textSecondary,
+                    fontSize: fontSizes.xs
+                  }]}>
                     {new Date(item.createdAt.toDate()).toLocaleDateString("pt-BR")}
                   </Text>
                 </View>
-                <Text style={styles.noteText} numberOfLines={2}>{item.value}</Text>
+                <Text style={[styles.noteText, { 
+                  color: colors.text,
+                  fontSize: fontSizes.sm
+                }]} numberOfLines={2}>
+                  {item.value}
+                </Text>
               </View>
             ))}
           </View>
         )}
 
-        {/* ✅ CORRIGIDO: Notas de Saúde usando map() em vez de FlatList */}
+        {/* Notas de Saúde usando map() em vez de FlatList */}
         {saudeNotas.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Últimos Eventos de Saúde</Text>
+            <Text style={[styles.sectionTitle, { 
+              color: colors.text,
+              fontSize: fontSizes.lg
+            }]}>
+              Últimos Eventos de Saúde
+            </Text>
             {saudeNotas.slice(0, 3).map((item) => (
-              <View key={item.id} style={styles.healthCard}>
+              <View key={item.id} style={[
+                styles.healthCard, 
+                { 
+                  backgroundColor: colors.surface,
+                  borderLeftColor: colors.error || "#EF4444"
+                }
+              ]}>
                 <View style={styles.healthHeader}>
-                  <View style={styles.healthIconContainer}>
+                  <View style={[styles.healthIconContainer, { 
+                    backgroundColor: colors.error ? `${colors.error}20` : "#FEE2E2"
+                  }]}>
                     <Ionicons 
                       name={item.value === "VACCINE" ? "medical" : 
                             item.value === "VISIT" ? "heart" :
                             item.value === "BATH" ? "water" : "fitness"} 
                       size={20} 
-                      color="#EF4444" 
+                      color={colors.error || "#EF4444"} 
                     />
                   </View>
                   <View style={styles.healthInfo}>
-                    <Text style={styles.healthType}>
+                    <Text style={[styles.healthType, { 
+                      color: colors.text,
+                      fontSize: fontSizes.sm
+                    }]}>
                       {item.value === "VACCINE" ? "Vacina" : 
                        item.value === "DEWORM" ? "Vermífugo" : 
                        item.value === "BATH" ? "Banho" : "Consulta"}
                     </Text>
-                    <Text style={styles.healthDate}>
+                    <Text style={[styles.healthDate, { 
+                      color: colors.textSecondary,
+                      fontSize: fontSizes.xs
+                    }]}>
                       {new Date(item.createdAt.toDate()).toLocaleDateString("pt-BR")}
                     </Text>
                   </View>
@@ -450,8 +592,13 @@ export default function PetDashboard() {
                     style={styles.viewNoteButton}
                     onPress={() => { setSelectedNote(item.note); setModalVisible(true); }}
                   >
-                    <Text style={styles.viewNoteText}>Ver observação</Text>
-                    <Ionicons name="chevron-forward" size={16} color="#006B41" />
+                    <Text style={[styles.viewNoteText, { 
+                      color: colors.primary,
+                      fontSize: fontSizes.xs
+                    }]}>
+                      Ver observação
+                    </Text>
+                    <Ionicons name="chevron-forward" size={16} color={colors.primary} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -463,7 +610,7 @@ export default function PetDashboard() {
         <View style={{ height: 50 }} />
       </ScrollView>
 
-      {/* Modal de observação (mantido igual) */}
+      {/* Modal de observação */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -471,14 +618,26 @@ export default function PetDashboard() {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Observação:</Text>
-            <Text style={styles.modalText}>{selectedNote}</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.modalTitle, { 
+              color: colors.text,
+              fontSize: fontSizes.md
+            }]}>
+              Observação:
+            </Text>
+            <Text style={[styles.modalText, { 
+              color: colors.textSecondary,
+              fontSize: fontSizes.sm
+            }]}>
+              {selectedNote}
+            </Text>
             <Pressable
               onPress={() => setModalVisible(false)}
-              style={styles.modalButton}
+              style={[styles.modalButton, { backgroundColor: colors.primary }]}
             >
-              <Text style={styles.modalButtonText}>Fechar</Text>
+              <Text style={[styles.modalButtonText, { fontSize: fontSizes.sm }]}>
+                Fechar
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -487,11 +646,10 @@ export default function PetDashboard() {
   );
 }
 
-// 🎨 Estilos atualizados
+// Estilos atualizados
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
   },
   header: {
     flexDirection: "row",
@@ -502,38 +660,30 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   headerTitle: {
-    fontSize: 28,
     fontWeight: "800",
-    color: "#006B41",
   },
   
-  // ✅ NOVO: Container específico para dropdown
+  // Container específico para dropdown
   dropdownContainer: {
     paddingHorizontal: 16,
     marginBottom: 8,
     zIndex: 1000,
   },
   sectionLabel: {
-    fontSize: 16,
     fontWeight: "600",
-    color: "#374151",
     marginBottom: 8,
   },
   dropdown: {
-    borderColor: "#006B41",
     borderRadius: 12,
-    backgroundColor: "#fff",
   },
   dropdownText: {
-    color: "#006B41",
     fontWeight: "600",
   },
   dropdownList: {
-    borderColor: "#006B41",
     borderRadius: 12,
   },
   
-  // ✅ NOVO: Containers para ScrollView
+  // Containers para ScrollView
   scrollContainer: {
     flex: 1,
   },
@@ -546,9 +696,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 20,
     fontWeight: "700",
-    color: "#1F2937",
     marginBottom: 16,
   },
   statsSection: {
@@ -563,7 +711,6 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     minWidth: "45%",
-    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
     borderLeftWidth: 4,
@@ -580,21 +727,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statTitle: {
-    fontSize: 14,
-    color: "#6B7280",
     fontWeight: "500",
   },
   statValue: {
-    fontSize: 24,
     fontWeight: "800",
     marginVertical: 4,
   },
   statSubtitle: {
-    fontSize: 12,
-    color: "#9CA3AF",
+    // Dynamic styles applied inline
   },
   insightsCard: {
-    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
     shadowColor: "#000",
@@ -609,9 +751,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   insightsTitle: {
-    fontSize: 18,
     fontWeight: "700",
-    color: "#1F2937",
     marginLeft: 8,
   },
   insightItem: {
@@ -622,8 +762,6 @@ const styles = StyleSheet.create({
   insightText: {
     flex: 1,
     marginLeft: 12,
-    fontSize: 14,
-    color: "#4B5563",
     lineHeight: 20,
   },
   chart: {
@@ -633,31 +771,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 40,
-    backgroundColor: "#fff",
     borderRadius: 12,
   },
   noDataText: {
-    fontSize: 16,
     fontWeight: "600",
-    color: "#6B7280",
     marginTop: 12,
   },
   noDataSubtitle: {
-    fontSize: 14,
-    color: "#9CA3AF",
     textAlign: "center",
     marginTop: 4,
     paddingHorizontal: 32,
   },
   
-  // ✅ Estilos para as notas (sem FlatList)
+  // Estilos para as notas (sem FlatList)
   noteCard: {
-    backgroundColor: "#fff",
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
     borderLeftWidth: 3,
-    borderLeftColor: "#3B82F6",
   },
   noteHeader: {
     flexDirection: "row",
@@ -667,25 +798,18 @@ const styles = StyleSheet.create({
   },
   notePetName: {
     fontWeight: "700",
-    color: "#006B41",
-    fontSize: 14,
   },
   noteDate: {
-    fontSize: 12,
-    color: "#6B7280",
+    // Dynamic styles applied inline
   },
   noteText: {
-    fontSize: 14,
-    color: "#374151",
     lineHeight: 18,
   },
   healthCard: {
-    backgroundColor: "#fff",
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
     borderLeftWidth: 3,
-    borderLeftColor: "#EF4444",
   },
   healthHeader: {
     flexDirection: "row",
@@ -695,7 +819,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#FEE2E2",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -704,13 +827,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   healthType: {
-    fontSize: 14,
     fontWeight: "700",
-    color: "#1F2937",
   },
   healthDate: {
-    fontSize: 12,
-    color: "#6B7280",
     marginTop: 2,
   },
   viewNoteButton: {
@@ -721,9 +840,7 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   viewNoteText: {
-    color: "#006B41",
     fontWeight: "600",
-    fontSize: 12,
     marginRight: 4,
   },
   modalContainer: {
@@ -733,7 +850,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    backgroundColor: "#fff",
     padding: 20,
     borderRadius: 12,
     width: "80%",
@@ -741,19 +857,14 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontWeight: "700",
     marginBottom: 10,
-    fontSize: 16,
-    color: "#1F2937",
   },
   modalText: {
     marginBottom: 20,
-    fontSize: 14,
-    color: "#4B5563",
     lineHeight: 20,
   },
   modalButton: {
     alignSelf: "flex-end",
     padding: 8,
-    backgroundColor: "#006B41",
     borderRadius: 8,
   },
   modalButtonText: {

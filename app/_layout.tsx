@@ -1,20 +1,37 @@
-// app/_layout.tsx
-import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { AuthProvider } from '../contexts/AuthContext';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { LanguageProvider } from '../contexts/LanguageContext';
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
+
+function RootStack() {
+  const { isDark, colors } = useTheme();
+
+  return (
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.primary },
+          headerTintColor: colors.text,
+          headerTitleStyle: { fontWeight: '700' },
+        }}
+      >
+        <Stack.Screen name="index" options={{ title: 'Início' }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="auth" options={{ headerShown: false }} />
+        <Stack.Screen name="about" options={{ title: 'Sobre' }} />
+        <Stack.Screen name="pet/[Id]" options={{ title: 'Pet' }} />
+      </Stack>
+    </>
+  );
+}
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <StatusBar style="auto" />
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="auth" options={{ headerShown: false }} />
-        <Stack.Screen name="about" options={{ title: "Sobre" }} />
-        <Stack.Screen name="pet/[Id]" options={{ title: "Pet" }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </AuthProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <RootStack />
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }

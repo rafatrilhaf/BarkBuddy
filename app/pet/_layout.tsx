@@ -1,7 +1,5 @@
 // app/pet/_layout.tsx
-import { Ionicons } from "@expo/vector-icons"; // 👈 ícone da seta
-import { router, Stack } from "expo-router";
-import { Pressable } from "react-native";
+import { Stack } from "expo-router";
 
 export default function PetLayout() {
   return (
@@ -10,31 +8,14 @@ export default function PetLayout() {
         headerBackTitle: "",
         headerBackTitleVisible: false,
         headerLargeTitle: false,
-          tabBarIcon: false,
-        
+        tabBarIcon: false,
       }}
     >
       <Stack.Screen
         name="dashboard"
         options={{
-         
-          title: "",
-          headerTitle: "",
-          
-          // 👇 seta customizada que SEMPRE volta pro tab "pet"
-          headerLeft: () => (
-            <Pressable
-              onPress={() => {
-                // tenta voltar; se não houver histórico, cai pro tabs/pet
-                try { router.back(); } catch {}
-                router.replace("/(tabs)/pet");
-              }}
-            style={{ paddingHorizontal: 12, paddingVertical: 6 }}
-            >
-              <Ionicons name="chevron-back" size={24} color="#000" />
-                            
-            </Pressable>
-          ),
+          // ✅ SOLUÇÃO: Desabilitar completamente o header do dashboard
+          headerShown: false,
         }}
       />
       <Stack.Screen name="edit" options={{ title: "Editar Pet" }} />

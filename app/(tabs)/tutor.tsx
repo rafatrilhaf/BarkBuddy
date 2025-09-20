@@ -16,9 +16,14 @@ import {
   TextInput,
   View,
 } from "react-native";
-import theme from "../../constants/theme";
+
+import { useLanguage } from "../../contexts/LanguageContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 export default function Tutor() {
+  const { colors, fontSizes } = useTheme();
+  const { t } = useLanguage();
+
   /* ───────────────────────────  auth / guards  ─────────────────────────── */
   const user = auth.currentUser;
   useEffect(() => {
@@ -28,7 +33,7 @@ export default function Tutor() {
   const uid = user?.uid;
   const [loading, setLoading] = useState(false);
 
-  /* ───────────────────────  perfil realtime + edição  ───────────────────── */
+  /* ───────────────────────  perfil realtime + edição  ────────────────────── */
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [editing, setEditing] = useState(false);
 
@@ -72,12 +77,12 @@ export default function Tutor() {
     })();
   }, [uid]);
 
-  /* ─────────────────────────  handlers  ───────────────────────── */
+  /* ─────────────────────────  handlers  ────────────────────────── */
   /** escolhe nova imagem */
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permissão necessária", "Autorize o acesso às fotos.");
+      Alert.alert(t('general.error'), "Autorize o acesso às fotos.");
       return;
     }
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -91,8 +96,8 @@ export default function Tutor() {
 
   /** remove foto atual */
   const removePhoto = () => {
-    Alert.alert("Remover foto", "Tem certeza?", [
-      { text: "Cancelar", style: "cancel" },
+    Alert.alert(t('general.confirm'), "Tem certeza?", [
+      { text: t('general.cancel'), style: "cancel" },
       {
         text: "Remover",
         style: "destructive",
@@ -108,7 +113,7 @@ export default function Tutor() {
   const onSave = async () => {
     if (!uid) return;
     if (!name.trim()) {
-      Alert.alert("Nome obrigatório", "Informe seu nome.");
+      Alert.alert(t('general.error'), "Informe seu nome.");
       return;
     }
 
@@ -128,10 +133,10 @@ export default function Tutor() {
         photoUrl: remotePhoto || "",
       });
 
-      Alert.alert("Salvo", "Informações atualizadas.");
+      Alert.alert(t('general.success'), "Informações atualizadas.");
       setEditing(false);
     } catch (err: any) {
-      Alert.alert("Erro", err?.message ?? "Falha ao salvar.");
+      Alert.alert(t('general.error'), err?.message ?? "Falha ao salvar.");
     } finally {
       setLoading(false);
     }
@@ -142,10 +147,10 @@ export default function Tutor() {
     setLocalPhotoUri(null);
   };
 
-  /* ────────────────────────────  UI  ──────────────────────────── */
+  /* ────────────────────────────  UI  ───────────────────────────── */
   const avatar = localPhotoUri || profile?.photoUrl;
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         {/* avatar + ações */}
         <View style={{ alignItems: "center", marginTop: 30 }}>
@@ -161,12 +166,12 @@ export default function Tutor() {
                   width: 140,
                   height: 140,
                   borderRadius: 100,
-                  backgroundColor: "#e0e0e0",
+                  backgroundColor: colors.surface,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name="person" size={70} color="#9e9e9e" />
+                <Ionicons name="person" size={70} color={colors.textSecondary} />
               </View>
             )}
 
@@ -179,7 +184,7 @@ export default function Tutor() {
                     position: "absolute",
                     bottom: 4,
                     right: 4,
-                    backgroundColor: theme.green,
+                    backgroundColor: colors.primary,
                     borderRadius: 20,
                     padding: 6,
                   }}
@@ -195,7 +200,7 @@ export default function Tutor() {
                       position: "absolute",
                       bottom: 4,
                       left: 4,
-                      backgroundColor: "#d32f2f",
+                      backgroundColor: colors.error,
                       borderRadius: 20,
                       padding: 6,
                     }}
@@ -209,8 +214,8 @@ export default function Tutor() {
 
           <Text
             style={{
-              color: theme.green,
-              fontSize: 20,
+              color: colors.primary,
+              fontSize: fontSizes.xl,
               fontWeight: "900",
               marginTop: 8,
             }}
@@ -224,60 +229,84 @@ export default function Tutor() {
           <TextInput
             value={name}
             onChangeText={setName}
-            placeholder="Nome"
+            placeholder={t('tutor.name')}
             editable={editing}
-            style={styles.input}
+            placeholderTextColor={colors.textSecondary}
+            style={[styles.input, { 
+              borderColor: colors.border, 
+              backgroundColor: colors.surface,
+              color: colors.text,
+              fontSize: fontSizes.md
+            }]}
           />
           <TextInput
             value={phone}
             onChangeText={setPhone}
-            placeholder="Telefone"
+            placeholder={t('tutor.phone')}
             editable={editing}
             keyboardType="phone-pad"
-            style={styles.input}
+            placeholderTextColor={colors.textSecondary}
+            style={[styles.input, { 
+              borderColor: colors.border, 
+              backgroundColor: colors.surface,
+              color: colors.text,
+              fontSize: fontSizes.md
+            }]}
           />
           <TextInput
             value={address}
             onChangeText={setAddress}
-            placeholder="Endereço"
+            placeholder={t('tutor.address')}
             editable={editing}
-            style={styles.input}
+            placeholderTextColor={colors.textSecondary}
+            style={[styles.input, { 
+              borderColor: colors.border, 
+              backgroundColor: colors.surface,
+              color: colors.text,
+              fontSize: fontSizes.md
+            }]}
           />
           <TextInput
             value={email}
             onChangeText={setEmail}
-            placeholder="Email"
+            placeholder={t('tutor.email')}
             editable={editing}
             keyboardType="email-address"
-            style={styles.input}
+            placeholderTextColor={colors.textSecondary}
+            style={[styles.input, { 
+              borderColor: colors.border, 
+              backgroundColor: colors.surface,
+              color: colors.text,
+              fontSize: fontSizes.md
+            }]}
           />
         </View>
 
         {/* botões inferiores */}
         <View style={{ marginTop: 24, gap: 12 }}>
           {loading ? (
-            <ActivityIndicator />
+            <ActivityIndicator color={colors.primary} />
           ) : editing ? (
             <>
               <Pressable
                 onPress={onSave}
-                style={[styles.btn, { backgroundColor: theme.green }]}
+                style={[styles.btn, { backgroundColor: colors.primary }]}
               >
-                <Text style={styles.btnTxt}>Salvar</Text>
+                <Text style={[styles.btnTxt, { fontSize: fontSizes.md }]}>{t('general.save')}</Text>
               </Pressable>
               <Pressable
                 onPress={onCancel}
-                style={[styles.btn, { backgroundColor: "#9e9e9e" }]}
+                style={[styles.btn, { backgroundColor: colors.textSecondary }]}
               >
-                <Text style={styles.btnTxt}>Cancelar</Text>
+                <Text style={[styles.btnTxt, { fontSize: fontSizes.md }]}>{t('general.cancel')}</Text>
               </Pressable>
             </>
           ) : (
             <Pressable
               onPress={() => setEditing(true)}
-              style={[styles.btn, { backgroundColor: theme.green }]}
+              style={[styles.btn, { backgroundColor: colors.primary }]}
             >
-              <Text style={styles.btnTxt}>Editar informações</Text>
+              <Text style={[styles.btnTxt, { fontSize: fontSizes.md }]}>{t('general.edit')}</Text>
             </Pressable>
           )}
         </View>
@@ -289,17 +318,17 @@ export default function Tutor() {
 const styles = {
   input: {
     borderWidth: 1,
-    borderColor: "#cfcfcf",
     borderRadius: 12,
     padding: 12,
   },
   btn: {
     padding: 14,
     borderRadius: 16,
+    alignItems: 'center' as const,
   },
   btnTxt: {
     color: "#fff",
-    fontWeight: "800",
-    textAlign: "center",
+    fontWeight: "800" as const,
+    textAlign: "center" as const,
   },
 } as const;

@@ -13,7 +13,8 @@ import {
   View,
 } from "react-native";
 import PostCard from "../../components/PostCard";
-import theme from "../../constants/theme";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import { auth } from "../../services/firebase";
 import {
   listenTextPosts,
@@ -31,6 +32,9 @@ type PostCardShape = {
 };
 
 export default function Blog() {
+  const { colors, fontSizes } = useTheme();
+  const { t } = useLanguage();
+
   // Estado do usuário e autenticação
   const [user, setUser] = useState<User | null>(null);
   const [initializing, setInitializing] = useState(true);
@@ -118,12 +122,12 @@ export default function Blog() {
     console.log("📝 User isAnonymous:", auth.currentUser?.isAnonymous);
     
     if (!user || user.isAnonymous) {
-      Alert.alert("Erro", "Você precisa fazer login com email para publicar no blog.");
+      Alert.alert(t('general.error'), "Você precisa fazer login com email para publicar no blog.");
       return;
     }
     
     if (!text.trim()) {
-      Alert.alert("Erro", "Digite algo para publicar.");
+      Alert.alert(t('general.error'), "Digite algo para publicar.");
       return;
     }
 
@@ -135,7 +139,7 @@ export default function Blog() {
       console.log("✅ Post publicado com sucesso");
     } catch (e: any) {
       console.error("❌ Erro ao publicar:", e);
-      Alert.alert("Erro", e.message || "Não foi possível publicar");
+      Alert.alert(t('general.error'), e.message || "Não foi possível publicar");
     } finally {
       setBusy(false);
     }
@@ -149,7 +153,7 @@ export default function Blog() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: theme.white,
+          backgroundColor: colors.background,
         }}
       >
         <View
@@ -157,22 +161,22 @@ export default function Blog() {
             width: 44,
             height: 44,
             borderRadius: 22,
-            backgroundColor: theme.greenLight,
+            backgroundColor: colors.surface,
             alignItems: "center",
             justifyContent: "center",
             marginBottom: 16,
           }}
         >
-          <Ionicons name="chatbubbles" size={22} color={theme.greenDark} />
+          <Ionicons name="chatbubbles" size={22} color={colors.primary} />
         </View>
         <Text
           style={{
-            fontSize: 16,
-            color: theme.greenDark,
+            fontSize: fontSizes.md,
+            color: colors.text,
             fontWeight: "600",
           }}
         >
-          Carregando autenticação...
+          {t('general.loading')}
         </Text>
       </SafeAreaView>
     );
@@ -186,7 +190,7 @@ export default function Blog() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: theme.white,
+          backgroundColor: colors.background,
           padding: 20,
         }}
       >
@@ -195,18 +199,18 @@ export default function Blog() {
             width: 64,
             height: 64,
             borderRadius: 32,
-            backgroundColor: theme.greenLight,
+            backgroundColor: colors.surface,
             alignItems: "center",
             justifyContent: "center",
             marginBottom: 20,
           }}
         >
-          <Ionicons name="lock-closed" size={32} color={theme.greenDark} />
+          <Ionicons name="lock-closed" size={32} color={colors.primary} />
         </View>
         <Text
           style={{
-            fontSize: 18,
-            color: theme.greenDark,
+            fontSize: fontSizes.lg,
+            color: colors.text,
             textAlign: "center",
             fontWeight: "700",
             marginBottom: 8,
@@ -216,8 +220,8 @@ export default function Blog() {
         </Text>
         <Text
           style={{
-            fontSize: 14,
-            color: "#999",
+            fontSize: fontSizes.sm,
+            color: colors.textSecondary,
             textAlign: "center",
             lineHeight: 20,
           }}
@@ -230,7 +234,7 @@ export default function Blog() {
 
   // Interface principal do blog
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.white }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* topo com ícone centralizado */}
       <View style={{ alignItems: "center", paddingVertical: 8 }}>
         <View
@@ -238,12 +242,12 @@ export default function Blog() {
             width: 44,
             height: 44,
             borderRadius: 22,
-            backgroundColor: theme.greenLight,
+            backgroundColor: colors.surface,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Ionicons name="chatbubbles" size={22} color={theme.greenDark} />
+          <Ionicons name="chatbubbles" size={22} color={colors.primary} />
         </View>
       </View>
 
@@ -257,24 +261,29 @@ export default function Blog() {
       >
         <View
           style={{
-            backgroundColor: theme.greenLight,
+            backgroundColor: colors.surface,
             borderRadius: 16,
             paddingLeft: 40,
             paddingRight: 92,
             height: 44,
             justifyContent: "center",
+            borderWidth: 1,
+            borderColor: colors.border,
           }}
         >
           <TextInput
             placeholder="Pesquisar posts..."
-            placeholderTextColor="#577"
-            style={{ color: theme.greenDark, fontSize: 14 }}
+            placeholderTextColor={colors.textSecondary}
+            style={{ 
+              color: colors.text, 
+              fontSize: fontSizes.sm,
+            }}
           />
         </View>
         <Ionicons
           name="search"
           size={18}
-          color={theme.greenDark}
+          color={colors.textSecondary}
           style={{ position: "absolute", left: 26, top: 13 }}
         />
         <TouchableOpacity
@@ -290,7 +299,7 @@ export default function Blog() {
           }}
           onPress={() => {}}
         >
-          <Ionicons name="options-outline" size={20} color={theme.greenDark} />
+          <Ionicons name="options-outline" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
         {/* botão + abre o composer */}
@@ -302,13 +311,13 @@ export default function Blog() {
             width: 44,
             height: 44,
             borderRadius: 22,
-            backgroundColor: theme.greenDark,
+            backgroundColor: colors.primary,
             alignItems: "center",
             justifyContent: "center",
           }}
           onPress={() => setComposerOpen(true)}
         >
-          <Ionicons name="add" size={24} color={theme.white} />
+          <Ionicons name="add" size={24} color={colors.background} />
         </TouchableOpacity>
       </View>
 
@@ -328,13 +337,13 @@ export default function Blog() {
             <Ionicons
               name="chatbubbles-outline"
               size={48}
-              color="#ccc"
+              color={colors.textTertiary}
               style={{ marginBottom: 16 }}
             />
             <Text
               style={{
-                color: "#999",
-                fontSize: 16,
+                color: colors.textSecondary,
+                fontSize: fontSizes.md,
                 textAlign: "center",
                 fontWeight: "600",
               }}
@@ -343,8 +352,8 @@ export default function Blog() {
             </Text>
             <Text
               style={{
-                color: "#999",
-                fontSize: 14,
+                color: colors.textSecondary,
+                fontSize: fontSizes.sm,
                 marginTop: 4,
                 textAlign: "center",
               }}
@@ -362,7 +371,11 @@ export default function Blog() {
         onRequestClose={() => setComposerOpen(false)}
       >
         <SafeAreaView
-          style={{ flex: 1, backgroundColor: "#fff", padding: 16 }}
+          style={{ 
+            flex: 1, 
+            backgroundColor: colors.background, 
+            padding: 16 
+          }}
         >
           <View
             style={{
@@ -374,34 +387,36 @@ export default function Blog() {
           >
             <Text
               style={{
-                fontSize: 18,
+                fontSize: fontSizes.lg,
                 fontWeight: "700",
-                color: theme.greenDark,
+                color: colors.text,
               }}
             >
               Novo post
             </Text>
             <TouchableOpacity onPress={() => setComposerOpen(false)}>
-              <Ionicons name="close" size={24} color={theme.greenDark} />
+              <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
 
           <TextInput
             placeholder="Escreva algo sobre seu pet..."
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.textSecondary}
             value={text}
             onChangeText={setText}
             multiline
             autoFocus
             style={{
               minHeight: 140,
-              borderColor: "#ddd",
+              borderColor: colors.border,
               borderWidth: 1,
               borderRadius: 12,
               padding: 16,
               textAlignVertical: "top",
-              fontSize: 16,
+              fontSize: fontSizes.md,
               lineHeight: 22,
+              color: colors.text,
+              backgroundColor: colors.surface,
             }}
           />
 
@@ -413,16 +428,16 @@ export default function Blog() {
                 flex: 1,
                 paddingVertical: 16,
                 backgroundColor:
-                  busy || !text.trim() ? "#ddd" : theme.greenDark,
+                  busy || !text.trim() ? colors.textTertiary : colors.primary,
                 borderRadius: 12,
                 alignItems: "center",
               }}
             >
               <Text
                 style={{
-                  color: busy || !text.trim() ? "#999" : "#fff",
+                  color: busy || !text.trim() ? colors.textSecondary : colors.background,
                   fontWeight: "600",
-                  fontSize: 16,
+                  fontSize: fontSizes.md,
                 }}
               >
                 {busy ? "Publicando..." : "Publicar"}
@@ -436,18 +451,19 @@ export default function Blog() {
                 paddingHorizontal: 24,
                 borderRadius: 12,
                 borderWidth: 1,
-                borderColor: theme.greenDark,
+                borderColor: colors.primary,
                 alignItems: "center",
+                backgroundColor: colors.surface,
               }}
             >
               <Text
                 style={{
-                  color: theme.greenDark,
+                  color: colors.primary,
                   fontWeight: "600",
-                  fontSize: 16,
+                  fontSize: fontSizes.md,
                 }}
               >
-                Cancelar
+                {t('general.cancel')}
               </Text>
             </TouchableOpacity>
           </View>

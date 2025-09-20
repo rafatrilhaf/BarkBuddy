@@ -1,4 +1,4 @@
-// app/(tabs)/Localizacao.tsx - VERSÃO HÍBRIDA WebView Android + MapView iOS
+// app/(tabs)/maps.tsx - VERSÃO HÍBRIDA WebView Android + MapView iOS
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from "expo-location";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
@@ -23,6 +23,8 @@ import { WebView } from 'react-native-webview';
 
 import { auth, db } from "@/services/firebase";
 import { subscribeMyPets, updatePet } from "services/pets";
+import { useLanguage } from '../../contexts/LanguageContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // ================== INTERFACES ==================
 interface GeofenceZone {
@@ -236,6 +238,9 @@ function generateMapHTML(location: LastLocation, zones: GeofenceZone[]): string 
 
 // ================== COMPONENTE PRINCIPAL ==================
 export default function Localizacao() {
+  const { colors, fontSizes } = useTheme();
+  const { t } = useLanguage();
+  
   const uid = auth?.currentUser?.uid;
   const [pets, setPets] = useState<TrackablePet[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -338,7 +343,7 @@ export default function Localizacao() {
       "Toque no mapa para definir o centro da zona segura.",
       [
         { 
-          text: "Cancelar", 
+          text: t('general.cancel'), 
           onPress: () => {
             setCreatingZone(false);
             setNewZoneCenter(null);
@@ -347,7 +352,7 @@ export default function Localizacao() {
             setSelectedZoneColor("#22C55E");
           }
         },
-        { text: "OK" }
+        { text: t('button.ok') }
       ]
     );
   };
@@ -374,7 +379,7 @@ export default function Localizacao() {
 
   const confirmCreateZone = async () => {
     if (!newZoneCenter || !zoneName.trim()) {
-      Alert.alert("Erro", "Informe um nome para a zona.");
+      Alert.alert(t('general.error'), "Informe um nome para a zona.");
       return;
     }
 
@@ -407,7 +412,7 @@ export default function Localizacao() {
       "Abrir mapa",
       "Escolha onde abrir a localização:",
       [
-        { text: "Cancelar", style: "cancel" },
+        { text: t('general.cancel'), style: "cancel" },
         { 
           text: "Google Maps", 
           onPress: () => Linking.openURL(`https://maps.google.com/?q=${lat},${lng}&label=${label}`)
@@ -459,7 +464,7 @@ export default function Localizacao() {
       `Marcar como ${action}`, 
       `Deseja marcar ${selected.name} como ${action}?`,
       [
-        { text: "Cancelar", style: "cancel" },
+        { text: t('general.cancel'), style: "cancel" },
         {
           text: "Confirmar",
           onPress: async () => {
@@ -556,13 +561,13 @@ export default function Localizacao() {
         Alert.alert(
           "🟢 Pet entrou na zona segura",
           `${selected?.name || 'Seu pet'} entrou na zona "${zone.name}"`,
-          [{ text: "OK" }]
+          [{ text: t('button.ok') }]
         );
       } else if (!isInside && wasInside) {
         Alert.alert(
           "🔴 Pet saiu da zona segura",
           `${selected?.name || 'Seu pet'} saiu da zona "${zone.name}"`,
-          [{ text: "OK" }]
+          [{ text: t('button.ok') }]
         );
       }
     }
@@ -691,38 +696,48 @@ export default function Localizacao() {
   // ================== ESTADOS DE LOADING ==================
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#006B41" />
-        <Text style={styles.loadingText}>Carregando seus pets…</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary, fontSize: fontSizes.md }]}>
+          {t('general.loading')}
+        </Text>
       </View>
     );
   }
 
   if (!uid) {
     return (
-      <View style={styles.centerContainer}>
-        <Ionicons name="person-circle-outline" size={80} color="#ccc" />
-        <Text style={styles.errorTitle}>Faça login para ver seus pets</Text>
-        <Text style={styles.errorSubtitle}>Não encontramos um usuário autenticado.</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Ionicons name="person-circle-outline" size={80} color={colors.textTertiary} />
+        <Text style={[styles.errorTitle, { color: colors.text, fontSize: fontSizes.lg }]}>
+          Faça login para ver seus pets
+        </Text>
+        <Text style={[styles.errorSubtitle, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>
+          Não encontramos um usuário autenticado.
+        </Text>
       </View>
     );
   }
 
   if (!pets.length) {
     return (
-      <View style={styles.centerContainer}>
-        <Ionicons name="paw-outline" size={80} color="#ccc" />
-        <Text style={styles.errorTitle}>Nenhum pet cadastrado</Text>
-        <Text style={styles.errorSubtitle}>Cadastre um pet para começar a acompanhar a localização.</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Ionicons name="paw-outline" size={80} color={colors.textTertiary} />
+        <Text style={[styles.errorTitle, { color: colors.text, fontSize: fontSizes.lg }]}>
+          Nenhum pet cadastrado
+        </Text>
+        <Text style={[styles.errorSubtitle, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>
+          Cadastre um pet para começar a acompanhar a localização.
+        </Text>
       </View>
     );
   }
 
   // ================== RENDER PRINCIPAL ==================
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.background }]}>
         <View style={styles.dropdownContainer}>
           <DropDownPicker
             open={open}
@@ -732,9 +747,18 @@ export default function Localizacao() {
             setValue={setSelectedId}
             setItems={setItems}
             containerStyle={{ height: 46 }}
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownList}
-            textStyle={styles.dropdownText}
+            style={[styles.dropdown, { 
+              backgroundColor: colors.surface, 
+              borderColor: colors.primary 
+            }]}
+            dropDownContainerStyle={[styles.dropdownList, { 
+              backgroundColor: colors.surface,
+              borderColor: colors.primary 
+            }]}
+            textStyle={[styles.dropdownText, { 
+              color: colors.text,
+              fontSize: fontSizes.sm 
+            }]}
             placeholder="Selecione um pet"
             closeAfterSelecting={true}
             searchable={false}
@@ -749,7 +773,7 @@ export default function Localizacao() {
               { backgroundColor: selected.lost ? "#DC2626" : "#22C55E" }
             ]}
           >
-            <Text style={styles.statusButtonText}>
+            <Text style={[styles.statusButtonText, { fontSize: fontSizes.sm }]}>
               {selected.lost ? "❌ Encontrado" : "🚨 Perdido"}
             </Text>
           </Pressable>
@@ -757,30 +781,61 @@ export default function Localizacao() {
       </View>
 
       {/* Barra de ferramentas */}
-      <View style={styles.geofenceToolbar}>
+      <View style={[styles.geofenceToolbar, { 
+        backgroundColor: colors.surface,
+        borderBottomColor: colors.border 
+      }]}>
         <Pressable
           onPress={startCreatingZone}
-          style={[styles.toolbarButton, creatingZone && styles.toolbarButtonActive]}
+          style={[
+            styles.toolbarButton, 
+            { borderColor: colors.primary },
+            creatingZone && { backgroundColor: colors.primary }
+          ]}
         >
-          <Ionicons name="add-circle" size={20} color={creatingZone ? "#fff" : "#006B41"} />
-          <Text style={[styles.toolbarButtonText, creatingZone && styles.toolbarButtonTextActive]}>
+          <Ionicons 
+            name="add-circle" 
+            size={20} 
+            color={creatingZone ? colors.background : colors.primary} 
+          />
+          <Text style={[
+            styles.toolbarButtonText, 
+            { 
+              color: creatingZone ? colors.background : colors.primary,
+              fontSize: fontSizes.sm 
+            }
+          ]}>
             {creatingZone ? "Toque no mapa" : "Nova Zona"}
           </Text>
         </Pressable>
 
         <Pressable
           onPress={() => setShowZoneManager(!showZoneManager)}
-          style={[styles.toolbarButton, { backgroundColor: showZoneManager ? "#F3F4F6" : "transparent" }]}
+          style={[
+            styles.toolbarButton, 
+            { 
+              borderColor: colors.primary,
+              backgroundColor: showZoneManager ? colors.surface : "transparent" 
+            }
+          ]}
         >
-          <Ionicons name="settings" size={20} color="#006B41" />
-          <Text style={styles.toolbarButtonText}>
+          <Ionicons name="settings" size={20} color={colors.primary} />
+          <Text style={[styles.toolbarButtonText, { 
+            color: colors.primary,
+            fontSize: fontSizes.sm 
+          }]}>
             Gerenciar ({zones.length})
           </Text>
         </Pressable>
 
         {zones.length > 0 && (
-          <View style={styles.zoneCounter}>
-            <Text style={styles.zoneCounterText}>{zones.length} zona{zones.length !== 1 ? 's' : ''}</Text>
+          <View style={[styles.zoneCounter, { backgroundColor: colors.primary + '20' }]}>
+            <Text style={[styles.zoneCounterText, { 
+              color: colors.primary,
+              fontSize: fontSizes.xs 
+            }]}>
+              {zones.length} zona{zones.length !== 1 ? 's' : ''}
+            </Text>
           </View>
         )}
       </View>
@@ -798,9 +853,14 @@ export default function Localizacao() {
             domStorageEnabled={true}
             startInLoadingState={true}
             renderLoading={() => (
-              <View style={styles.webViewLoading}>
-                <ActivityIndicator size="large" color="#006B41" />
-                <Text style={styles.loadingText}>Carregando mapa...</Text>
+              <View style={[styles.webViewLoading, { backgroundColor: colors.surface }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={[styles.loadingText, { 
+                  color: colors.textSecondary,
+                  fontSize: fontSizes.sm 
+                }]}>
+                  Carregando mapa...
+                </Text>
               </View>
             )}
           />
@@ -881,11 +941,15 @@ export default function Localizacao() {
       </View>
 
       {/* Painel inferior */}
-      <View style={styles.bottomPanel}>
+      <View style={[styles.bottomPanel, { backgroundColor: colors.surface }]}>
         <View style={styles.statusRow}>
-          <Text style={[styles.statusIndicator, { 
-            color: selected?.lost ? "#DC2626" : petLocationStatus.inZone ? "#22C55E" : "#F59E0B" 
-          }]}>
+          <Text style={[
+            styles.statusIndicator, 
+            { 
+              color: selected?.lost ? "#DC2626" : petLocationStatus.inZone ? "#22C55E" : "#F59E0B",
+              fontSize: fontSizes.md
+            }
+          ]}>
             {selected?.lost 
               ? "🚨 Pet perdido" 
               : petLocationStatus.inZone 
@@ -893,43 +957,75 @@ export default function Localizacao() {
                 : "⚠️ Fora das zonas"
             }
           </Text>
-          {locationLoading && <ActivityIndicator size="small" color="#666" />}
+          {locationLoading && <ActivityIndicator size="small" color={colors.textSecondary} />}
         </View>
 
-        <Text style={styles.updatedText}>{petLocationStatus.text}</Text>
+        <Text style={[styles.updatedText, { 
+          color: colors.textSecondary,
+          fontSize: fontSizes.sm 
+        }]}>
+          {petLocationStatus.text}
+        </Text>
 
         <View style={styles.actionRow}>
           <Pressable 
             onPress={fetchAndUpdateLocation} 
-            style={styles.actionButton}
+            style={[styles.actionButton, { 
+              backgroundColor: colors.background,
+              borderColor: colors.primary 
+            }]}
             disabled={locationLoading}
           >
-            <Ionicons name="refresh" size={20} color="#006B41" />
-            <Text style={styles.actionButtonText}>
+            <Ionicons name="refresh" size={20} color={colors.primary} />
+            <Text style={[styles.actionButtonText, { 
+              color: colors.primary,
+              fontSize: fontSizes.xs 
+            }]}>
               {locationLoading ? "..." : "Atualizar"}
             </Text>
           </Pressable>
 
-          <Pressable onPress={centerOnPet} style={[
-            styles.actionButton,
-            isCentered && styles.actionButtonActive
-          ]}>
+          <Pressable 
+            onPress={centerOnPet} 
+            style={[
+              styles.actionButton,
+              { 
+                backgroundColor: colors.background,
+                borderColor: isCentered ? "#22C55E" : colors.primary 
+              },
+              isCentered && { backgroundColor: colors.primary + '20' }
+            ]}
+          >
             <Ionicons 
               name={isCentered ? "radio-button-on" : "locate"} 
               size={20} 
-              color={isCentered ? "#22C55E" : "#006B41"} 
+              color={isCentered ? "#22C55E" : colors.primary} 
             />
             <Text style={[
               styles.actionButtonText,
-              isCentered && styles.actionButtonTextActive
+              { 
+                color: isCentered ? "#22C55E" : colors.primary,
+                fontSize: fontSizes.xs 
+              }
             ]}>
               {isCentered ? "Centralizado" : "Centralizar"}
             </Text>
           </Pressable>
 
-          <Pressable onPress={openMaps} style={styles.actionButton}>
-            <Ionicons name="map" size={20} color="#006B41" />
-            <Text style={styles.actionButtonText}>Abrir</Text>
+          <Pressable 
+            onPress={openMaps} 
+            style={[styles.actionButton, { 
+              backgroundColor: colors.background,
+              borderColor: colors.primary 
+            }]}
+          >
+            <Ionicons name="map" size={20} color={colors.primary} />
+            <Text style={[styles.actionButtonText, { 
+              color: colors.primary,
+              fontSize: fontSizes.xs 
+            }]}>
+              Abrir
+            </Text>
           </Pressable>
         </View>
 
@@ -957,12 +1053,15 @@ export default function Localizacao() {
             size={20} 
             color="#fff" 
           />
-          <Text style={styles.realtimeButtonText}>
+          <Text style={[styles.realtimeButtonText, { fontSize: fontSizes.sm }]}>
             {isRealtime ? "Parar tempo real (1 min)" : "Tempo real (1 min)"}
           </Text>
         </Pressable>
 
-        <Text style={styles.osmCredit}>
+        <Text style={[styles.osmCredit, { 
+          color: colors.textTertiary,
+          fontSize: fontSizes.xs 
+        }]}>
           {Platform.OS === 'ios' 
             ? 'Mapas fornecidos pela Apple' 
             : 'Mapa fornecido por OpenStreetMap'
@@ -970,7 +1069,7 @@ export default function Localizacao() {
         </Text>
       </View>
 
-      {/* Modais (mesmo código anterior) */}
+      {/* Modais */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -981,26 +1080,47 @@ export default function Localizacao() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalContainer}
         >
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Nova Zona Segura</Text>
+              <Text style={[styles.modalTitle, { 
+                color: colors.text,
+                fontSize: fontSizes.lg 
+              }]}>
+                Nova Zona Segura
+              </Text>
               <Pressable onPress={cancelZoneCreation} style={styles.modalCloseButton}>
-                <Ionicons name="close" size={24} color="#666" />
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
               </Pressable>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={styles.modalLabel}>Nome da zona:</Text>
+              <Text style={[styles.modalLabel, { 
+                color: colors.text,
+                fontSize: fontSizes.md 
+              }]}>
+                Nome da zona:
+              </Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { 
+                  borderColor: colors.border,
+                  backgroundColor: colors.surface,
+                  color: colors.text,
+                  fontSize: fontSizes.md
+                }]}
                 placeholder="Ex: Casa, Parque, Veterinário"
+                placeholderTextColor={colors.textSecondary}
                 value={zoneName}
                 onChangeText={setZoneName}
                 autoFocus
                 maxLength={30}
               />
 
-              <Text style={styles.modalLabel}>Raio da zona ({newZoneRadius}m):</Text>
+              <Text style={[styles.modalLabel, { 
+                color: colors.text,
+                fontSize: fontSizes.md 
+              }]}>
+                Raio da zona ({newZoneRadius}m):
+              </Text>
               <View style={styles.radiusContainer}>
                 {[50, 100, 200, 500].map(radius => (
                   <Pressable
@@ -1008,12 +1128,19 @@ export default function Localizacao() {
                     onPress={() => setNewZoneRadius(radius)}
                     style={[
                       styles.radiusButton,
-                      { backgroundColor: newZoneRadius === radius ? "#006B41" : "#F3F4F6" }
+                      { 
+                        backgroundColor: newZoneRadius === radius ? colors.primary : colors.surface,
+                        borderColor: colors.border,
+                        borderWidth: 1
+                      }
                     ]}
                   >
                     <Text style={[
                       styles.radiusButtonText,
-                      { color: newZoneRadius === radius ? "#fff" : "#374151" }
+                      { 
+                        color: newZoneRadius === radius ? colors.background : colors.text,
+                        fontSize: fontSizes.sm
+                      }
                     ]}>
                       {radius}m
                     </Text>
@@ -1021,7 +1148,12 @@ export default function Localizacao() {
                 ))}
               </View>
 
-              <Text style={styles.modalLabel}>Cor da zona:</Text>
+              <Text style={[styles.modalLabel, { 
+                color: colors.text,
+                fontSize: fontSizes.md 
+              }]}>
+                Cor da zona:
+              </Text>
               <View style={styles.colorContainer}>
                 {zoneColors.map(color => (
                   <Pressable
@@ -1044,17 +1176,29 @@ export default function Localizacao() {
             <View style={styles.modalButtons}>
               <Pressable
                 onPress={cancelZoneCreation}
-                style={[styles.modalButton, styles.modalButtonSecondary]}
+                style={[styles.modalButton, styles.modalButtonSecondary, { 
+                  backgroundColor: colors.surface 
+                }]}
               >
-                <Text style={styles.modalButtonTextSecondary}>Cancelar</Text>
+                <Text style={[styles.modalButtonTextSecondary, { 
+                  color: colors.text,
+                  fontSize: fontSizes.md
+                }]}>
+                  {t('general.cancel')}
+                </Text>
               </Pressable>
               <Pressable
                 onPress={confirmCreateZone}
-                style={[styles.modalButton, styles.modalButtonPrimary]}
+                style={[
+                  styles.modalButton, 
+                  styles.modalButtonPrimary,
+                  { backgroundColor: colors.primary }
+                ]}
                 disabled={!zoneName.trim()}
               >
                 <Text style={[
                   styles.modalButtonTextPrimary,
+                  { fontSize: fontSizes.md },
                   !zoneName.trim() && { opacity: 0.5 }
                 ]}>
                   Criar Zona
@@ -1072,33 +1216,59 @@ export default function Localizacao() {
         onRequestClose={() => setShowZoneManager(false)}
       >
         <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, { maxHeight: '80%' }]}>
+          <View style={[styles.modalContent, { 
+            maxHeight: '80%',
+            backgroundColor: colors.background 
+          }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Zonas Seguras</Text>
+              <Text style={[styles.modalTitle, { 
+                color: colors.text,
+                fontSize: fontSizes.lg 
+              }]}>
+                Zonas Seguras
+              </Text>
               <Pressable 
                 onPress={() => setShowZoneManager(false)} 
                 style={styles.modalCloseButton}
               >
-                <Ionicons name="close" size={24} color="#666" />
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
               </Pressable>
             </View>
 
             {zones.length === 0 ? (
               <View style={styles.noZonesContainer}>
-                <Ionicons name="location-outline" size={64} color="#D1D5DB" />
-                <Text style={styles.noZonesText}>Nenhuma zona criada</Text>
-                <Text style={styles.noZonesSubtitle}>
+                <Ionicons name="location-outline" size={64} color={colors.textTertiary} />
+                <Text style={[styles.noZonesText, { 
+                  color: colors.textSecondary,
+                  fontSize: fontSizes.lg 
+                }]}>
+                  Nenhuma zona criada
+                </Text>
+                <Text style={[styles.noZonesSubtitle, { 
+                  color: colors.textTertiary,
+                  fontSize: fontSizes.sm 
+                }]}>
                   Crie zonas seguras para monitorar automaticamente quando seu pet entra ou sai de áreas importantes
                 </Text>
               </View>
             ) : (
               <ScrollView showsVerticalScrollIndicator={false} style={styles.zonesList}>
                 {zones.map(zone => (
-                  <View key={zone.id} style={styles.zoneItem}>
+                  <View key={zone.id} style={[styles.zoneItem, { 
+                    borderBottomColor: colors.border 
+                  }]}>
                     <View style={[styles.zoneColorIndicator, { backgroundColor: zone.color }]} />
                     <View style={styles.zoneInfo}>
-                      <Text style={styles.zoneName}>{zone.name}</Text>
-                      <Text style={styles.zoneDetails}>
+                      <Text style={[styles.zoneName, { 
+                        color: colors.text,
+                        fontSize: fontSizes.md 
+                      }]}>
+                        {zone.name}
+                      </Text>
+                      <Text style={[styles.zoneDetails, { 
+                        color: colors.textSecondary,
+                        fontSize: fontSizes.sm 
+                      }]}>
                         📏 {zone.radius}m de raio
                       </Text>
                     </View>
@@ -1108,7 +1278,7 @@ export default function Localizacao() {
                           "Excluir zona",
                           `Tem certeza que deseja excluir a zona "${zone.name}"?\n\nEsta ação não pode ser desfeita.`,
                           [
-                            { text: "Cancelar", style: "cancel" },
+                            { text: t('general.cancel'), style: "cancel" },
                             { 
                               text: "Excluir", 
                               style: "destructive", 
@@ -1129,9 +1299,15 @@ export default function Localizacao() {
             <View style={styles.modalButtons}>
               <Pressable
                 onPress={() => setShowZoneManager(false)}
-                style={[styles.modalButton, styles.modalButtonPrimary, { flex: 1 }]}
+                style={[
+                  styles.modalButton, 
+                  styles.modalButtonPrimary, 
+                  { flex: 1, backgroundColor: colors.primary }
+                ]}
               >
-                <Text style={styles.modalButtonTextPrimary}>Fechar</Text>
+                <Text style={[styles.modalButtonTextPrimary, { fontSize: fontSizes.md }]}>
+                  Fechar
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -1145,29 +1321,23 @@ export default function Localizacao() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   centerContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
     padding: 24,
   },
   loadingText: {
     marginTop: 12,
-    color: "#666",
-    fontSize: 16,
+    fontWeight: "500",
   },
   errorTitle: {
-    color: "#333",
     fontWeight: "700",
-    fontSize: 18,
     textAlign: "center",
     marginTop: 16,
   },
   errorSubtitle: {
-    color: "#666",
     marginTop: 8,
     textAlign: "center",
     lineHeight: 20,
@@ -1184,18 +1354,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dropdown: {
-    backgroundColor: "#fafafa",
-    borderColor: "#006B41",
     borderRadius: 12,
     height: 46,
   },
   dropdownList: {
-    borderColor: "#006B41",
     borderRadius: 12,
   },
   dropdownText: {
-    color: "#111",
-    fontSize: 15,
     fontWeight: "500",
   },
   statusButton: {
@@ -1210,16 +1375,13 @@ const styles = StyleSheet.create({
   statusButtonText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: 13,
   },
   geofenceToolbar: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#F9FAFB",
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
   },
   toolbarButton: {
     flexDirection: "row",
@@ -1229,32 +1391,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "#006B41",
     marginRight: 12,
-  },
-  toolbarButtonActive: {
-    backgroundColor: "#006B41",
   },
   toolbarButtonText: {
     marginLeft: 6,
-    fontSize: 14,
     fontWeight: "600",
-    color: "#006B41",
-  },
-  toolbarButtonTextActive: {
-    color: "#fff",
   },
   zoneCounter: {
     marginLeft: "auto",
-    backgroundColor: "#E8F5EE",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
   },
   zoneCounterText: {
-    fontSize: 12,
     fontWeight: "600",
-    color: "#006B41",
   },
   mapContainer: {
     flex: 1,
@@ -1271,13 +1421,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
     zIndex: 1000,
   },
   bottomPanel: {
     padding: 16,
     gap: 12,
-    backgroundColor: "#fafafa",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
@@ -1287,13 +1435,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   statusIndicator: {
-    fontSize: 16,
     fontWeight: "600",
   },
   updatedText: {
     textAlign: "center",
-    color: "#666",
-    fontSize: 14,
     lineHeight: 20,
   },
   actionRow: {
@@ -1307,23 +1452,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 10,
-    backgroundColor: "#fff",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#006B41",
     gap: 4,
   },
-  actionButtonActive: {
-    backgroundColor: "#e8f5ee",
-    borderColor: "#22C55E",
-  },
   actionButtonText: {
-    color: "#006B41",
     fontWeight: "600",
-    fontSize: 12,
-  },
-  actionButtonTextActive: {
-    color: "#22C55E",
   },
   realtimeButton: {
     flexDirection: "row",
@@ -1337,12 +1471,9 @@ const styles = StyleSheet.create({
   realtimeButtonText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: 14,
   },
   osmCredit: {
     textAlign: "center",
-    color: "#999",
-    fontSize: 11,
     marginTop: 4,
   },
   modalContainer: {
@@ -1352,7 +1483,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 20,
     width: "92%",
@@ -1365,27 +1495,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalTitle: {
-    fontSize: 20,
     fontWeight: "700",
-    color: "#1F2937",
   },
   modalCloseButton: {
     padding: 4,
   },
   modalLabel: {
-    fontSize: 16,
     fontWeight: "600",
-    color: "#374151",
     marginBottom: 8,
     marginTop: 16,
   },
   modalInput: {
     borderWidth: 1,
-    borderColor: "#D1D5DB",
     borderRadius: 12,
     padding: 16,
-    fontSize: 16,
-    backgroundColor: "#F9FAFB",
   },
   radiusContainer: {
     flexDirection: "row",
@@ -1398,7 +1521,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   radiusButtonText: {
-    fontSize: 14,
     fontWeight: "600",
   },
   colorContainer: {
@@ -1434,20 +1556,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalButtonPrimary: {
-    backgroundColor: "#006B41",
+    // backgroundColor will be set dynamically
   },
   modalButtonSecondary: {
-    backgroundColor: "#F3F4F6",
+    // backgroundColor will be set dynamically
   },
   modalButtonTextPrimary: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: 16,
   },
   modalButtonTextSecondary: {
-    color: "#374151",
     fontWeight: "600",
-    fontSize: 16,
   },
   noZonesContainer: {
     alignItems: "center",
@@ -1455,15 +1574,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   noZonesText: {
-    fontSize: 18,
     fontWeight: "600",
-    color: "#6B7280",
     marginTop: 16,
     textAlign: "center",
   },
   noZonesSubtitle: {
-    fontSize: 14,
-    color: "#9CA3AF",
     textAlign: "center",
     marginTop: 8,
     lineHeight: 20,
@@ -1477,7 +1592,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 4,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
   },
   zoneColorIndicator: {
     width: 16,
@@ -1489,14 +1603,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   zoneName: {
-    fontSize: 16,
     fontWeight: "600",
-    color: "#1F2937",
     marginBottom: 2,
   },
   zoneDetails: {
-    fontSize: 14,
-    color: "#6B7280",
+    // color and fontSize will be set dynamically
   },
   deleteButton: {
     padding: 12,
