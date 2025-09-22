@@ -346,12 +346,13 @@ export default function AgendaScreen() {
       </TouchableOpacity>
 
       <ModalLembrete
-        visible={modalLembreteVisivel}
-        onClose={() => setModalLembreteVisivel(false)}
-        onSave={salvarLembrete}
-        pets={petsCalendario}
-        lembreteEditar={lembreteEditar}
-      />
+  visible={modalLembreteVisivel}
+  onClose={() => setModalLembreteVisivel(false)}
+  onSave={salvarLembrete}
+  pets={petsCalendario}
+  lembreteEditar={lembreteEditar}
+  dataSelecionada={dataSelecionada} // ✅ ADICIONADO: Passa a data selecionada
+/>
 
       <FiltrosAgenda
         visible={modalFiltroVisivel}
