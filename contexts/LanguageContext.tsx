@@ -12,6 +12,7 @@ const translations = {
     'nav.tutor': 'Tutor',
     'nav.settings': 'Configurações',
     'nav.agenda': 'Agenda',
+    'nav.about': 'Sobre',
 
     // Geral
     'general.save': 'Salvar',
@@ -26,6 +27,7 @@ const translations = {
     'general.filter': 'Filtro',
     'general.apply': 'Aplicar',
     'general.clear': 'Limpar',
+    'general.close': 'Fechar',
 
     // Tutor
     'tutor.name': 'Nome',
@@ -87,12 +89,321 @@ const translations = {
 
     // Autenticação
     'auth.logout': 'Sair',
-    'auth.logoutConfirm': 'Deseja realmente sair?',
+    'auth.logoutConfirm': 'Deseja realmente sair da sua conta?',
+    'auth.logoutError': 'Não foi possível sair. Tente novamente.',
 
     // Botões
     'button.ok': 'OK',
     'button.yes': 'Sim',
     'button.no': 'Não',
+
+    // ================== MAPAS/LOCALIZAÇÃO ==================
+    'maps.title': 'Localização',
+    'maps.selectPet': 'Selecione um pet',
+    'maps.found': '✅ Encontrado',
+    'maps.lost': '🚨 Perdido',
+    'maps.markAsFound': '❌ Encontrado',
+    'maps.markAsLost': '🚨 Perdido',
+    'maps.newSafeZone': 'Nova Zona',
+    'maps.tapOnMap': 'Toque no mapa',
+    'maps.manage': 'Gerenciar',
+    'maps.zones': 'zonas',
+    'maps.zone': 'zona',
+    'maps.createSafeZone': 'Criar Zona Segura',
+    'maps.createSafeZoneDesc': 'Toque no mapa para definir o centro da zona segura.',
+    'maps.petSafe': '🏠 Em zona segura',
+    'maps.petOutside': '⚠️ Fora das zonas',
+    'maps.petLost': '🚨 Pet perdido',
+    'maps.noLocation': 'Sem localização ainda',
+    'maps.lastSeen': 'Última vez visto',
+    'maps.inZone': '🏠 Em',
+    'maps.outsideZones': '📍 Fora das zonas',
+    'maps.ago': 'atrás',
+    'maps.justNow': 'Agora mesmo',
+    'maps.minutesAgo': 'min atrás',
+    'maps.hoursAgo': 'h atrás',
+    'maps.daysAgo': 'dias atrás',
+    'maps.never': 'Nunca',
+    'maps.refresh': 'Atualizar',
+    'maps.center': 'Centralizar',
+    'maps.centered': 'Centralizado',
+    'maps.open': 'Abrir',
+    'maps.realTime': 'Tempo real (1 min)',
+    'maps.stopRealTime': 'Parar tempo real (1 min)',
+    'maps.loadingMap': 'Carregando mapa...',
+    'maps.appleCredit': 'Mapas fornecidos pela Apple',
+    'maps.osmCredit': 'Mapa fornecido por OpenStreetMap',
+    
+    // Modais de zona
+    'maps.newSafeZoneTitle': 'Nova Zona Segura',
+    'maps.zoneName': 'Nome da zona:',
+    'maps.zoneNamePlaceholder': 'Ex: Casa, Parque, Veterinário',
+    'maps.zoneRadius': 'Raio da zona',
+    'maps.zoneColor': 'Cor da zona:',
+    'maps.createZone': 'Criar Zona',
+    'maps.safeZones': 'Zonas Seguras',
+    'maps.noZonesCreated': 'Nenhuma zona criada',
+    'maps.noZonesDesc': 'Crie zonas seguras para monitorar automaticamente quando seu pet entra ou sai de áreas importantes',
+    'maps.radiusMeters': 'm de raio',
+    'maps.close': 'Fechar',
+    
+    // Alertas e confirmações
+    'maps.markAsFoundTitle': 'Marcar como encontrado',
+    'maps.markAsLostTitle': 'Marcar como perdido',
+    'maps.markAsFoundConfirm': 'Deseja marcar {petName} como encontrado?',
+    'maps.markAsLostConfirm': 'Deseja marcar {petName} como perdido?',
+    'maps.statusUpdated': '{petName} marcado como {status}.',
+    'maps.statusUpdateError': 'Não foi possível atualizar o status.',
+    'maps.deleteZone': 'Excluir zona',
+    'maps.deleteZoneConfirm': 'Tem certeza que deseja excluir a zona "{zoneName}"?\n\nEsta ação não pode ser desfeita.',
+    'maps.zoneDeleted': 'Zona excluída!',
+    'maps.zoneDeleteError': 'Não foi possível excluir:',
+    'maps.petEnteredZone': '🟢 Pet entrou na zona segura',
+    'maps.petEnteredZoneDesc': '{petName} entrou na zona "{zoneName}"',
+    'maps.petLeftZone': '🔴 Pet saiu da zona segura',
+    'maps.petLeftZoneDesc': '{petName} saiu da zona "{zoneName}"',
+    'maps.zoneCreatedSuccess': '✅ Sucesso',
+    'maps.zoneCreatedDesc': 'Zona "{zoneName}" criada com sucesso!',
+    'maps.zoneSaveError': '❌ Erro',
+    'maps.zoneSaveErrorDesc': 'Falha ao salvar zona:',
+    'maps.provideZoneName': 'Informe um nome para a zona.',
+    
+    // Estados de erro/carregamento
+    'maps.loginRequired': 'Faça login para ver seus pets',
+    'maps.noUserFound': 'Não encontramos um usuário autenticado.',
+    'maps.noPetsTitle': 'Nenhum pet cadastrado',
+    'maps.noPetsDesc': 'Cadastre um pet para começar a acompanhar a localização.',
+    'maps.locationError': '❌ Erro GPS',
+    'maps.locationErrorDesc': 'Não foi possível obter a localização. Verifique se o GPS está ativado.',
+    'maps.permissionRequired': 'Permissão necessária',
+    'maps.permissionRequiredDesc': 'Autorize o acesso à localização para rastrear seu pet.',
+    'maps.noLocationForPet': 'Sem localização',
+    'maps.noLocationForPetDesc': 'Não há localização disponível para este pet.',
+    
+    // Opções de mapas externos
+    'maps.openMap': 'Abrir mapa',
+    'maps.chooseMapApp': 'Escolha onde abrir a localização:',
+    'maps.googleMaps': 'Google Maps',
+    'maps.openStreetMap': 'OpenStreetMap',
+    'maps.waze': 'Waze',
+    
+    // Cores das zonas
+    'maps.colorGreen': 'Verde',
+    'maps.colorBlue': 'Azul',
+    'maps.colorRed': 'Vermelho',
+    'maps.colorYellow': 'Amarelo',
+    'maps.colorPurple': 'Roxo',
+    'maps.colorPink': 'Rosa',
+
+    // WebView - Popup messages
+    'maps.petHere': 'Seu pet está aqui!',
+    'maps.zoneLabel': 'Zona:',
+
+    // ================== PETS ==================
+    'pets.title': 'Meus Pets',
+    'pets.addPet': '+ Adicionar um pet',
+    'pets.addPetTitle': 'Adicionar pet',
+    'pets.editPetTitle': 'Editar pet',
+    'pets.noPetsYet': 'Nenhum pet cadastrado ainda.',
+    'pets.quickActions': 'Ações rápidas',
+    
+    // Formulário de pet
+    'pets.name': 'Nome',
+    'pets.nameRequired': 'Nome *',
+    'pets.species': 'Espécie (cão, gato...)',
+    'pets.breed': 'Raça',
+    'pets.age': 'Idade (anos)',
+    'pets.photo': 'Foto',
+    'pets.choosePhoto': 'Escolher foto',
+    'pets.changePhoto': 'Trocar foto',
+    'pets.removePhoto': 'Remover foto',
+    'pets.saveChanges': 'Salvar alterações',
+    
+    // Informações do pet
+    'pets.speciesLabel': 'Espécie:',
+    'pets.breedLabel': 'Raça:',
+    'pets.ageLabel': 'Idade:',
+    'pets.addCollar': '🔗 Adicionar Coleira',
+    
+    // Alertas e confirmações
+    'pets.loginRequired': 'Faça login',
+    'pets.loginRequiredDesc': 'Você precisa estar logado para gerenciar seus pets.',
+    'pets.nameRequiredAlert': 'Nome obrigatório',
+    'pets.nameRequiredAlertDesc': 'Informe o nome do pet.',
+    'pets.photoUploadError': 'Erro ao enviar foto',
+    'pets.photoUploadRetry': 'Tente novamente.',
+    'pets.saveFailed': 'Falha ao salvar pet',
+    'pets.deletePet': 'Excluir pet',
+    'pets.deletePetConfirm': 'Tem certeza que deseja excluir este pet?',
+    'pets.removePhotoTitle': 'Remover foto',
+    'pets.removePhotoConfirm': 'Deseja remover a foto selecionada?',
+    'pets.removePhotoAction': 'Remover',
+    'pets.permissionRequired': 'Permissão necessária',
+    'pets.permissionRequiredDesc': 'Autorize o acesso às fotos.',
+    'pets.noPetsModal': 'Nenhum pet',
+    
+    // Dashboard
+    'pets.dashboard': 'Dashboard',
+    'pets.dashboardDesc': 'Veja suas notas e os gráficos do seu pet.',
+    'pets.openDashboard': 'Abrir Dashboard',
+    
+    // Speed dial labels e ações
+    'pets.walk': 'Caminhada',
+    'pets.weight': 'Peso',
+    'pets.health': 'Saúde',
+    'pets.note': 'Nota',
+    
+    // Modais de registros
+    'pets.recordWalk': 'Registrar caminhada',
+    'pets.recordWeight': 'Registrar peso',
+    'pets.recordHealth': 'Registrar evento de saúde',
+    'pets.addNote': 'Adicionar anotação',
+    'pets.selectPet': 'Selecionar pet',
+    'pets.register': 'Registrar',
+    
+    // Modal de caminhada
+    'pets.lastWalk': 'Última corrida:',
+    'pets.kilometers': 'Quilômetros (ex: 2.5)',
+    'pets.observationOptional': 'Observação (opcional)',
+    'pets.walkRegistered': 'Caminhada de {km} km registrada.',
+    'pets.walkRegisterError': 'Falha ao registrar.',
+    'pets.noPetsWalk': 'Cadastre um pet antes de registrar uma caminhada.',
+    
+    // Modal de peso
+    'pets.lastWeight': 'Último peso:',
+    'pets.weightKg': 'Peso (kg)',
+    'pets.weightRegistered': 'Peso {kg} kg registrado.',
+    'pets.weightRegisterError': 'Falha ao registrar.',
+    'pets.noPetsWeight': 'Cadastre um pet antes de registrar o peso.',
+    
+    // Modal de saúde
+    'pets.healthType': 'Tipo',
+    'pets.vaccine': 'Vacina',
+    'pets.deworm': 'Vermífugo',
+    'pets.bath': 'Banho',
+    'pets.visit': 'Consulta',
+    'pets.lastVaccine': 'Última vacina:',
+    'pets.lastBath': 'Último banho',
+    'pets.lastDeworm': 'Último vermífugo',
+    'pets.lastVisit': 'Última consulta',
+    'pets.healthRegistered': '{type} registrado.',
+    'pets.healthRegisterError': 'Falha ao registrar.',
+    'pets.noPetsHealth': 'Cadastre um pet antes de registrar saúde.',
+    
+    // Modal de anotação
+    'pets.writeNote': 'Escreva sua anotação aqui...',
+    'pets.emptyNote': 'Nota vazia',
+    'pets.emptyNoteDesc': 'Escreva algo antes de salvar.',
+    'pets.noteRegistered': 'Anotação salva.',
+    'pets.noteRegisterError': 'Falha ao registrar.',
+    'pets.noPetsNote': 'Cadastre um pet antes de adicionar uma anotação.',
+    
+    // Placeholders sem informação
+    'pets.noInfo': '—',
+
+    // ================== DASHBOARD ==================
+    'dashboard.title': 'Saúde do Pet',
+    'dashboard.selectPet': 'Selecionar pet',
+    'dashboard.selectPetPlaceholder': 'Selecione um pet',
+    
+    // Seções
+    'dashboard.summary': 'Resumo',
+    'dashboard.weightEvolution': 'Evolução do Peso',
+    'dashboard.physicalActivity': 'Atividade Física',
+    'dashboard.lastNotes': 'Últimas Anotações',
+    'dashboard.lastHealthEvents': 'Últimos Eventos de Saúde',
+    'dashboard.automaticInsights': 'Insights Automáticos',
+    
+    // Cards de estatísticas
+    'dashboard.currentWeight': 'Peso Atual',
+    'dashboard.weeklyActivity': 'Atividade Semanal',
+    'dashboard.healthStatus': 'Status de Saúde',
+    'dashboard.totalRecords': 'Total de Registros',
+    'dashboard.recordedActivities': 'Atividades registradas',
+    
+    // Status de peso
+    'dashboard.stable': 'Estável',
+    'dashboard.increased': 'aumentou',
+    'dashboard.decreased': 'diminuiu',
+    
+    // Níveis de atividade
+    'dashboard.veryActive': 'Muito ativo!',
+    'dashboard.needsExercise': 'Precisa se exercitar',
+    'dashboard.goodLevel': 'Nível bom',
+    
+    // Status de saúde
+    'dashboard.excellent': 'Excelente',
+    'dashboard.good': 'Bom',
+    'dashboard.attention': 'Atenção',
+    'dashboard.concerning': 'Preocupante',
+    'dashboard.daysSinceCheckup': '{days} dias desde consulta',
+    'dashboard.noCheckupRecorded': 'Sem consulta registrada',
+    
+    // Insights automáticos
+    'dashboard.vetRecommended': 'Consulta veterinária recomendada em {days} dias',
+    'dashboard.weightIncreased': 'Peso {trend} {change}kg recentemente',
+    'dashboard.weightDecreased': 'Peso {trend} {change}kg recentemente',
+    'dashboard.lowActivity': 'Atividade baixa esta semana. Que tal um passeio extra?',
+    'dashboard.excellentActivity': 'Excelente! Seu pet está muito ativo esta semana!',
+    
+    // Gráficos - sem dados
+    'dashboard.noWeightData': 'Sem registros de peso ainda',
+    'dashboard.noWeightDataDesc': 'Registre o peso do seu pet para ver a evolução',
+    'dashboard.noWalkData': 'Sem registros de caminhadas ainda',
+    'dashboard.noWalkDataDesc': 'Registre as caminhadas para acompanhar a atividade',
+    
+    // Modal de observação
+    'dashboard.observation': 'Observação:',
+    'dashboard.viewNote': 'Ver observação',
+    
+    // Tipos de eventos de saúde (repetindo para consistência)
+    'dashboard.vaccine': 'Vacina',
+    'dashboard.deworm': 'Vermífugo', 
+    'dashboard.bath': 'Banho',
+    'dashboard.visit': 'Consulta',
+
+    // ================== ADICIONAR COLEIRA ==================
+    'collar.title': 'Adicionar Coleira',
+    'collar.linkSmartCollar': 'Vincular coleira inteligente',
+    'collar.howToLink': 'Como vincular:',
+    'collar.step1': 'Localize o código na embalagem da coleira',
+    'collar.step2': 'Digite o código no campo abaixo',
+    'collar.step3': 'Ligue a coleira e aguarde a confirmação',
+    'collar.collarCode': 'Código da Coleira',
+    'collar.codePlaceholder': 'COL001234567890',
+    'collar.codeHint': '💡 O código está impresso na embalagem e tem 15 caracteres (COL + 12 números)',
+    'collar.exampleCode': 'Exemplo de código:',
+    'collar.linkCollar': 'Vincular Coleira',
+    'collar.linking': 'Vinculando...',
+    'collar.helpText': 'Problemas para encontrar o código? Verifique a caixa da coleira ou o manual.',
+    
+    // Validações e mensagens
+    'collar.enterCode': 'Digite o código da coleira',
+    'collar.invalidCode': 'Código Inválido',
+    'collar.invalidCodeDesc': 'O código deve ter o formato: COL seguido de 12 números\n\nExemplo: COL001234567890',
+    'collar.petNotFound': 'Pet não identificado',
+    'collar.collarAdded': 'Coleira Adicionada!',
+    'collar.collarAddedDesc': 'A coleira {code} foi vinculada ao {petName}.\n\n⏳ Aguardando confirmação da coleira...\n(Pode levar alguns minutos)',
+    'collar.linkError': 'Não foi possível vincular a coleira. Tente novamente.',
+
+    // ================== BLOG ==================
+    'blog.title': 'Blog da Comunidade',
+    'blog.searchPlaceholder': 'Pesquisar posts...',
+    'blog.newPost': 'Novo post',
+    'blog.publish': 'Publicar',
+    'blog.publishing': 'Publicando...',
+    'blog.writePost': 'Escreva algo sobre seu pet...',
+    
+    // Estados do blog
+    'blog.loginRequired': 'Login Necessário',
+    'blog.loginRequiredDesc': 'Faça login com email na aba Tutor\npara acessar o blog da comunidade',
+    'blog.noPosts': 'Nenhum post ainda',
+    'blog.noPostsDesc': 'Seja o primeiro a compartilhar algo sobre seu pet!',
+    
+    // Validações
+    'blog.emailLoginRequired': 'Você precisa fazer login com email para publicar no blog.',
+    'blog.writeContent': 'Digite algo para publicar.',
+    'blog.publishFailed': 'Não foi possível publicar',
   },
   en: {
     // Navigation
@@ -100,9 +411,10 @@ const translations = {
     'nav.maps': 'Maps',
     'nav.pets': 'Pets',
     'nav.blog': 'Blog',
-    'nav.tutor': 'Tutor',
+    'nav.tutor': 'Owner',
     'nav.settings': 'Settings',
     'nav.agenda': 'Schedule',
+    'nav.about': 'About',
 
     // General
     'general.save': 'Save',
@@ -117,6 +429,7 @@ const translations = {
     'general.filter': 'Filter',
     'general.apply': 'Apply',
     'general.clear': 'Clear',
+    'general.close': 'Close',
 
     // Tutor
     'tutor.name': 'Name',
@@ -179,11 +492,320 @@ const translations = {
     // Auth
     'auth.logout': 'Logout',
     'auth.logoutConfirm': 'Are you sure you want to logout?',
+    'auth.logoutError': 'Could not logout. Please try again.',
 
     // Buttons
     'button.ok': 'OK',
     'button.yes': 'Yes',
     'button.no': 'No',
+
+    // ================== MAPS/LOCATION ==================
+    'maps.title': 'Location',
+    'maps.selectPet': 'Select a pet',
+    'maps.found': '✅ Found',
+    'maps.lost': '🚨 Lost',
+    'maps.markAsFound': '❌ Found',
+    'maps.markAsLost': '🚨 Lost',
+    'maps.newSafeZone': 'New Zone',
+    'maps.tapOnMap': 'Tap on map',
+    'maps.manage': 'Manage',
+    'maps.zones': 'zones',
+    'maps.zone': 'zone',
+    'maps.createSafeZone': 'Create Safe Zone',
+    'maps.createSafeZoneDesc': 'Tap on the map to define the center of the safe zone.',
+    'maps.petSafe': '🏠 In safe zone',
+    'maps.petOutside': '⚠️ Outside zones',
+    'maps.petLost': '🚨 Pet lost',
+    'maps.noLocation': 'No location yet',
+    'maps.lastSeen': 'Last seen',
+    'maps.inZone': '🏠 In',
+    'maps.outsideZones': '📍 Outside zones',
+    'maps.ago': 'ago',
+    'maps.justNow': 'Just now',
+    'maps.minutesAgo': 'min ago',
+    'maps.hoursAgo': 'h ago',
+    'maps.daysAgo': 'days ago',
+    'maps.never': 'Never',
+    'maps.refresh': 'Refresh',
+    'maps.center': 'Center',
+    'maps.centered': 'Centered',
+    'maps.open': 'Open',
+    'maps.realTime': 'Real time (1 min)',
+    'maps.stopRealTime': 'Stop real time (1 min)',
+    'maps.loadingMap': 'Loading map...',
+    'maps.appleCredit': 'Maps provided by Apple',
+    'maps.osmCredit': 'Map provided by OpenStreetMap',
+    
+    // Zone modals
+    'maps.newSafeZoneTitle': 'New Safe Zone',
+    'maps.zoneName': 'Zone name:',
+    'maps.zoneNamePlaceholder': 'e.g., Home, Park, Vet',
+    'maps.zoneRadius': 'Zone radius',
+    'maps.zoneColor': 'Zone color:',
+    'maps.createZone': 'Create Zone',
+    'maps.safeZones': 'Safe Zones',
+    'maps.noZonesCreated': 'No zones created',
+    'maps.noZonesDesc': 'Create safe zones to automatically monitor when your pet enters or leaves important areas',
+    'maps.radiusMeters': 'm radius',
+    'maps.close': 'Close',
+    
+    // Alerts and confirmations
+    'maps.markAsFoundTitle': 'Mark as found',
+    'maps.markAsLostTitle': 'Mark as lost',
+    'maps.markAsFoundConfirm': 'Do you want to mark {petName} as found?',
+    'maps.markAsLostConfirm': 'Do you want to mark {petName} as lost?',
+    'maps.statusUpdated': '{petName} marked as {status}.',
+    'maps.statusUpdateError': 'Could not update status.',
+    'maps.deleteZone': 'Delete zone',
+    'maps.deleteZoneConfirm': 'Are you sure you want to delete the "{zoneName}" zone?\n\nThis action cannot be undone.',
+    'maps.zoneDeleted': 'Zone deleted!',
+    'maps.zoneDeleteError': 'Could not delete:',
+    'maps.petEnteredZone': '🟢 Pet entered safe zone',
+    'maps.petEnteredZoneDesc': '{petName} entered the "{zoneName}" zone',
+    'maps.petLeftZone': '🔴 Pet left safe zone',
+    'maps.petLeftZoneDesc': '{petName} left the "{zoneName}" zone',
+    'maps.zoneCreatedSuccess': '✅ Success',
+    'maps.zoneCreatedDesc': 'Zone "{zoneName}" created successfully!',
+    'maps.zoneSaveError': '❌ Error',
+    'maps.zoneSaveErrorDesc': 'Failed to save zone:',
+    'maps.provideZoneName': 'Please provide a zone name.',
+    
+    // Error/loading states
+    'maps.loginRequired': 'Login to see your pets',
+    'maps.noUserFound': 'No authenticated user found.',
+    'maps.noPetsTitle': 'No pets registered',
+    'maps.noPetsDesc': 'Register a pet to start tracking location.',
+    'maps.locationError': '❌ GPS Error',
+    'maps.locationErrorDesc': 'Could not get location. Check if GPS is enabled.',
+    'maps.permissionRequired': 'Permission required',
+    'maps.permissionRequiredDesc': 'Allow location access to track your pet.',
+    'maps.noLocationForPet': 'No location',
+    'maps.noLocationForPetDesc': 'No location available for this pet.',
+    
+    // External map options
+    'maps.openMap': 'Open map',
+    'maps.chooseMapApp': 'Choose where to open the location:',
+    'maps.googleMaps': 'Google Maps',
+    'maps.openStreetMap': 'OpenStreetMap',
+    'maps.waze': 'Waze',
+    
+    // Zone colors
+    'maps.colorGreen': 'Green',
+    'maps.colorBlue': 'Blue',
+    'maps.colorRed': 'Red',
+    'maps.colorYellow': 'Yellow',
+    'maps.colorPurple': 'Purple',
+    'maps.colorPink': 'Pink',
+
+    // WebView - Popup messages
+    'maps.petHere': 'Your pet is here!',
+    'maps.zoneLabel': 'Zone:',
+
+    // ================== PETS ==================
+    'pets.title': 'My Pets',
+    'pets.addPet': '+ Add a pet',
+    'pets.addPetTitle': 'Add pet',
+    'pets.editPetTitle': 'Edit pet',
+    'pets.noPetsYet': 'No pets registered yet.',
+    'pets.quickActions': 'Quick actions',
+    
+    // Pet form
+    'pets.name': 'Name',
+    'pets.nameRequired': 'Name *',
+    'pets.species': 'Species (dog, cat...)',
+    'pets.breed': 'Breed',
+    'pets.age': 'Age (years)',
+    'pets.photo': 'Photo',
+    'pets.choosePhoto': 'Choose photo',
+    'pets.changePhoto': 'Change photo',
+    'pets.removePhoto': 'Remove photo',
+    'pets.saveChanges': 'Save changes',
+    
+    // Pet information
+    'pets.speciesLabel': 'Species:',
+    'pets.breedLabel': 'Breed:',
+    'pets.ageLabel': 'Age:',
+    'pets.addCollar': '🔗 Add Collar',
+    
+    // Alerts and confirmations
+    'pets.loginRequired': 'Login required',
+    'pets.loginRequiredDesc': 'You need to be logged in to manage your pets.',
+    'pets.nameRequiredAlert': 'Name required',
+    'pets.nameRequiredAlertDesc': 'Please enter the pet\'s name.',
+    'pets.photoUploadError': 'Photo upload error',
+    'pets.photoUploadRetry': 'Please try again.',
+    'pets.saveFailed': 'Failed to save pet',
+    'pets.deletePet': 'Delete pet',
+    'pets.deletePetConfirm': 'Are you sure you want to delete this pet?',
+    'pets.removePhotoTitle': 'Remove photo',
+    'pets.removePhotoConfirm': 'Do you want to remove the selected photo?',
+    'pets.removePhotoAction': 'Remove',
+    'pets.permissionRequired': 'Permission required',
+    'pets.permissionRequiredDesc': 'Allow access to photos.',
+    'pets.noPetsModal': 'No pets',
+    
+    // Dashboard
+    'pets.dashboard': 'Dashboard',
+    'pets.dashboardDesc': 'View your notes and pet graphs.',
+    'pets.openDashboard': 'Open Dashboard',
+    
+    // Speed dial labels and actions
+    'pets.walk': 'Walk',
+    'pets.weight': 'Weight',
+    'pets.health': 'Health',
+    'pets.note': 'Note',
+    
+    // Record modals
+    'pets.recordWalk': 'Record walk',
+    'pets.recordWeight': 'Record weight',
+    'pets.recordHealth': 'Record health event',
+    'pets.addNote': 'Add note',
+    'pets.selectPet': 'Select pet',
+    'pets.register': 'Register',
+    
+    // Walk modal
+    'pets.lastWalk': 'Last walk:',
+    'pets.kilometers': 'Kilometers (e.g., 2.5)',
+    'pets.observationOptional': 'Observation (optional)',
+    'pets.walkRegistered': '{km} km walk recorded.',
+    'pets.walkRegisterError': 'Failed to register.',
+    'pets.noPetsWalk': 'Register a pet before recording a walk.',
+    
+    // Weight modal
+    'pets.lastWeight': 'Last weight:',
+    'pets.weightKg': 'Weight (kg)',
+    'pets.weightRegistered': '{kg} kg weight recorded.',
+    'pets.weightRegisterError': 'Failed to register.',
+    'pets.noPetsWeight': 'Register a pet before recording weight.',
+    
+    // Health modal
+    'pets.healthType': 'Type',
+    'pets.vaccine': 'Vaccine',
+    'pets.deworm': 'Deworming',
+    'pets.bath': 'Bath',
+    'pets.visit': 'Visit',
+    'pets.lastVaccine': 'Last vaccine:',
+    'pets.lastBath': 'Last bath',
+    'pets.lastDeworm': 'Last deworming',
+    'pets.lastVisit': 'Last visit',
+    'pets.healthRegistered': '{type} registered.',
+    'pets.healthRegisterError': 'Failed to register.',
+    'pets.noPetsHealth': 'Register a pet before recording health.',
+    
+    // Note modal
+    'pets.writeNote': 'Write your note here...',
+    'pets.emptyNote': 'Empty note',
+    'pets.emptyNoteDesc': 'Write something before saving.',
+    'pets.noteRegistered': 'Note saved.',
+    'pets.noteRegisterError': 'Failed to register.',
+    'pets.noPetsNote': 'Register a pet before adding a note.',
+    
+    // Placeholders for missing info
+    'pets.noInfo': '—',
+
+    // ================== DASHBOARD ==================
+    'dashboard.title': 'Pet Health',
+    'dashboard.selectPet': 'Select pet',
+    'dashboard.selectPetPlaceholder': 'Select a pet',
+    
+    // Sections
+    'dashboard.summary': 'Summary',
+    'dashboard.weightEvolution': 'Weight Evolution',
+    'dashboard.physicalActivity': 'Physical Activity',
+    'dashboard.lastNotes': 'Latest Notes',
+    'dashboard.lastHealthEvents': 'Latest Health Events',
+    'dashboard.automaticInsights': 'Automatic Insights',
+    
+    // Stats cards
+    'dashboard.currentWeight': 'Current Weight',
+    'dashboard.weeklyActivity': 'Weekly Activity',
+    'dashboard.healthStatus': 'Health Status',
+    'dashboard.totalRecords': 'Total Records',
+    'dashboard.recordedActivities': 'Recorded activities',
+    
+    // Weight status
+    'dashboard.stable': 'Stable',
+    'dashboard.increased': 'increased',
+    'dashboard.decreased': 'decreased',
+    
+    // Activity levels
+    'dashboard.veryActive': 'Very active!',
+    'dashboard.needsExercise': 'Needs exercise',
+    'dashboard.goodLevel': 'Good level',
+    
+    // Health status
+    'dashboard.excellent': 'Excellent',
+    'dashboard.good': 'Good',
+    'dashboard.attention': 'Attention',
+    'dashboard.concerning': 'Concerning',
+    'dashboard.daysSinceCheckup': '{days} days since checkup',
+    'dashboard.noCheckupRecorded': 'No checkup recorded',
+    
+    // Automatic insights
+    'dashboard.vetRecommended': 'Veterinary visit recommended in {days} days',
+    'dashboard.weightIncreased': 'Weight {trend} {change}kg recently',
+    'dashboard.weightDecreased': 'Weight {trend} {change}kg recently',
+    'dashboard.lowActivity': 'Low activity this week. How about an extra walk?',
+    'dashboard.excellentActivity': 'Excellent! Your pet is very active this week!',
+    
+    // Charts - no data
+    'dashboard.noWeightData': 'No weight records yet',
+    'dashboard.noWeightDataDesc': 'Record your pet\'s weight to see the evolution',
+    'dashboard.noWalkData': 'No walk records yet',
+    'dashboard.noWalkDataDesc': 'Record walks to track activity',
+    
+    // Observation modal
+    'dashboard.observation': 'Observation:',
+    'dashboard.viewNote': 'View note',
+    
+    // Health event types (repeating for consistency)
+    'dashboard.vaccine': 'Vaccine',
+    'dashboard.deworm': 'Deworming',
+    'dashboard.bath': 'Bath',
+    'dashboard.visit': 'Visit',
+
+    // ================== ADD COLLAR ==================
+    'collar.title': 'Add Collar',
+    'collar.linkSmartCollar': 'Link smart collar',
+    'collar.howToLink': 'How to link:',
+    'collar.step1': 'Locate the code on the collar packaging',
+    'collar.step2': 'Enter the code in the field below',
+    'collar.step3': 'Turn on the collar and wait for confirmation',
+    'collar.collarCode': 'Collar Code',
+    'collar.codePlaceholder': 'COL001234567890',
+    'collar.codeHint': '💡 The code is printed on the packaging and has 15 characters (COL + 12 numbers)',
+    'collar.exampleCode': 'Example code:',
+    'collar.linkCollar': 'Link Collar',
+    'collar.linking': 'Linking...',
+    'collar.helpText': 'Having trouble finding the code? Check the collar box or manual.',
+    
+    // Validations and messages
+    'collar.enterCode': 'Enter the collar code',
+    'collar.invalidCode': 'Invalid Code',
+    'collar.invalidCodeDesc': 'The code must have the format: COL followed by 12 numbers\n\nExample: COL001234567890',
+    'collar.petNotFound': 'Pet not identified',
+    'collar.collarAdded': 'Collar Added!',
+    'collar.collarAddedDesc': 'The collar {code} has been linked to {petName}.\n\n⏳ Waiting for collar confirmation...\n(This may take a few minutes)',
+    'collar.linkError': 'Could not link the collar. Please try again.',
+
+    // ================== BLOG ==================
+    'blog.title': 'Community Blog',
+    'blog.searchPlaceholder': 'Search posts...',
+    'blog.newPost': 'New post',
+    'blog.publish': 'Publish',
+    'blog.publishing': 'Publishing...',
+    'blog.writePost': 'Write something about your pet...',
+    
+    // Blog states
+    'blog.loginRequired': 'Login Required',
+    'blog.loginRequiredDesc': 'Log in with email in the Owner tab\nto access the community blog',
+    'blog.noPosts': 'No posts yet',
+    'blog.noPostsDesc': 'Be the first to share something about your pet!',
+    
+    // Validations
+    'blog.emailLoginRequired': 'You need to log in with email to publish to the blog.',
+    'blog.writeContent': 'Write something to publish.',
+    'blog.publishFailed': 'Could not publish',
   },
   es: {
     // Navegación
@@ -191,9 +813,10 @@ const translations = {
     'nav.maps': 'Mapas',
     'nav.pets': 'Mascotas',
     'nav.blog': 'Blog',
-    'nav.tutor': 'Tutor',
+    'nav.tutor': 'Dueño',
     'nav.settings': 'Configuración',
     'nav.agenda': 'Agenda',
+    'nav.about': 'Acerca de',
 
     // General
     'general.save': 'Guardar',
@@ -208,6 +831,7 @@ const translations = {
     'general.filter': 'Filtro',
     'general.apply': 'Aplicar',
     'general.clear': 'Limpiar',
+    'general.close': 'Cerrar',
 
     // Tutor
     'tutor.name': 'Nombre',
@@ -270,11 +894,320 @@ const translations = {
     // Autenticación
     'auth.logout': 'Cerrar Sesión',
     'auth.logoutConfirm': '¿Estás seguro de que deseas cerrar sesión?',
+    'auth.logoutError': 'No se pudo cerrar sesión. Inténtalo de nuevo.',
 
     // Botones
     'button.ok': 'OK',
     'button.yes': 'Sí',
     'button.no': 'No',
+
+    // ================== MAPAS/UBICACIÓN ==================
+    'maps.title': 'Ubicación',
+    'maps.selectPet': 'Seleccionar mascota',
+    'maps.found': '✅ Encontrada',
+    'maps.lost': '🚨 Perdida',
+    'maps.markAsFound': '❌ Encontrada',
+    'maps.markAsLost': '🚨 Perdida',
+    'maps.newSafeZone': 'Nueva Zona',
+    'maps.tapOnMap': 'Tocar en mapa',
+    'maps.manage': 'Gestionar',
+    'maps.zones': 'zonas',
+    'maps.zone': 'zona',
+    'maps.createSafeZone': 'Crear Zona Segura',
+    'maps.createSafeZoneDesc': 'Toca en el mapa para definir el centro de la zona segura.',
+    'maps.petSafe': '🏠 En zona segura',
+    'maps.petOutside': '⚠️ Fuera de zonas',
+    'maps.petLost': '🚨 Mascota perdida',
+    'maps.noLocation': 'Sin ubicación aún',
+    'maps.lastSeen': 'Visto por última vez',
+    'maps.inZone': '🏠 En',
+    'maps.outsideZones': '📍 Fuera de zonas',
+    'maps.ago': 'hace',
+    'maps.justNow': 'Ahora mismo',
+    'maps.minutesAgo': 'min atrás',
+    'maps.hoursAgo': 'h atrás',
+    'maps.daysAgo': 'días atrás',
+    'maps.never': 'Nunca',
+    'maps.refresh': 'Actualizar',
+    'maps.center': 'Centrar',
+    'maps.centered': 'Centrado',
+    'maps.open': 'Abrir',
+    'maps.realTime': 'Tiempo real (1 min)',
+    'maps.stopRealTime': 'Parar tiempo real (1 min)',
+    'maps.loadingMap': 'Cargando mapa...',
+    'maps.appleCredit': 'Mapas proporcionados por Apple',
+    'maps.osmCredit': 'Mapa proporcionado por OpenStreetMap',
+    
+    // Modales de zona
+    'maps.newSafeZoneTitle': 'Nueva Zona Segura',
+    'maps.zoneName': 'Nombre de la zona:',
+    'maps.zoneNamePlaceholder': 'ej: Casa, Parque, Veterinario',
+    'maps.zoneRadius': 'Radio de la zona',
+    'maps.zoneColor': 'Color de la zona:',
+    'maps.createZone': 'Crear Zona',
+    'maps.safeZones': 'Zonas Seguras',
+    'maps.noZonesCreated': 'No hay zonas creadas',
+    'maps.noZonesDesc': 'Crea zonas seguras para monitorear automáticamente cuando tu mascota entra o sale de áreas importantes',
+    'maps.radiusMeters': 'm de radio',
+    'maps.close': 'Cerrar',
+    
+    // Alertas y confirmaciones
+    'maps.markAsFoundTitle': 'Marcar como encontrada',
+    'maps.markAsLostTitle': 'Marcar como perdida',
+    'maps.markAsFoundConfirm': '¿Deseas marcar a {petName} como encontrada?',
+    'maps.markAsLostConfirm': '¿Deseas marcar a {petName} como perdida?',
+    'maps.statusUpdated': '{petName} marcada como {status}.',
+    'maps.statusUpdateError': 'No se pudo actualizar el estado.',
+    'maps.deleteZone': 'Eliminar zona',
+    'maps.deleteZoneConfirm': '¿Estás seguro de que deseas eliminar la zona "{zoneName}"?\n\nEsta acción no se puede deshacer.',
+    'maps.zoneDeleted': '¡Zona eliminada!',
+    'maps.zoneDeleteError': 'No se pudo eliminar:',
+    'maps.petEnteredZone': '🟢 Mascota entró en zona segura',
+    'maps.petEnteredZoneDesc': '{petName} entró en la zona "{zoneName}"',
+    'maps.petLeftZone': '🔴 Mascota salió de zona segura',
+    'maps.petLeftZoneDesc': '{petName} salió de la zona "{zoneName}"',
+    'maps.zoneCreatedSuccess': '✅ Éxito',
+    'maps.zoneCreatedDesc': 'Zona "{zoneName}" creada exitosamente!',
+    'maps.zoneSaveError': '❌ Error',
+    'maps.zoneSaveErrorDesc': 'Error al guardar zona:',
+    'maps.provideZoneName': 'Proporciona un nombre para la zona.',
+    
+    // Estados de error/carga
+    'maps.loginRequired': 'Inicia sesión para ver tus mascotas',
+    'maps.noUserFound': 'No se encontró un usuario autenticado.',
+    'maps.noPetsTitle': 'No hay mascotas registradas',
+    'maps.noPetsDesc': 'Registra una mascota para comenzar a rastrear la ubicación.',
+    'maps.locationError': '❌ Error GPS',
+    'maps.locationErrorDesc': 'No se pudo obtener la ubicación. Verifica que el GPS esté activado.',
+    'maps.permissionRequired': 'Permiso requerido',
+    'maps.permissionRequiredDesc': 'Permite el acceso a la ubicación para rastrear tu mascota.',
+    'maps.noLocationForPet': 'Sin ubicación',
+    'maps.noLocationForPetDesc': 'No hay ubicación disponible para esta mascota.',
+    
+    // Opciones de mapas externos
+    'maps.openMap': 'Abrir mapa',
+    'maps.chooseMapApp': 'Elige dónde abrir la ubicación:',
+    'maps.googleMaps': 'Google Maps',
+    'maps.openStreetMap': 'OpenStreetMap',
+    'maps.waze': 'Waze',
+    
+    // Colores de zona
+    'maps.colorGreen': 'Verde',
+    'maps.colorBlue': 'Azul',
+    'maps.colorRed': 'Rojo',
+    'maps.colorYellow': 'Amarillo',
+    'maps.colorPurple': 'Púrpura',
+    'maps.colorPink': 'Rosa',
+
+    // WebView - Mensajes de popup
+    'maps.petHere': '¡Tu mascota está aquí!',
+    'maps.zoneLabel': 'Zona:',
+
+    // ================== MASCOTAS ==================
+    'pets.title': 'Mis Mascotas',
+    'pets.addPet': '+ Añadir una mascota',
+    'pets.addPetTitle': 'Añadir mascota',
+    'pets.editPetTitle': 'Editar mascota',
+    'pets.noPetsYet': 'No hay mascotas registradas aún.',
+    'pets.quickActions': 'Acciones rápidas',
+    
+    // Formulario de mascota
+    'pets.name': 'Nombre',
+    'pets.nameRequired': 'Nombre *',
+    'pets.species': 'Especie (perro, gato...)',
+    'pets.breed': 'Raza',
+    'pets.age': 'Edad (años)',
+    'pets.photo': 'Foto',
+    'pets.choosePhoto': 'Elegir foto',
+    'pets.changePhoto': 'Cambiar foto',
+    'pets.removePhoto': 'Quitar foto',
+    'pets.saveChanges': 'Guardar cambios',
+    
+    // Información de mascota
+    'pets.speciesLabel': 'Especie:',
+    'pets.breedLabel': 'Raza:',
+    'pets.ageLabel': 'Edad:',
+    'pets.addCollar': '🔗 Añadir Collar',
+    
+    // Alertas y confirmaciones
+    'pets.loginRequired': 'Inicio de sesión requerido',
+    'pets.loginRequiredDesc': 'Necesitas iniciar sesión para gestionar tus mascotas.',
+    'pets.nameRequiredAlert': 'Nombre requerido',
+    'pets.nameRequiredAlertDesc': 'Por favor ingresa el nombre de la mascota.',
+    'pets.photoUploadError': 'Error al subir foto',
+    'pets.photoUploadRetry': 'Por favor inténtalo de nuevo.',
+    'pets.saveFailed': 'Error al guardar mascota',
+    'pets.deletePet': 'Eliminar mascota',
+    'pets.deletePetConfirm': '¿Estás seguro de que deseas eliminar esta mascota?',
+    'pets.removePhotoTitle': 'Quitar foto',
+    'pets.removePhotoConfirm': '¿Deseas quitar la foto seleccionada?',
+    'pets.removePhotoAction': 'Quitar',
+    'pets.permissionRequired': 'Permiso requerido',
+    'pets.permissionRequiredDesc': 'Permite el acceso a las fotos.',
+    'pets.noPetsModal': 'No hay mascotas',
+    
+    // Dashboard
+    'pets.dashboard': 'Panel',
+    'pets.dashboardDesc': 'Ve tus notas y gráficos de mascota.',
+    'pets.openDashboard': 'Abrir Panel',
+    
+    // Etiquetas de speed dial y acciones
+    'pets.walk': 'Paseo',
+    'pets.weight': 'Peso',
+    'pets.health': 'Salud',
+    'pets.note': 'Nota',
+    
+    // Modales de registro
+    'pets.recordWalk': 'Registrar paseo',
+    'pets.recordWeight': 'Registrar peso',
+    'pets.recordHealth': 'Registrar evento de salud',
+    'pets.addNote': 'Añadir nota',
+    'pets.selectPet': 'Seleccionar mascota',
+    'pets.register': 'Registrar',
+    
+    // Modal de paseo
+    'pets.lastWalk': 'Último paseo:',
+    'pets.kilometers': 'Kilómetros (ej: 2.5)',
+    'pets.observationOptional': 'Observación (opcional)',
+    'pets.walkRegistered': 'Paseo de {km} km registrado.',
+    'pets.walkRegisterError': 'Error al registrar.',
+    'pets.noPetsWalk': 'Registra una mascota antes de registrar un paseo.',
+    
+    // Modal de peso
+    'pets.lastWeight': 'Último peso:',
+    'pets.weightKg': 'Peso (kg)',
+    'pets.weightRegistered': 'Peso de {kg} kg registrado.',
+    'pets.weightRegisterError': 'Error al registrar.',
+    'pets.noPetsWeight': 'Registra una mascota antes de registrar el peso.',
+    
+    // Modal de salud
+    'pets.healthType': 'Tipo',
+    'pets.vaccine': 'Vacuna',
+    'pets.deworm': 'Desparasitación',
+    'pets.bath': 'Baño',
+    'pets.visit': 'Visita',
+    'pets.lastVaccine': 'Última vacuna:',
+    'pets.lastBath': 'Último baño',
+    'pets.lastDeworm': 'Última desparasitación',
+    'pets.lastVisit': 'Última visita',
+    'pets.healthRegistered': '{type} registrado.',
+    'pets.healthRegisterError': 'Error al registrar.',
+    'pets.noPetsHealth': 'Registra una mascota antes de registrar salud.',
+    
+    // Modal de nota
+    'pets.writeNote': 'Escribe tu nota aquí...',
+    'pets.emptyNote': 'Nota vacía',
+    'pets.emptyNoteDesc': 'Escribe algo antes de guardar.',
+    'pets.noteRegistered': 'Nota guardada.',
+    'pets.noteRegisterError': 'Error al registrar.',
+    'pets.noPetsNote': 'Registra una mascota antes de añadir una nota.',
+    
+    // Marcadores de posición para información faltante
+    'pets.noInfo': '—',
+
+    // ================== DASHBOARD ==================
+    'dashboard.title': 'Salud de Mascota',
+    'dashboard.selectPet': 'Seleccionar mascota',
+    'dashboard.selectPetPlaceholder': 'Selecciona una mascota',
+    
+    // Secciones
+    'dashboard.summary': 'Resumen',
+    'dashboard.weightEvolution': 'Evolución del Peso',
+    'dashboard.physicalActivity': 'Actividad Física',
+    'dashboard.lastNotes': 'Últimas Notas',
+    'dashboard.lastHealthEvents': 'Últimos Eventos de Salud',
+    'dashboard.automaticInsights': 'Insights Automáticos',
+    
+    // Cards de estadísticas
+    'dashboard.currentWeight': 'Peso Actual',
+    'dashboard.weeklyActivity': 'Actividad Semanal',
+    'dashboard.healthStatus': 'Estado de Salud',
+    'dashboard.totalRecords': 'Total de Registros',
+    'dashboard.recordedActivities': 'Actividades registradas',
+    
+    // Estados de peso
+    'dashboard.stable': 'Estable',
+    'dashboard.increased': 'aumentó',
+    'dashboard.decreased': 'disminuyó',
+    
+    // Niveles de actividad
+    'dashboard.veryActive': '¡Muy activa!',
+    'dashboard.needsExercise': 'Necesita ejercicio',
+    'dashboard.goodLevel': 'Buen nivel',
+    
+    // Estados de salud
+    'dashboard.excellent': 'Excelente',
+    'dashboard.good': 'Bueno',
+    'dashboard.attention': 'Atención',
+    'dashboard.concerning': 'Preocupante',
+    'dashboard.daysSinceCheckup': '{days} días desde consulta',
+    'dashboard.noCheckupRecorded': 'Sin consulta registrada',
+    
+    // Insights automáticos
+    'dashboard.vetRecommended': 'Visita veterinaria recomendada en {days} días',
+    'dashboard.weightIncreased': 'Peso {trend} {change}kg recientemente',
+    'dashboard.weightDecreased': 'Peso {trend} {change}kg recientemente',
+    'dashboard.lowActivity': 'Actividad baja esta semana. ¿Qué tal un paseo extra?',
+    'dashboard.excellentActivity': '¡Excelente! Tu mascota está muy activa esta semana!',
+    
+    // Gráficos - sin datos
+    'dashboard.noWeightData': 'Sin registros de peso aún',
+    'dashboard.noWeightDataDesc': 'Registra el peso de tu mascota para ver la evolución',
+    'dashboard.noWalkData': 'Sin registros de paseos aún',
+    'dashboard.noWalkDataDesc': 'Registra los paseos para seguir la actividad',
+    
+    // Modal de observación
+    'dashboard.observation': 'Observación:',
+    'dashboard.viewNote': 'Ver nota',
+    
+    // Tipos de eventos de salud (repitiendo para consistencia)
+    'dashboard.vaccine': 'Vacuna',
+    'dashboard.deworm': 'Desparasitación',
+    'dashboard.bath': 'Baño',
+    'dashboard.visit': 'Visita',
+
+    // ================== AÑADIR COLLAR ==================
+    'collar.title': 'Añadir Collar',
+    'collar.linkSmartCollar': 'Vincular collar inteligente',
+    'collar.howToLink': 'Cómo vincular:',
+    'collar.step1': 'Localiza el código en el empaque del collar',
+    'collar.step2': 'Ingresa el código en el campo siguiente',
+    'collar.step3': 'Enciende el collar y espera la confirmación',
+    'collar.collarCode': 'Código del Collar',
+    'collar.codePlaceholder': 'COL001234567890',
+    'collar.codeHint': '💡 El código está impreso en el empaque y tiene 15 caracteres (COL + 12 números)',
+    'collar.exampleCode': 'Ejemplo de código:',
+    'collar.linkCollar': 'Vincular Collar',
+    'collar.linking': 'Vinculando...',
+    'collar.helpText': '¿Problemas para encontrar el código? Revisa la caja del collar o el manual.',
+    
+    // Validaciones y mensajes
+    'collar.enterCode': 'Ingresa el código del collar',
+    'collar.invalidCode': 'Código Inválido',
+    'collar.invalidCodeDesc': 'El código debe tener el formato: COL seguido de 12 números\n\nEjemplo: COL001234567890',
+    'collar.petNotFound': 'Mascota no identificada',
+    'collar.collarAdded': '¡Collar Añadido!',
+    'collar.collarAddedDesc': 'El collar {code} ha sido vinculado a {petName}.\n\n⏳ Esperando confirmación del collar...\n(Puede tomar algunos minutos)',
+    'collar.linkError': 'No se pudo vincular el collar. Inténtalo de nuevo.',
+
+    // ================== BLOG ==================
+    'blog.title': 'Blog de la Comunidad',
+    'blog.searchPlaceholder': 'Buscar publicaciones...',
+    'blog.newPost': 'Nueva publicación',
+    'blog.publish': 'Publicar',
+    'blog.publishing': 'Publicando...',
+    'blog.writePost': 'Escribe algo sobre tu mascota...',
+    
+    // Estados del blog
+    'blog.loginRequired': 'Inicio de Sesión Requerido',
+    'blog.loginRequiredDesc': 'Inicia sesión con email en la pestaña Dueño\npara acceder al blog de la comunidad',
+    'blog.noPosts': 'No hay publicaciones aún',
+    'blog.noPostsDesc': '¡Sé el primero en compartir algo sobre tu mascota!',
+    
+    // Validaciones
+    'blog.emailLoginRequired': 'Necesitas iniciar sesión con email para publicar en el blog.',
+    'blog.writeContent': 'Escribe algo para publicar.',
+    'blog.publishFailed': 'No se pudo publicar',
   },
 };
 

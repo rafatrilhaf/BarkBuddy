@@ -1,4 +1,4 @@
-// app/(tabs)/blog.tsx
+// app/(tabs)/blog.tsx - VERSÃO INTERNACIONALIZADA
 import { Ionicons } from "@expo/vector-icons";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { useEffect, useMemo, useState } from "react";
@@ -34,7 +34,7 @@ type PostCardShape = {
 export default function Blog() {
   const { colors, fontSizes } = useTheme();
   const { t } = useLanguage();
-
+  
   // Estado do usuário e autenticação
   const [user, setUser] = useState<User | null>(null);
   const [initializing, setInitializing] = useState(true);
@@ -69,6 +69,7 @@ export default function Blog() {
         console.log("✅ Inicialização da auth concluída");
       }
     });
+
     return () => unsubscribe();
   }, [initializing]);
 
@@ -115,19 +116,19 @@ export default function Blog() {
     [posts]
   );
 
-  // Função para publicar post com verificação rigorosa
+  // Função para publicar post com verificação rigorosa - INTERNACIONALIZADA
   const handlePublish = async () => {
     console.log("📝 Tentando publicar post...");
     console.log("📝 User atual:", auth.currentUser?.email);
     console.log("📝 User isAnonymous:", auth.currentUser?.isAnonymous);
     
     if (!user || user.isAnonymous) {
-      Alert.alert(t('general.error'), "Você precisa fazer login com email para publicar no blog.");
+      Alert.alert(t('general.error'), t('blog.emailLoginRequired'));
       return;
     }
     
     if (!text.trim()) {
-      Alert.alert(t('general.error'), "Digite algo para publicar.");
+      Alert.alert(t('general.error'), t('blog.writeContent'));
       return;
     }
 
@@ -139,13 +140,13 @@ export default function Blog() {
       console.log("✅ Post publicado com sucesso");
     } catch (e: any) {
       console.error("❌ Erro ao publicar:", e);
-      Alert.alert(t('general.error'), e.message || "Não foi possível publicar");
+      Alert.alert(t('general.error'), e.message || t('blog.publishFailed'));
     } finally {
       setBusy(false);
     }
   };
 
-  // Tela de carregamento
+  // Tela de carregamento - INTERNACIONALIZADA
   if (initializing) {
     return (
       <SafeAreaView
@@ -182,7 +183,7 @@ export default function Blog() {
     );
   }
 
-  // Tela de acesso restrito
+  // Tela de acesso restrito - INTERNACIONALIZADA
   if (!isAuthenticated || !user || user.isAnonymous) {
     return (
       <SafeAreaView
@@ -216,7 +217,7 @@ export default function Blog() {
             marginBottom: 8,
           }}
         >
-          Login Necessário
+          {t('blog.loginRequired')}
         </Text>
         <Text
           style={{
@@ -226,13 +227,13 @@ export default function Blog() {
             lineHeight: 20,
           }}
         >
-          Faça login com email na aba Tutor{"\n"}para acessar o blog da comunidade
+          {t('blog.loginRequiredDesc')}
         </Text>
       </SafeAreaView>
     );
   }
 
-  // Interface principal do blog
+  // Interface principal do blog - INTERNACIONALIZADA
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* topo com ícone centralizado */}
@@ -251,7 +252,7 @@ export default function Blog() {
         </View>
       </View>
 
-      {/* busca + filtro + novo post */}
+      {/* busca + filtro + novo post - INTERNACIONALIZADO */}
       <View
         style={{
           paddingHorizontal: 16,
@@ -272,7 +273,7 @@ export default function Blog() {
           }}
         >
           <TextInput
-            placeholder="Pesquisar posts..."
+            placeholder={t('blog.searchPlaceholder')}
             placeholderTextColor={colors.textSecondary}
             style={{ 
               color: colors.text, 
@@ -298,10 +299,11 @@ export default function Blog() {
             justifyContent: "center",
           }}
           onPress={() => {}}
+          accessibilityLabel={t('general.filter')}
         >
           <Ionicons name="options-outline" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-
+        
         {/* botão + abre o composer */}
         <TouchableOpacity
           style={{
@@ -316,6 +318,7 @@ export default function Blog() {
             justifyContent: "center",
           }}
           onPress={() => setComposerOpen(true)}
+          accessibilityLabel={t('blog.newPost')}
         >
           <Ionicons name="add" size={24} color={colors.background} />
         </TouchableOpacity>
@@ -348,7 +351,7 @@ export default function Blog() {
                 fontWeight: "600",
               }}
             >
-              Nenhum post ainda
+              {t('blog.noPosts')}
             </Text>
             <Text
               style={{
@@ -358,13 +361,13 @@ export default function Blog() {
                 textAlign: "center",
               }}
             >
-              Seja o primeiro a compartilhar algo sobre seu pet!
+              {t('blog.noPostsDesc')}
             </Text>
           </View>
         }
       />
 
-      {/* Composer (só texto) */}
+      {/* Composer (só texto) - INTERNACIONALIZADO */}
       <Modal
         visible={composerOpen}
         animationType="slide"
@@ -392,15 +395,15 @@ export default function Blog() {
                 color: colors.text,
               }}
             >
-              Novo post
+              {t('blog.newPost')}
             </Text>
             <TouchableOpacity onPress={() => setComposerOpen(false)}>
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
-
+          
           <TextInput
-            placeholder="Escreva algo sobre seu pet..."
+            placeholder={t('blog.writePost')}
             placeholderTextColor={colors.textSecondary}
             value={text}
             onChangeText={setText}
@@ -419,7 +422,7 @@ export default function Blog() {
               backgroundColor: colors.surface,
             }}
           />
-
+          
           <View style={{ flexDirection: "row", gap: 12, marginTop: 20 }}>
             <TouchableOpacity
               onPress={handlePublish}
@@ -440,10 +443,10 @@ export default function Blog() {
                   fontSize: fontSizes.md,
                 }}
               >
-                {busy ? "Publicando..." : "Publicar"}
+                {busy ? t('blog.publishing') : t('blog.publish')}
               </Text>
             </TouchableOpacity>
-
+            
             <TouchableOpacity
               onPress={() => setComposerOpen(false)}
               style={{

@@ -1,32 +1,45 @@
-// app/pet/addCollar.tsx
+// app/pet/addCollar.tsx - VERSÃO INTERNACIONALIZADA
 import { db } from '@/services/firebase';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
 } from 'react-native';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import { useTheme } from '../../../contexts/ThemeContext';
+
+// Função para substituir placeholders nas strings de tradução
+function replacePlaceholders(text: string, placeholders: { [key: string]: string }): string {
+  let result = text;
+  Object.keys(placeholders).forEach(key => {
+    result = result.replace(`{${key}}`, placeholders[key]);
+  });
+  return result;
+}
 
 export default function AddCollar() {
+  const { colors, fontSizes } = useTheme();
+  const { t } = useLanguage();
   const router = useRouter();
   const { petId, petName } = useLocalSearchParams<{ petId: string; petName: string }>();
   
   const [collarCode, setCollarCode] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // ✅ Função principal: vincular coleira ao pet
+  // ✅ Função principal: vincular coleira ao pet - INTERNACIONALIZADA
   const vincularColeira = async () => {
     if (!collarCode.trim()) {
-      Alert.alert('Erro', 'Digite o código da coleira');
+      Alert.alert(t('general.error'), t('collar.enterCode'));
       return;
     }
 
@@ -34,15 +47,15 @@ export default function AddCollar() {
     
     // ✅ Validar formato do código (ex: COL001234567890)
     if (!code.match(/^COL\d{12}$/)) {
-      Alert.alert('Código Inválido', 
-        'O código deve ter o formato: COL seguido de 12 números\n\n' +
-        'Exemplo: COL001234567890'
+      Alert.alert(
+        t('collar.invalidCode'), 
+        t('collar.invalidCodeDesc')
       );
       return;
     }
 
     if (!petId) {
-      Alert.alert('Erro', 'Pet não identificado');
+      Alert.alert(t('general.error'), t('collar.petNotFound'));
       return;
     }
 
@@ -61,19 +74,20 @@ export default function AddCollar() {
       });
 
       Alert.alert(
-        'Coleira Adicionada!',
-        `A coleira ${code} foi vinculada ao ${petName}.\n\n` +
-        '⏳ Aguardando confirmação da coleira...\n' +
-        '(Pode levar alguns minutos)',
+        t('collar.collarAdded'),
+        replacePlaceholders(t('collar.collarAddedDesc'), { 
+          code, 
+          petName: petName || '' 
+        }),
         [{ 
-          text: 'OK', 
+          text: t('button.ok'), 
           onPress: () => router.back()
         }]
       );
 
     } catch (error) {
       console.error('Erro ao vincular coleira:', error);
-      Alert.alert('Erro', 'Não foi possível vincular a coleira. Tente novamente.');
+      Alert.alert(t('general.error'), t('collar.linkError'));
     } finally {
       setLoading(false);
     }
@@ -82,47 +96,96 @@ export default function AddCollar() {
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : "height"} 
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Header */}
+        {/* Header - INTERNACIONALIZADO */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#006B41" />
+          <Pressable onPress={() => router.back()} style={[styles.backButton, { backgroundColor: colors.primary + '20' }]}>
+            <Ionicons name="arrow-back" size={24} color={colors.primary} />
           </Pressable>
-          <Text style={styles.headerTitle}>Adicionar Coleira</Text>
+          <Text style={[styles.headerTitle, { 
+            color: colors.primary,
+            fontSize: fontSizes.xl
+          }]}>
+            {t('collar.title')}
+          </Text>
         </View>
 
-        {/* Pet Info */}
-        <View style={styles.petInfo}>
-          <Ionicons name="paw" size={32} color="#006B41" />
-          <Text style={styles.petName}>{petName}</Text>
-          <Text style={styles.petSubtitle}>Vincular coleira inteligente</Text>
+        {/* Pet Info - INTERNACIONALIZADO */}
+        <View style={[styles.petInfo, { backgroundColor: colors.primary + '15' }]}>
+          <Ionicons name="paw" size={32} color={colors.primary} />
+          <Text style={[styles.petName, { 
+            color: colors.primary,
+            fontSize: fontSizes.xxl
+          }]}>
+            {petName}
+          </Text>
+          <Text style={[styles.petSubtitle, { 
+            color: colors.textSecondary,
+            fontSize: fontSizes.sm
+          }]}>
+            {t('collar.linkSmartCollar')}
+          </Text>
         </View>
 
-        {/* Instructions */}
+        {/* Instructions - INTERNACIONALIZADAS */}
         <View style={styles.instructionsContainer}>
-          <Text style={styles.instructionsTitle}>Como vincular:</Text>
+          <Text style={[styles.instructionsTitle, { 
+            color: colors.text,
+            fontSize: fontSizes.lg
+          }]}>
+            {t('collar.howToLink')}
+          </Text>
+          
           <View style={styles.step}>
-            <Text style={styles.stepNumber}>1</Text>
-            <Text style={styles.stepText}>Localize o código na embalagem da coleira</Text>
+            <Text style={[styles.stepNumber, { backgroundColor: colors.primary }]}>1</Text>
+            <Text style={[styles.stepText, { 
+              color: colors.textSecondary,
+              fontSize: fontSizes.md
+            }]}>
+              {t('collar.step1')}
+            </Text>
           </View>
+          
           <View style={styles.step}>
-            <Text style={styles.stepNumber}>2</Text>
-            <Text style={styles.stepText}>Digite o código no campo abaixo</Text>
+            <Text style={[styles.stepNumber, { backgroundColor: colors.primary }]}>2</Text>
+            <Text style={[styles.stepText, { 
+              color: colors.textSecondary,
+              fontSize: fontSizes.md
+            }]}>
+              {t('collar.step2')}
+            </Text>
           </View>
+          
           <View style={styles.step}>
-            <Text style={styles.stepNumber}>3</Text>
-            <Text style={styles.stepText}>Ligue a coleira e aguarde a confirmação</Text>
+            <Text style={[styles.stepNumber, { backgroundColor: colors.primary }]}>3</Text>
+            <Text style={[styles.stepText, { 
+              color: colors.textSecondary,
+              fontSize: fontSizes.md
+            }]}>
+              {t('collar.step3')}
+            </Text>
           </View>
         </View>
 
-        {/* Input */}
+        {/* Input - INTERNACIONALIZADO */}
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Código da Coleira</Text>
+          <Text style={[styles.inputLabel, { 
+            color: colors.text,
+            fontSize: fontSizes.lg
+          }]}>
+            {t('collar.collarCode')}
+          </Text>
           <TextInput
-            style={styles.input}
-            placeholder="COL001234567890"
+            style={[styles.input, { 
+              borderColor: colors.primary,
+              backgroundColor: colors.surface,
+              color: colors.text,
+              fontSize: fontSizes.lg
+            }]}
+            placeholder={t('collar.codePlaceholder')}
+            placeholderTextColor={colors.textSecondary}
             value={collarCode}
             onChangeText={setCollarCode}
             maxLength={15}
@@ -130,41 +193,67 @@ export default function AddCollar() {
             autoCorrect={false}
             autoFocus={true}
           />
-          <Text style={styles.inputHint}>
-            💡 O código está impresso na embalagem e tem 15 caracteres (COL + 12 números)
+          <Text style={[styles.inputHint, { 
+            color: colors.textTertiary,
+            fontSize: fontSizes.xs
+          }]}>
+            {t('collar.codeHint')}
           </Text>
         </View>
 
-        {/* Example */}
-        <View style={styles.exampleContainer}>
-          <Text style={styles.exampleTitle}>Exemplo de código:</Text>
-          <View style={styles.exampleCode}>
-            <Text style={styles.exampleText}>COL001234567890</Text>
+        {/* Example - INTERNACIONALIZADO */}
+        <View style={[styles.exampleContainer, { 
+          backgroundColor: colors.surface,
+          borderLeftColor: colors.primary
+        }]}>
+          <Text style={[styles.exampleTitle, { 
+            color: colors.textSecondary,
+            fontSize: fontSizes.md
+          }]}>
+            {t('collar.exampleCode')}
+          </Text>
+          <View style={[styles.exampleCode, { backgroundColor: colors.background }]}>
+            <Text style={[styles.exampleText, { 
+              color: colors.text,
+              fontSize: fontSizes.lg
+            }]}>
+              COL001234567890
+            </Text>
           </View>
         </View>
 
-        {/* Button */}
+        {/* Button - INTERNACIONALIZADO */}
         <Pressable
-          style={[styles.button, loading && styles.buttonDisabled]}
+          style={[
+            styles.button, 
+            { backgroundColor: colors.primary },
+            loading && styles.buttonDisabled
+          ]}
           onPress={vincularColeira}
           disabled={loading}
         >
           <Ionicons 
             name={loading ? "hourglass" : "link"} 
             size={20} 
-            color="white" 
+            color={colors.background}
             style={{ marginRight: 8 }} 
           />
-          <Text style={styles.buttonText}>
-            {loading ? 'Vinculando...' : 'Vincular Coleira'}
+          <Text style={[styles.buttonText, { 
+            color: colors.background,
+            fontSize: fontSizes.lg
+          }]}>
+            {loading ? t('collar.linking') : t('collar.linkCollar')}
           </Text>
         </Pressable>
 
-        {/* Help */}
-        <View style={styles.helpContainer}>
-          <Ionicons name="help-circle-outline" size={16} color="#666" />
-          <Text style={styles.helpText}>
-            Problemas para encontrar o código? Verifique a caixa da coleira ou o manual.
+        {/* Help - INTERNACIONALIZADO */}
+        <View style={[styles.helpContainer, { backgroundColor: colors.surface }]}>
+          <Ionicons name="help-circle-outline" size={16} color={colors.textSecondary} />
+          <Text style={[styles.helpText, { 
+            color: colors.textSecondary,
+            fontSize: fontSizes.xs
+          }]}>
+            {t('collar.helpText')}
           </Text>
         </View>
       </ScrollView>
@@ -175,7 +264,6 @@ export default function AddCollar() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -191,38 +279,28 @@ const styles = StyleSheet.create({
     padding: 8,
     marginRight: 12,
     borderRadius: 8,
-    backgroundColor: '#f0f9ff',
   },
   headerTitle: {
-    fontSize: 20,
     fontWeight: 'bold',
-    color: '#006B41',
   },
   petInfo: {
     alignItems: 'center',
-    backgroundColor: '#e8f5ee',
     borderRadius: 16,
     padding: 24,
     marginBottom: 24,
   },
   petName: {
-    fontSize: 24,
     fontWeight: 'bold',
-    color: '#006B41',
     marginTop: 8,
   },
   petSubtitle: {
-    fontSize: 14,
-    color: '#666',
     marginTop: 4,
   },
   instructionsContainer: {
     marginBottom: 24,
   },
   instructionsTitle: {
-    fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 12,
   },
   step: {
@@ -234,7 +312,6 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#006B41',
     color: 'white',
     textAlign: 'center',
     fontWeight: 'bold',
@@ -244,62 +321,45 @@ const styles = StyleSheet.create({
   },
   stepText: {
     flex: 1,
-    fontSize: 14,
-    color: '#555',
   },
   inputContainer: {
     marginBottom: 24,
   },
   inputLabel: {
-    fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 8,
   },
   input: {
     borderWidth: 2,
-    borderColor: '#006B41',
     borderRadius: 12,
     padding: 16,
-    fontSize: 18,
     fontFamily: 'monospace',
     textAlign: 'center',
-    backgroundColor: '#fafafa',
   },
   inputHint: {
-    fontSize: 12,
-    color: '#888',
     textAlign: 'center',
     marginTop: 8,
     fontStyle: 'italic',
   },
   exampleContainer: {
-    backgroundColor: '#f8f9fa',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
     borderLeftWidth: 4,
-    borderLeftColor: '#006B41',
   },
   exampleTitle: {
-    fontSize: 14,
     fontWeight: '600',
-    color: '#555',
     marginBottom: 8,
   },
   exampleCode: {
-    backgroundColor: '#e9ecef',
     borderRadius: 8,
     padding: 12,
   },
   exampleText: {
     fontFamily: 'monospace',
-    fontSize: 16,
     textAlign: 'center',
-    color: '#333',
   },
   button: {
-    backgroundColor: '#006B41',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -316,22 +376,17 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: 'white',
-    fontSize: 18,
     fontWeight: 'bold',
   },
   helpContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
     borderRadius: 8,
     padding: 12,
     marginTop: 8,
   },
   helpText: {
     flex: 1,
-    fontSize: 12,
-    color: '#666',
     marginLeft: 8,
   },
 });

@@ -1,4 +1,4 @@
-// app/(tabs)/pet.tsx
+// app/(tabs)/pet.tsx - VERSÃO INTERNACIONALIZADA
 import { auth } from "@/services/firebase";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -35,8 +35,17 @@ import { useTheme } from '../../../contexts/ThemeContext';
 
 type Row = Pet & { id?: string };
 
+// Função para substituir placeholders nas strings de tradução
+function replacePlaceholders(text: string, placeholders: { [key: string]: string }): string {
+  let result = text;
+  Object.keys(placeholders).forEach(key => {
+    result = result.replace(`{${key}}`, placeholders[key]);
+  });
+  return result;
+}
+
 /**
- * ModalWithKeyboard (Bottom-sheet style)
+ * ModalWithKeyboard (Bottom-sheet style) - INTERNACIONALIZADO
  */
 function ModalWithKeyboard({
   visible,
@@ -118,7 +127,7 @@ function ModalWithKeyboard({
 
 export default function PetTab() {
   const { colors, fontSizes } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   const user = auth.currentUser;
   const uid = user?.uid;
@@ -170,11 +179,11 @@ export default function PetTab() {
     setShowForm(true);
   };
 
-  // escolher imagem
+  // escolher imagem - INTERNACIONALIZADA
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permissão necessária", "Autorize o acesso às fotos.");
+      Alert.alert(t('pets.permissionRequired'), t('pets.permissionRequiredDesc'));
       return;
     }
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -186,21 +195,25 @@ export default function PetTab() {
     if (!res.canceled) setPhotoUri(res.assets[0].uri);
   };
 
-  // ✅ NOVA FUNÇÃO: remover foto
+  // ✅ NOVA FUNÇÃO: remover foto - INTERNACIONALIZADA
   const removePhoto = () => {
-    Alert.alert("Remover foto", "Deseja remover a foto selecionada?", [
-      { text: t('general.cancel'), style: "cancel" },
-      { text: "Remover", style: "destructive", onPress: () => setPhotoUri(null) }
-    ]);
+    Alert.alert(
+      t('pets.removePhotoTitle'), 
+      t('pets.removePhotoConfirm'), 
+      [
+        { text: t('general.cancel'), style: "cancel" },
+        { text: t('pets.removePhotoAction'), style: "destructive", onPress: () => setPhotoUri(null) }
+      ]
+    );
   };
 
   const submit = async () => {
     if (!uid) {
-      Alert.alert("Faça login", "Você precisa estar logado para gerenciar seus pets.");
+      Alert.alert(t('pets.loginRequired'), t('pets.loginRequiredDesc'));
       return;
     }
     if (!name.trim()) {
-      Alert.alert("Nome obrigatório", "Informe o nome do pet.");
+      Alert.alert(t('pets.nameRequiredAlert'), t('pets.nameRequiredAlertDesc'));
       return;
     }
 
@@ -209,7 +222,10 @@ export default function PetTab() {
       try {
         photoUrl = await uploadPetImageLocal(photoUri);
       } catch (e: any) {
-        Alert.alert("Erro ao enviar foto", e?.message ?? "Tente novamente.");
+        Alert.alert(
+          t('pets.photoUploadError'), 
+          e?.message ?? t('pets.photoUploadRetry')
+        );
         return;
       }
     }
@@ -231,26 +247,33 @@ export default function PetTab() {
       }
       resetForm();
     } catch (e: any) {
-      Alert.alert(t('general.error'), e.message ?? "Falha ao salvar pet");
+      Alert.alert(
+        t('general.error'), 
+        e.message ?? t('pets.saveFailed')
+      );
     }
   };
 
   const remove = (id?: string) => {
     if (!id) return;
-    Alert.alert("Excluir pet", "Tem certeza que deseja excluir este pet?", [
-      { text: t('general.cancel'), style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deletePetById(id);
-          } catch (e: any) {
-            Alert.alert(t('general.error'), e.message);
-          }
+    Alert.alert(
+      t('pets.deletePet'), 
+      t('pets.deletePetConfirm'), 
+      [
+        { text: t('general.cancel'), style: "cancel" },
+        {
+          text: t('general.delete'),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deletePetById(id);
+            } catch (e: any) {
+              Alert.alert(t('general.error'), e.message);
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   const toggleExpand = (id: string) =>
@@ -313,11 +336,17 @@ export default function PetTab() {
   const [generalNote, setGeneralNote] = useState<string>("");
   const [healthType, setHealthType] = useState<string>("VACCINE");
 
+  // Formatação de data internacionalizada
   const fmt = (ts: any) => {
     if (!ts) return "";
     try {
       const d = ts?.toDate ? ts.toDate() : new Date(ts);
-      return d.toLocaleDateString();
+      const locales = {
+        pt: 'pt-BR',
+        en: 'en-US',
+        es: 'es-ES'
+      };
+      return d.toLocaleDateString(locales[language as keyof typeof locales] || 'pt-BR');
     } catch {
       return "";
     }
@@ -346,10 +375,10 @@ export default function PetTab() {
     }
   };
 
-  /* ---------------- Modal openers ---------------- */
+  /* ---------------- Modal openers INTERNACIONALIZADOS ---------------- */
   const openWalk = () => {
     if (pets.length === 0) { 
-      Alert.alert("Nenhum pet", "Cadastre um pet antes de registrar uma caminhada."); 
+      Alert.alert(t('pets.noPetsModal'), t('pets.noPetsWalk')); 
       return; 
     }
     const id = pets[0].id ?? null;
@@ -363,7 +392,7 @@ export default function PetTab() {
 
   const openWeight = () => {
     if (pets.length === 0) { 
-      Alert.alert("Nenhum pet", "Cadastre um pet antes de registrar o peso."); 
+      Alert.alert(t('pets.noPetsModal'), t('pets.noPetsWeight')); 
       return; 
     }
     const id = pets[0].id ?? null;
@@ -377,7 +406,7 @@ export default function PetTab() {
 
   const openHealth = () => {
     if (pets.length === 0) { 
-      Alert.alert("Nenhum pet", "Cadastre um pet antes de registrar saúde."); 
+      Alert.alert(t('pets.noPetsModal'), t('pets.noPetsHealth')); 
       return; 
     }
     const id = pets[0].id ?? null;
@@ -391,7 +420,7 @@ export default function PetTab() {
 
   const openNote = () => {
     if (pets.length === 0) { 
-      Alert.alert("Nenhum pet", "Cadastre um pet antes de adicionar uma anotação."); 
+      Alert.alert(t('pets.noPetsModal'), t('pets.noPetsNote')); 
       return; 
     }
     const id = pets[0].id ?? null;
@@ -425,12 +454,12 @@ export default function PetTab() {
     if (healthModalVisible && selectedPetId) fetchLastFor(selectedPetId, "HEALTH", healthType);
   }, [healthType]);
 
-  // Submit functions (mantidas as mesmas)
+  // Submit functions INTERNACIONALIZADAS
   const submitWalk = async () => {
-    if (!selectedPetId) { Alert.alert("Selecione um pet"); return; }
+    if (!selectedPetId) { Alert.alert(t('pets.selectPet')); return; }
     const km = Number(walkKm);
     if (Number.isNaN(km) || km <= 0) { 
-      Alert.alert("Valor inválido", "Informe a quilometragem (km)."); 
+      Alert.alert("Valor inválido", t('pets.kilometers')); 
       return; 
     }
 
@@ -438,18 +467,21 @@ export default function PetTab() {
       await addPetRecord(selectedPetId, { type: "WALK", value: km, note: walkNote });
       fetchLastFor(selectedPetId, "WALK");
       setWalkModalVisible(false);
-      Alert.alert("Registrado", `Caminhada de ${km} km registrada.`);
+      Alert.alert(
+        "Registrado", 
+        replacePlaceholders(t('pets.walkRegistered'), { km: km.toString() })
+      );
     } catch (e: any) {
       console.error("Erro registrar caminhada:", e);
-      Alert.alert(t('general.error'), e?.message ?? "Falha ao registrar.");
+      Alert.alert(t('general.error'), e?.message ?? t('pets.walkRegisterError'));
     }
   };
 
   const submitWeight = async () => {
-    if (!selectedPetId) { Alert.alert("Selecione um pet"); return; }
+    if (!selectedPetId) { Alert.alert(t('pets.selectPet')); return; }
     const kg = Number(weightKg);
     if (Number.isNaN(kg) || kg <= 0) { 
-      Alert.alert("Valor inválido", "Informe o peso (kg)."); 
+      Alert.alert("Valor inválido", t('pets.weightKg')); 
       return; 
     }
 
@@ -457,39 +489,51 @@ export default function PetTab() {
       await addPetRecord(selectedPetId, { type: "WEIGHT", value: kg, note: weightNote });
       fetchLastFor(selectedPetId, "WEIGHT");
       setWeightModalVisible(false);
-      Alert.alert("Registrado", `Peso ${kg} kg registrado.`);
+      Alert.alert(
+        "Registrado", 
+        replacePlaceholders(t('pets.weightRegistered'), { kg: kg.toString() })
+      );
     } catch (e: any) {
       console.error("Erro registrar peso:", e);
-      Alert.alert(t('general.error'), e?.message ?? "Falha ao registrar.");
+      Alert.alert(t('general.error'), e?.message ?? t('pets.weightRegisterError'));
     }
   };
 
   const submitHealth = async () => {
-    if (!selectedPetId) { Alert.alert("Selecione um pet"); return; }
+    if (!selectedPetId) { Alert.alert(t('pets.selectPet')); return; }
     try {
       await addPetRecord(selectedPetId, { type: "HEALTH", value: healthType, note: healthNote });
       fetchLastFor(selectedPetId, "HEALTH", healthType);
       setHealthModalVisible(false);
-      Alert.alert("Registrado", `${healthType} registrado.`);
+      
+      const healthTypeText = healthType === "VACCINE" ? t('pets.vaccine') 
+        : healthType === "DEWORM" ? t('pets.deworm') 
+        : healthType === "BATH" ? t('pets.bath') 
+        : t('pets.visit');
+      
+      Alert.alert(
+        "Registrado", 
+        replacePlaceholders(t('pets.healthRegistered'), { type: healthTypeText })
+      );
     } catch (e: any) {
       console.error("Erro registrar saúde:", e);
-      Alert.alert(t('general.error'), e?.message ?? "Falha ao registrar.");
+      Alert.alert(t('general.error'), e?.message ?? t('pets.healthRegisterError'));
     }
   };
 
   const submitNote = async () => {
-    if (!selectedPetId) { Alert.alert("Selecione um pet"); return; }
+    if (!selectedPetId) { Alert.alert(t('pets.selectPet')); return; }
     if (!generalNote.trim()) { 
-      Alert.alert("Nota vazia", "Escreva algo antes de salvar."); 
+      Alert.alert(t('pets.emptyNote'), t('pets.emptyNoteDesc')); 
       return; 
     }
     try {
       await addPetRecord(selectedPetId, { type: "NOTE", value: generalNote.trim() });
       setNoteModalVisible(false);
-      Alert.alert("Registrado", `Anotação salva.`);
+      Alert.alert("Registrado", t('pets.noteRegistered'));
     } catch (e: any) {
       console.error("Erro registrar nota:", e);
-      Alert.alert(t('general.error'), e?.message ?? "Falha ao registrar.");
+      Alert.alert(t('general.error'), e?.message ?? t('pets.noteRegisterError'));
     }
   };
 
@@ -510,6 +554,28 @@ export default function PetTab() {
     fontSize: fontSizes.sm,
   };
 
+  // Função para obter label do tipo de saúde
+  const getHealthTypeLabel = (type: string): string => {
+    switch (type) {
+      case "VACCINE": return t('pets.vaccine');
+      case "DEWORM": return t('pets.deworm');
+      case "BATH": return t('pets.bath');
+      case "VISIT": return t('pets.visit');
+      default: return type;
+    }
+  };
+
+  // Função para obter texto do último registro de saúde
+  const getLastHealthText = (type: string): string => {
+    switch (type) {
+      case "VACCINE": return t('pets.lastVaccine');
+      case "DEWORM": return t('pets.lastDeworm');
+      case "BATH": return t('pets.lastBath');
+      case "VISIT": return t('pets.lastVisit');
+      default: return "Último registro:";
+    }
+  };
+
   /* ------------------------- Render ------------------------- */
   return (
     <KeyboardAvoidingView 
@@ -522,7 +588,7 @@ export default function PetTab() {
           fontWeight: "700",
           color: colors.text
         }}>
-          Meus Pets
+          {t('pets.title')}
         </Text>
 
         {!showForm && (
@@ -543,12 +609,12 @@ export default function PetTab() {
               color: colors.primary,
               fontSize: fontSizes.md
             }}>
-              + Adicionar um pet
+              {t('pets.addPet')}
             </Text>
           </Pressable>
         )}
 
-        {/* ✅ FORMULÁRIO MELHORADO com botão remover foto */}
+        {/* ✅ FORMULÁRIO MELHORADO com botão remover foto - INTERNACIONALIZADO */}
         {showForm && (
           <View
             style={{
@@ -565,7 +631,7 @@ export default function PetTab() {
               color: colors.text,
               fontSize: fontSizes.lg
             }}>
-              {isEditing ? "Editar pet" : "Adicionar pet"}
+              {isEditing ? t('pets.editPetTitle') : t('pets.addPetTitle')}
             </Text>
 
             {photoUri ? (
@@ -580,7 +646,7 @@ export default function PetTab() {
               />
             ) : null}
 
-            {/* ✅ Botões de foto melhorados */}
+            {/* ✅ Botões de foto melhorados - INTERNACIONALIZADOS */}
             <View style={{ flexDirection: "row", gap: 8 }}>
               <Pressable 
                 onPress={pickImage} 
@@ -598,7 +664,7 @@ export default function PetTab() {
                   fontWeight: "600",
                   fontSize: fontSizes.sm
                 }}>
-                  {photoUri ? "Trocar foto" : "Escolher foto"}
+                  {photoUri ? t('pets.changePhoto') : t('pets.choosePhoto')}
                 </Text>
               </Pressable>
 
@@ -620,35 +686,35 @@ export default function PetTab() {
                     fontWeight: "600",
                     fontSize: fontSizes.sm
                   }}>
-                    Remover foto
+                    {t('pets.removePhoto')}
                   </Text>
                 </Pressable>
               )}
             </View>
 
             <TextInput 
-              placeholder="Nome *" 
+              placeholder={t('pets.nameRequired')} 
               placeholderTextColor={colors.textSecondary} 
               value={name} 
               onChangeText={setName} 
               style={inputStyle} 
             />
             <TextInput 
-              placeholder="Espécie (cão, gato...)" 
+              placeholder={t('pets.species')} 
               placeholderTextColor={colors.textSecondary} 
               value={species} 
               onChangeText={setSpecies} 
               style={inputStyle} 
             />
             <TextInput 
-              placeholder="Raça" 
+              placeholder={t('pets.breed')} 
               placeholderTextColor={colors.textSecondary} 
               value={breed} 
               onChangeText={setBreed} 
               style={inputStyle} 
             />
             <TextInput 
-              placeholder="Idade (anos)" 
+              placeholder={t('pets.age')} 
               placeholderTextColor={colors.textSecondary} 
               value={age} 
               onChangeText={setAge} 
@@ -672,7 +738,7 @@ export default function PetTab() {
                   fontWeight: '600',
                   fontSize: fontSizes.md,
                 }}>
-                  {isEditing ? "Salvar alterações" : "Adicionar"}
+                  {isEditing ? t('pets.saveChanges') : t('general.add')}
                 </Text>
               </Pressable>
               <Pressable
@@ -699,7 +765,7 @@ export default function PetTab() {
           </View>
         )}
 
-        {/* Lista de pets */}
+        {/* Lista de pets INTERNACIONALIZADA */}
         <FlatList
           data={pets}
           keyExtractor={(item) => item.id!}
@@ -759,19 +825,19 @@ export default function PetTab() {
                       color: colors.text,
                       fontSize: fontSizes.md
                     }}>
-                      Espécie: {item.species ?? "-"}
+                      {t('pets.speciesLabel')} {item.species ?? t('pets.noInfo')}
                     </Text>
                     <Text style={{ 
                       color: colors.text,
                       fontSize: fontSizes.md
                     }}>
-                      Raça: {item.breed ?? "-"}
+                      {t('pets.breedLabel')} {item.breed ?? t('pets.noInfo')}
                     </Text>
                     <Text style={{ 
                       color: colors.text,
                       fontSize: fontSizes.md
                     }}>
-                      Idade: {typeof item.age === "number" && !Number.isNaN(item.age) ? item.age : "-"}
+                      {t('pets.ageLabel')} {typeof item.age === "number" && !Number.isNaN(item.age) ? item.age : t('pets.noInfo')}
                     </Text>
 
                     <View style={{ alignItems: "center", marginTop: 10 }}>
@@ -785,7 +851,7 @@ export default function PetTab() {
                       </Text>
                     </View>
 
-                    {/* ✅ ADIÇÃO 2: Botões com o novo botão Adicionar Coleira */}
+                    {/* ✅ ADIÇÃO 2: Botões com o novo botão Adicionar Coleira - INTERNACIONALIZADOS */}
                     <View style={{ 
                       flexDirection: "row", 
                       gap: 12, 
@@ -793,15 +859,15 @@ export default function PetTab() {
                       flexWrap: "wrap" 
                     }}>
                       <TouchableOpacity onPress={() => startEdit(item)}>
-                        <Text style={linkStyle}>Editar</Text>
+                        <Text style={linkStyle}>{t('general.edit')}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity onPress={() => remove(item.id)}>
-                        <Text style={[linkStyle, { color: colors.error }]}>Excluir</Text>
+                        <Text style={[linkStyle, { color: colors.error }]}>{t('general.delete')}</Text>
                       </TouchableOpacity>
                       
                       {/* ✅ NOVO BOTÃO: Adicionar Coleira */}
                       <TouchableOpacity onPress={() => addCollarToPet(item.id!, item.name!)}>
-                        <Text style={linkStyle}>🔗 Adicionar Coleira</Text>
+                        <Text style={linkStyle}>{t('pets.addCollar')}</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -814,13 +880,13 @@ export default function PetTab() {
               color: colors.textSecondary,
               fontSize: fontSizes.md
             }}>
-              Nenhum pet cadastrado ainda.
+              {t('pets.noPetsYet')}
             </Text>
           }
           contentContainerStyle={{ paddingBottom: 280 }}
         />
 
-        {/* Dashboard placeholder */}
+        {/* Dashboard placeholder - INTERNACIONALIZADO */}
         <View
           style={{
             backgroundColor: colors.surface,
@@ -838,7 +904,7 @@ export default function PetTab() {
             color: colors.primary, 
             marginBottom: 8 
           }}>
-            Dashboard
+            {t('pets.dashboard')}
           </Text>
           <Text style={{ 
             fontSize: fontSizes.sm, 
@@ -847,7 +913,7 @@ export default function PetTab() {
             marginBottom: 12,
             color: colors.textSecondary
           }}>
-            Veja suas notas e os gráficos do seu pet. 
+            {t('pets.dashboardDesc')}
           </Text>
           <Pressable
             onPress={() => router.push("/pets/dashboard")}
@@ -863,12 +929,12 @@ export default function PetTab() {
               fontWeight: "700", 
               fontSize: fontSizes.md 
             }}>
-              Abrir Dashboard
+              {t('pets.openDashboard')}
             </Text>
           </Pressable>
         </View>
 
-        {/* ✅ SPEED DIAL MELHORADO com labels animados */}
+        {/* ✅ SPEED DIAL MELHORADO com labels animados - INTERNACIONALIZADO */}
         
         {/* Item 4 - Anotação */}
         <Animated.View style={[{ position: "absolute", right: 20, bottom: 24 }, item4Style]}>
@@ -885,7 +951,7 @@ export default function PetTab() {
                 fontSize: fontSizes.xs, 
                 fontWeight: "600" 
               }}>
-                Nota
+                {t('pets.note')}
               </Text>
             </Animated.View>
             <Pressable 
@@ -926,7 +992,7 @@ export default function PetTab() {
                 fontSize: fontSizes.xs, 
                 fontWeight: "600" 
               }}>
-                Saúde
+                {t('pets.health')}
               </Text>
             </Animated.View>
             <Pressable 
@@ -967,7 +1033,7 @@ export default function PetTab() {
                 fontSize: fontSizes.xs, 
                 fontWeight: "600" 
               }}>
-                Peso
+                {t('pets.weight')}
               </Text>
             </Animated.View>
             <Pressable 
@@ -1008,7 +1074,7 @@ export default function PetTab() {
                 fontSize: fontSizes.xs, 
                 fontWeight: "600" 
               }}>
-                Caminhada
+                {t('pets.walk')}
               </Text>
             </Animated.View>
             <Pressable 
@@ -1053,7 +1119,7 @@ export default function PetTab() {
               shadowRadius: 6,
               elevation: 6,
             }}
-            accessibilityLabel="Ações rápidas"
+            accessibilityLabel={t('pets.quickActions')}
           >
             <Text style={{ 
               color: colors.background, 
@@ -1065,18 +1131,20 @@ export default function PetTab() {
           </Pressable>
         )}
 
-        {/* Modais */}
+        {/* MODAIS INTERNACIONALIZADOS */}
+        
+        {/* Modal de Caminhada */}
         <ModalWithKeyboard 
           visible={walkModalVisible} 
           onClose={() => setWalkModalVisible(false)} 
-          title="Registrar caminhada"
+          title={t('pets.recordWalk')}
         >
           <Text style={{ 
             marginTop: 6,
             color: colors.text,
             fontSize: fontSizes.md
           }}>
-            Selecionar pet
+            {t('pets.selectPet')}
           </Text>
           <View style={{ maxHeight: 180 }}>
             <FlatList
@@ -1115,20 +1183,20 @@ export default function PetTab() {
                 color: colors.text,
                 fontSize: fontSizes.md
               }}>
-                {pets.find(p => p.id === selectedPetId)?.name ?? "—"}
+                {pets.find(p => p.id === selectedPetId)?.name ?? t('pets.noInfo')}
               </Text>
               <Text style={{ 
                 fontSize: fontSizes.sm, 
                 marginTop: 4,
                 color: colors.textSecondary
               }}>
-                Última corrida: {lastModalRecord ? `${lastModalRecord.value} km — ${fmt(lastModalRecord.createdAt)}` : "—"}
+                {t('pets.lastWalk')} {lastModalRecord ? `${lastModalRecord.value} km — ${fmt(lastModalRecord.createdAt)}` : t('pets.noInfo')}
               </Text>
             </View>
           ) : null}
 
           <TextInput 
-            placeholder="Quilômetros (ex: 2.5)" 
+            placeholder={t('pets.kilometers')} 
             placeholderTextColor={colors.textSecondary} 
             value={walkKm} 
             onChangeText={setWalkKm} 
@@ -1136,7 +1204,7 @@ export default function PetTab() {
             style={[inputStyle, { marginTop: 8 }]} 
           />
           <TextInput 
-            placeholder="Observação (opcional)" 
+            placeholder={t('pets.observationOptional')} 
             placeholderTextColor={colors.textSecondary} 
             value={walkNote} 
             onChangeText={setWalkNote} 
@@ -1179,23 +1247,24 @@ export default function PetTab() {
                 fontWeight: '600',
                 fontSize: fontSizes.md,
               }}>
-                Registrar
+                {t('pets.register')}
               </Text>
             </Pressable>
           </View>
         </ModalWithKeyboard>
 
+        {/* Modal de Peso */}
         <ModalWithKeyboard 
           visible={weightModalVisible} 
           onClose={() => setWeightModalVisible(false)} 
-          title="Registrar peso"
+          title={t('pets.recordWeight')}
         >
           <Text style={{ 
             marginTop: 6,
             color: colors.text,
             fontSize: fontSizes.md
           }}>
-            Selecionar pet
+            {t('pets.selectPet')}
           </Text>
           <View style={{ maxHeight: 180 }}>
             <FlatList
@@ -1234,20 +1303,20 @@ export default function PetTab() {
                 color: colors.text,
                 fontSize: fontSizes.md
               }}>
-                {pets.find(p => p.id === selectedPetId)?.name ?? "—"}
+                {pets.find(p => p.id === selectedPetId)?.name ?? t('pets.noInfo')}
               </Text>
               <Text style={{ 
                 fontSize: fontSizes.sm, 
                 marginTop: 4,
                 color: colors.textSecondary
               }}>
-                Último peso: {lastModalRecord ? `${lastModalRecord.value} kg — ${fmt(lastModalRecord.createdAt)}` : "—"}
+                {t('pets.lastWeight')} {lastModalRecord ? `${lastModalRecord.value} kg — ${fmt(lastModalRecord.createdAt)}` : t('pets.noInfo')}
               </Text>
             </View>
           ) : null}
 
           <TextInput 
-            placeholder="Peso (kg)" 
+            placeholder={t('pets.weightKg')} 
             placeholderTextColor={colors.textSecondary} 
             value={weightKg} 
             onChangeText={setWeightKg} 
@@ -1255,7 +1324,7 @@ export default function PetTab() {
             style={[inputStyle, { marginTop: 8 }]} 
           />
           <TextInput 
-            placeholder="Observação (opcional)" 
+            placeholder={t('pets.observationOptional')} 
             placeholderTextColor={colors.textSecondary} 
             value={weightNote} 
             onChangeText={setWeightNote} 
@@ -1298,23 +1367,24 @@ export default function PetTab() {
                 fontWeight: '600',
                 fontSize: fontSizes.md,
               }}>
-                Registrar
+                {t('pets.register')}
               </Text>
             </Pressable>
           </View>
         </ModalWithKeyboard>
 
+        {/* Modal de Saúde */}
         <ModalWithKeyboard 
           visible={healthModalVisible} 
           onClose={() => setHealthModalVisible(false)} 
-          title="Registrar evento de saúde"
+          title={t('pets.recordHealth')}
         >
           <Text style={{ 
             marginTop: 6,
             color: colors.text,
             fontSize: fontSizes.md
           }}>
-            Selecionar pet
+            {t('pets.selectPet')}
           </Text>
           <View style={{ maxHeight: 120 }}>
             <FlatList
@@ -1346,27 +1416,27 @@ export default function PetTab() {
             color: colors.text,
             fontSize: fontSizes.md
           }}>
-            Tipo
+            {t('pets.healthType')}
           </Text>
           <View style={{ flexDirection: "row", gap: 8, marginTop: 6 }}>
-            {["VACCINE", "DEWORM", "BATH", "VISIT"].map((t) => (
+            {["VACCINE", "DEWORM", "BATH", "VISIT"].map((type) => (
               <Pressable 
-                key={t} 
-                onPress={() => { setHealthType(t); }} 
+                key={type} 
+                onPress={() => { setHealthType(type); }} 
                 style={{ 
                   padding: 8, 
                   borderRadius: 8, 
-                  backgroundColor: healthType === t ? colors.primary : colors.surface, 
+                  backgroundColor: healthType === type ? colors.primary : colors.surface, 
                   borderWidth: 1,
                   borderColor: colors.border
                 }}
               >
                 <Text style={{ 
                   fontWeight: "700",
-                  color: healthType === t ? colors.background : colors.text,
+                  color: healthType === type ? colors.background : colors.text,
                   fontSize: fontSizes.sm
                 }}>
-                  {t === "VACCINE" ? "Vacina" : t === "DEWORM" ? "Vermífugo" : t === "BATH" ? "Banho" : "Consulta"}
+                  {getHealthTypeLabel(type)}
                 </Text>
               </Pressable>
             ))}
@@ -1384,20 +1454,20 @@ export default function PetTab() {
                 color: colors.text,
                 fontSize: fontSizes.md
               }}>
-                {pets.find(p => p.id === selectedPetId)?.name ?? "—"}
+                {pets.find(p => p.id === selectedPetId)?.name ?? t('pets.noInfo')}
               </Text>
               <Text style={{ 
                 fontSize: fontSizes.sm, 
                 marginTop: 4,
                 color: colors.textSecondary
               }}>
-                {healthType === "VACCINE" ? `Última vacina: ${lastModalRecord?.note ?? ""}` : healthType === "BATH" ? `Último banho` : healthType === "DEWORM" ? `Último vermífugo` : `Última consulta`} — {lastModalRecord ? fmt(lastModalRecord.createdAt) : "—"}
+                {getLastHealthText(healthType)} {lastModalRecord?.note ?? ""} — {lastModalRecord ? fmt(lastModalRecord.createdAt) : t('pets.noInfo')}
               </Text>
             </View>
           ) : null}
 
           <TextInput 
-            placeholder="Observação (opcional)" 
+            placeholder={t('pets.observationOptional')} 
             placeholderTextColor={colors.textSecondary} 
             value={healthNote} 
             onChangeText={setHealthNote} 
@@ -1440,23 +1510,24 @@ export default function PetTab() {
                 fontWeight: '600',
                 fontSize: fontSizes.md,
               }}>
-                Registrar
+                {t('pets.register')}
               </Text>
             </Pressable>
           </View>
         </ModalWithKeyboard>
 
+        {/* Modal de Anotação */}
         <ModalWithKeyboard 
           visible={noteModalVisible} 
           onClose={() => setNoteModalVisible(false)} 
-          title="Adicionar anotação"
+          title={t('pets.addNote')}
         >
           <Text style={{ 
             marginTop: 6,
             color: colors.text,
             fontSize: fontSizes.md
           }}>
-            Selecionar pet
+            {t('pets.selectPet')}
           </Text>
           <View style={{ maxHeight: 180 }}>
             <FlatList
@@ -1484,7 +1555,7 @@ export default function PetTab() {
           </View>
 
           <TextInput 
-            placeholder="Escreva sua anotação aqui..." 
+            placeholder={t('pets.writeNote')} 
             placeholderTextColor={colors.textSecondary} 
             value={generalNote} 
             onChangeText={setGeneralNote} 

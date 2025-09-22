@@ -1,4 +1,4 @@
-// app/pet/dashboard.tsx
+// app/pet/dashboard.tsx - VERSÃO INTERNACIONALIZADA
 import { auth } from "@/services/firebase";
 import { getLastRecordsForPet, getMyPets } from "@/services/pets";
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +19,15 @@ import { useLanguage } from "../../../contexts/LanguageContext";
 import { useTheme } from "../../../contexts/ThemeContext";
 
 const screenWidth = Dimensions.get("window").width;
+
+// Função para substituir placeholders nas strings de tradução
+function replacePlaceholders(text: string, placeholders: { [key: string]: string }): string {
+  let result = text;
+  Object.keys(placeholders).forEach(key => {
+    result = result.replace(`{${key}}`, placeholders[key]);
+  });
+  return result;
+}
 
 // Interfaces para Insights (mantidas iguais)
 interface PetInsights {
@@ -42,14 +51,13 @@ interface StatCard {
 
 export default function PetDashboard() {
   const { colors, fontSizes } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   const user = auth.currentUser;
   const uid = user?.uid;
 
   const [pets, setPets] = useState<any[]>([]);
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
-
   const [pesoData, setPesoData] = useState<any>(null);
   const [caminhadaData, setCaminhadaData] = useState<any>(null);
   const [notas, setNotas] = useState<any[]>([]);
@@ -67,7 +75,58 @@ export default function PetDashboard() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedNote, setSelectedNote] = useState<string>("");
 
-  // Função para calcular insights automáticos (mantida igual)
+  // Formatação de data internacionalizada
+  const formatDate = (date: any) => {
+    if (!date) return "";
+    try {
+      const d = date?.toDate ? date.toDate() : new Date(date);
+      const locales = {
+        pt: 'pt-BR',
+        en: 'en-US', 
+        es: 'es-ES'
+      };
+      return d.toLocaleDateString(locales[language as keyof typeof locales] || 'pt-BR', {
+        day: "2-digit",
+        month: "short"
+      });
+    } catch {
+      return "";
+    }
+  };
+
+  const formatDateFull = (date: any) => {
+    if (!date) return "";
+    try {
+      const d = date?.toDate ? date.toDate() : new Date(date);
+      const locales = {
+        pt: 'pt-BR',
+        en: 'en-US',
+        es: 'es-ES'
+      };
+      return d.toLocaleDateString(locales[language as keyof typeof locales] || 'pt-BR');
+    } catch {
+      return "";
+    }
+  };
+
+  const formatWeekday = (date: any) => {
+    if (!date) return "";
+    try {
+      const d = date?.toDate ? date.toDate() : new Date(date);
+      const locales = {
+        pt: 'pt-BR',
+        en: 'en-US',
+        es: 'es-ES'
+      };
+      return d.toLocaleDateString(locales[language as keyof typeof locales] || 'pt-BR', {
+        weekday: "short"
+      });
+    } catch {
+      return "";
+    }
+  };
+
+  // Função para calcular insights automáticos - INTERNACIONALIZADA
   const calculateInsights = (records: any, petData: any): PetInsights => {
     const now = new Date();
     
@@ -114,10 +173,14 @@ export default function PetDashboard() {
     else if (daysSinceVet > 180) healthStatus = "attention";
     else if (daysSinceVet < 30) healthStatus = "excellent";
 
-    // Próximo evento
+    // Próximo evento - INTERNACIONALIZADO
     let nextEvent = null;
     if (daysSinceVet > 300) {
-      nextEvent = { type: "Consulta veterinária", daysLeft: 365 - daysSinceVet, icon: "medical" };
+      nextEvent = { 
+        type: t('pets.visit'),
+        daysLeft: 365 - daysSinceVet, 
+        icon: "medical" 
+      };
     }
 
     return {
@@ -131,7 +194,7 @@ export default function PetDashboard() {
     };
   };
 
-  // Função para gerar cards de estatísticas (adaptada para traduções)
+  // Função para gerar cards de estatísticas - INTERNACIONALIZADA
   const generateStatCards = (records: any, insights: PetInsights): StatCard[] => {
     const weights = records.WEIGHT || [];
     const walks = records.WALK || [];
@@ -139,11 +202,11 @@ export default function PetDashboard() {
     
     const cards: StatCard[] = [
       {
-        title: "Peso Atual",
-        value: currentWeight ? `${currentWeight} kg` : "—",
+        title: t('dashboard.currentWeight'),
+        value: currentWeight ? `${currentWeight} kg` : t('pets.noInfo'),
         subtitle: insights.weightChange !== 0 
           ? `${insights.weightChange > 0 ? '+' : ''}${insights.weightChange.toFixed(1)}kg`
-          : "Estável",
+          : t('dashboard.stable'),
         icon: "fitness",
         color: insights.weightTrend === "increasing" ? "#F59E0B" : 
                insights.weightTrend === "decreasing" ? "#EF4444" : "#22C55E",
@@ -151,10 +214,11 @@ export default function PetDashboard() {
                insights.weightTrend === "increasing" ? "up" : "down"
       },
       {
-        title: "Atividade Semanal",
+        title: t('dashboard.weeklyActivity'),
         value: `${insights.activityScore.toFixed(1)} km`,
-        subtitle: insights.activityLevel === "high" ? "Muito ativo!" : 
-                  insights.activityLevel === "low" ? "Precisa se exercitar" : "Nível bom",
+        subtitle: insights.activityLevel === "high" ? t('dashboard.veryActive') : 
+                  insights.activityLevel === "low" ? t('dashboard.needsExercise') : 
+                  t('dashboard.goodLevel'),
         icon: "walk",
         color: insights.activityLevel === "high" ? "#22C55E" :
                insights.activityLevel === "low" ? "#EF4444" : "#3B82F6",
@@ -162,62 +226,73 @@ export default function PetDashboard() {
                insights.activityLevel === "low" ? "down" : "stable"
       },
       {
-        title: "Status de Saúde",
-        value: insights.healthStatus === "excellent" ? "Excelente" :
-               insights.healthStatus === "good" ? "Bom" :
-               insights.healthStatus === "attention" ? "Atenção" : "Preocupante",
-        subtitle: insights.lastCheckup < 999 ? `${insights.lastCheckup} dias desde consulta` : "Sem consulta registrada",
+        title: t('dashboard.healthStatus'),
+        value: insights.healthStatus === "excellent" ? t('dashboard.excellent') :
+               insights.healthStatus === "good" ? t('dashboard.good') :
+               insights.healthStatus === "attention" ? t('dashboard.attention') : 
+               t('dashboard.concerning'),
+        subtitle: insights.lastCheckup < 999 
+          ? replacePlaceholders(t('dashboard.daysSinceCheckup'), { days: insights.lastCheckup.toString() })
+          : t('dashboard.noCheckupRecorded'),
         icon: "heart",
         color: insights.healthStatus === "excellent" ? "#22C55E" :
                insights.healthStatus === "good" ? "#3B82F6" :
                insights.healthStatus === "attention" ? "#F59E0B" : "#EF4444"
       },
       {
-        title: "Total de Registros",
+        title: t('dashboard.totalRecords'),
         value: `${(records.WALK?.length || 0) + (records.WEIGHT?.length || 0) + (records.HEALTH?.length || 0)}`,
-        subtitle: "Atividades registradas",
+        subtitle: t('dashboard.recordedActivities'),
         icon: "analytics",
         color: "#8B5CF6"
       }
     ];
-
+    
     return cards;
+  };
+
+  // Função para obter label do tipo de saúde - INTERNACIONALIZADA
+  const getHealthTypeLabel = (type: string): string => {
+    switch (type) {
+      case "VACCINE": return t('dashboard.vaccine');
+      case "DEWORM": return t('dashboard.deworm');
+      case "BATH": return t('dashboard.bath');
+      case "VISIT": return t('dashboard.visit');
+      default: return type;
+    }
   };
 
   // carrega pets do usuário (mantida igual)
   useEffect(() => {
     if (!uid) return;
-
     const loadPets = async () => {
       const myPets = await getMyPets(uid);
       setPets(myPets);
       setItems(myPets.map(p => ({ label: p.name, value: p.id })));
       if (myPets.length > 0) setSelectedPetId(myPets[0].id);
     };
-
     loadPets();
   }, [uid]);
 
-  // carrega records do pet selecionado e calcula insights (mantida igual)
+  // carrega records do pet selecionado e calcula insights - INTERNACIONALIZADA
   useEffect(() => {
     if (!selectedPetId) return;
-
     const loadRecords = async () => {
       const pet = pets.find(p => p.id === selectedPetId);
       if (!pet) return;
 
       const records = await getLastRecordsForPet(selectedPetId, 50);
 
-      // Dados para gráficos (mantido igual)
+      // Dados para gráficos - FORMATAÇÃO INTERNACIONALIZADA
       const pesoArr = records.WEIGHT?.map(r => ({ ...r, petName: pet.name })) || [];
       setPesoData({
-        labels: pesoArr.map(d => new Date(d.createdAt.toDate()).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })),
+        labels: pesoArr.map(d => formatDate(d.createdAt)),
         datasets: [{ data: pesoArr.map(d => d.value) }],
       });
 
       const caminhadaArr = records.WALK?.map(r => ({ ...r, petName: pet.name })) || [];
       setCaminhadaData({
-        labels: caminhadaArr.map(d => new Date(d.createdAt.toDate()).toLocaleDateString("pt-BR", { weekday: "short" })),
+        labels: caminhadaArr.map(d => formatWeekday(d.createdAt)),
         datasets: [{ data: caminhadaArr.map(d => d.value) }],
       });
 
@@ -229,9 +304,8 @@ export default function PetDashboard() {
       setInsights(petInsights);
       setStatCards(generateStatCards(records, petInsights));
     };
-
     loadRecords();
-  }, [selectedPetId, pets]);
+  }, [selectedPetId, pets, t, language]);
 
   // Configuração do gráfico adaptada ao tema
   const chartConfig = {
@@ -245,7 +319,7 @@ export default function PetDashboard() {
     propsForDots: { r: "5", strokeWidth: "2", stroke: colors.primary },
   };
 
-  // Componente do Card de Estatística
+  // Componente do Card de Estatística - INTERNACIONALIZADO
   const StatCardComponent = ({ stat }: { stat: StatCard }) => (
     <View style={[
       styles.statCard, 
@@ -285,7 +359,7 @@ export default function PetDashboard() {
     </View>
   );
 
-  // Componente de Insights
+  // Componente de Insights - INTERNACIONALIZADO
   const InsightsCard = ({ insights }: { insights: PetInsights }) => (
     <View style={[styles.insightsCard, { backgroundColor: colors.surface }]}>
       <View style={styles.insightsHeader}>
@@ -294,7 +368,7 @@ export default function PetDashboard() {
           color: colors.text,
           fontSize: fontSizes.lg
         }]}>
-          Insights Automáticos
+          {t('dashboard.automaticInsights')}
         </Text>
       </View>
       
@@ -305,7 +379,9 @@ export default function PetDashboard() {
             color: colors.textSecondary,
             fontSize: fontSizes.sm
           }]}>
-            {insights.nextEvent.type} recomendada em {Math.abs(insights.nextEvent.daysLeft)} dias
+            {replacePlaceholders(t('dashboard.vetRecommended'), { 
+              days: Math.abs(insights.nextEvent.daysLeft).toString() 
+            })}
           </Text>
         </View>
       )}
@@ -317,7 +393,15 @@ export default function PetDashboard() {
             color: colors.textSecondary,
             fontSize: fontSizes.sm
           }]}>
-            Peso {insights.weightTrend === "increasing" ? "aumentou" : "diminuiu"} {Math.abs(insights.weightChange).toFixed(1)}kg recentemente
+            {replacePlaceholders(
+              insights.weightTrend === "increasing" 
+                ? t('dashboard.weightIncreased') 
+                : t('dashboard.weightDecreased'),
+              {
+                trend: insights.weightTrend === "increasing" ? t('dashboard.increased') : t('dashboard.decreased'),
+                change: Math.abs(insights.weightChange).toFixed(1)
+              }
+            )}
           </Text>
         </View>
       )}
@@ -329,7 +413,7 @@ export default function PetDashboard() {
             color: colors.textSecondary,
             fontSize: fontSizes.sm
           }]}>
-            Atividade baixa esta semana. Que tal um passeio extra?
+            {t('dashboard.lowActivity')}
           </Text>
         </View>
       )}
@@ -341,7 +425,7 @@ export default function PetDashboard() {
             color: colors.textSecondary,
             fontSize: fontSizes.sm
           }]}>
-            Excelente! Seu pet está muito ativo esta semana!
+            {t('dashboard.excellentActivity')}
           </Text>
         </View>
       )}
@@ -350,24 +434,24 @@ export default function PetDashboard() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
+      {/* Header - INTERNACIONALIZADO */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { 
           color: colors.primary,
           fontSize: fontSizes.xxl
         }]}>
-          Saúde do Pet
+          {t('dashboard.title')}
         </Text>
         <Ionicons name="analytics" size={28} color={colors.primary} />
       </View>
 
-      {/* Dropdown fora do ScrollView */}
+      {/* Dropdown fora do ScrollView - INTERNACIONALIZADO */}
       <View style={styles.dropdownContainer}>
         <Text style={[styles.sectionLabel, { 
           color: colors.text,
           fontSize: fontSizes.md
         }]}>
-          Selecione o pet
+          {t('dashboard.selectPet')}
         </Text>
         <DropDownPicker
           open={open}
@@ -388,7 +472,7 @@ export default function PetDashboard() {
             borderColor: colors.primary,
             backgroundColor: colors.surface
           }]}
-          placeholder="Selecione um pet"
+          placeholder={t('dashboard.selectPetPlaceholder')}
           placeholderStyle={{ color: colors.textSecondary }}
           zIndex={1000}
           zIndexInverse={3000}
@@ -401,14 +485,14 @@ export default function PetDashboard() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Cards de Estatísticas */}
+        {/* Cards de Estatísticas - INTERNACIONALIZADO */}
         {statCards.length > 0 && (
           <View style={styles.statsSection}>
             <Text style={[styles.sectionTitle, { 
               color: colors.text,
               fontSize: fontSizes.lg
             }]}>
-              Resumo
+              {t('dashboard.summary')}
             </Text>
             <View style={styles.statsGrid}>
               {statCards.map((stat, index) => (
@@ -418,20 +502,20 @@ export default function PetDashboard() {
           </View>
         )}
 
-        {/* Insights Automáticos */}
+        {/* Insights Automáticos - INTERNACIONALIZADO */}
         {insights && (
           <View style={styles.section}>
             <InsightsCard insights={insights} />
           </View>
         )}
 
-        {/* Gráfico de Peso */}
+        {/* Gráfico de Peso - INTERNACIONALIZADO */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { 
             color: colors.text,
             fontSize: fontSizes.lg
           }]}>
-            Evolução do Peso
+            {t('dashboard.weightEvolution')}
           </Text>
           {pesoData?.datasets[0].data.length > 0 ? (
             <LineChart
@@ -449,25 +533,25 @@ export default function PetDashboard() {
                 color: colors.textSecondary,
                 fontSize: fontSizes.md
               }]}>
-                Sem registros de peso ainda
+                {t('dashboard.noWeightData')}
               </Text>
               <Text style={[styles.noDataSubtitle, { 
                 color: colors.textTertiary,
                 fontSize: fontSizes.sm
               }]}>
-                Registre o peso do seu pet para ver a evolução
+                {t('dashboard.noWeightDataDesc')}
               </Text>
             </View>
           )}
         </View>
 
-        {/* Gráfico de Caminhadas */}
+        {/* Gráfico de Caminhadas - INTERNACIONALIZADO */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { 
             color: colors.text,
             fontSize: fontSizes.lg
           }]}>
-            Atividade Física
+            {t('dashboard.physicalActivity')}
           </Text>
           {caminhadaData?.datasets[0].data.length > 0 ? (
             <BarChart
@@ -486,26 +570,26 @@ export default function PetDashboard() {
                 color: colors.textSecondary,
                 fontSize: fontSizes.md
               }]}>
-                Sem registros de caminhadas ainda
+                {t('dashboard.noWalkData')}
               </Text>
               <Text style={[styles.noDataSubtitle, { 
                 color: colors.textTertiary,
                 fontSize: fontSizes.sm
               }]}>
-                Registre as caminhadas para acompanhar a atividade
+                {t('dashboard.noWalkDataDesc')}
               </Text>
             </View>
           )}
         </View>
 
-        {/* Notas Gerais usando map() em vez de FlatList */}
+        {/* Notas Gerais usando map() em vez de FlatList - INTERNACIONALIZADO */}
         {notas.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { 
               color: colors.text,
               fontSize: fontSizes.lg
             }]}>
-              Últimas Anotações
+              {t('dashboard.lastNotes')}
             </Text>
             {notas.slice(0, 3).map((item) => (
               <View key={item.id} style={[
@@ -526,7 +610,7 @@ export default function PetDashboard() {
                     color: colors.textSecondary,
                     fontSize: fontSizes.xs
                   }]}>
-                    {new Date(item.createdAt.toDate()).toLocaleDateString("pt-BR")}
+                    {formatDateFull(item.createdAt)}
                   </Text>
                 </View>
                 <Text style={[styles.noteText, { 
@@ -540,14 +624,14 @@ export default function PetDashboard() {
           </View>
         )}
 
-        {/* Notas de Saúde usando map() em vez de FlatList */}
+        {/* Notas de Saúde usando map() em vez de FlatList - INTERNACIONALIZADO */}
         {saudeNotas.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { 
               color: colors.text,
               fontSize: fontSizes.lg
             }]}>
-              Últimos Eventos de Saúde
+              {t('dashboard.lastHealthEvents')}
             </Text>
             {saudeNotas.slice(0, 3).map((item) => (
               <View key={item.id} style={[
@@ -574,15 +658,13 @@ export default function PetDashboard() {
                       color: colors.text,
                       fontSize: fontSizes.sm
                     }]}>
-                      {item.value === "VACCINE" ? "Vacina" : 
-                       item.value === "DEWORM" ? "Vermífugo" : 
-                       item.value === "BATH" ? "Banho" : "Consulta"}
+                      {getHealthTypeLabel(item.value)}
                     </Text>
                     <Text style={[styles.healthDate, { 
                       color: colors.textSecondary,
                       fontSize: fontSizes.xs
                     }]}>
-                      {new Date(item.createdAt.toDate()).toLocaleDateString("pt-BR")}
+                      {formatDateFull(item.createdAt)}
                     </Text>
                   </View>
                 </View>
@@ -596,7 +678,7 @@ export default function PetDashboard() {
                       color: colors.primary,
                       fontSize: fontSizes.xs
                     }]}>
-                      Ver observação
+                      {t('dashboard.viewNote')}
                     </Text>
                     <Ionicons name="chevron-forward" size={16} color={colors.primary} />
                   </TouchableOpacity>
@@ -610,7 +692,7 @@ export default function PetDashboard() {
         <View style={{ height: 50 }} />
       </ScrollView>
 
-      {/* Modal de observação */}
+      {/* Modal de observação - INTERNACIONALIZADO */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -623,7 +705,7 @@ export default function PetDashboard() {
               color: colors.text,
               fontSize: fontSizes.md
             }]}>
-              Observação:
+              {t('dashboard.observation')}
             </Text>
             <Text style={[styles.modalText, { 
               color: colors.textSecondary,
@@ -636,7 +718,7 @@ export default function PetDashboard() {
               style={[styles.modalButton, { backgroundColor: colors.primary }]}
             >
               <Text style={[styles.modalButtonText, { fontSize: fontSizes.sm }]}>
-                Fechar
+                {t('general.close')}
               </Text>
             </Pressable>
           </View>
@@ -662,7 +744,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontWeight: "800",
   },
-  
   // Container específico para dropdown
   dropdownContainer: {
     paddingHorizontal: 16,
@@ -682,7 +763,6 @@ const styles = StyleSheet.create({
   dropdownList: {
     borderRadius: 12,
   },
-  
   // Containers para ScrollView
   scrollContainer: {
     flex: 1,
@@ -690,7 +770,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 20,
   },
-  
   section: {
     paddingHorizontal: 16,
     marginBottom: 24,
@@ -782,7 +861,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingHorizontal: 32,
   },
-  
   // Estilos para as notas (sem FlatList)
   noteCard: {
     padding: 12,

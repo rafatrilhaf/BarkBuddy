@@ -1,4 +1,4 @@
-// app/(tabs)/maps.tsx - VERSÃO HÍBRIDA WebView Android + MapView iOS
+// app/(tabs)/maps.tsx - VERSÃO HÍBRIDA WebView Android + MapView iOS - INTERNACIONALIZADA
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from "expo-location";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
@@ -57,6 +57,9 @@ type TrackablePet = {
   lastLocation: LastLocation;
 };
 
+// Tipo para função de tradução flexível
+type TranslationFunction = (key: string) => string;
+
 // ================== CONSTANTES ==================
 const FALLBACK_REGION = {
   latitude: -23.006,
@@ -65,7 +68,7 @@ const FALLBACK_REGION = {
   longitudeDelta: 0.01,
 };
 
-// ================== FUNÇÕES UTILITÁRIAS ==================
+// ================== FUNÇÕES UTILITÁRIAS INTERNACIONALIZADAS ==================
 function calculateDistance(point1: { latitude: number; longitude: number }, point2: { latitude: number; longitude: number }): number {
   const R = 6371000;
   const dLat = (point2.latitude - point1.latitude) * Math.PI / 180;
@@ -103,10 +106,18 @@ function toDate(val: any): Date | null {
   return null;
 }
 
-function fmtDateTime(val: any) {
+// Função internacionalizada para formatação de data
+function fmtDateTime(val: any, language: string = 'pt') {
   const d = toDate(val);
   if (!d) return "—";
-  const dt = d.toLocaleString("pt-BR", {
+  
+  const locales = {
+    pt: 'pt-BR',
+    en: 'en-US',
+    es: 'es-ES'
+  };
+  
+  const dt = d.toLocaleString(locales[language as keyof typeof locales] || 'pt-BR', {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -115,26 +126,27 @@ function fmtDateTime(val: any) {
   return dt.replace(".", "");
 }
 
-function timeAgo(val: any): string {
+// Função internacionalizada para tempo decorrido
+function timeAgo(val: any, translate: TranslationFunction): string {
   const d = toDate(val);
-  if (!d) return "Nunca";
+  if (!d) return translate('maps.never');
 
   const now = new Date();
   const diff = now.getTime() - d.getTime();
   const minutes = Math.floor(diff / (1000 * 60));
 
-  if (minutes < 1) return "Agora mesmo";
-  if (minutes < 60) return `${minutes} min atrás`;
+  if (minutes < 1) return translate('maps.justNow');
+  if (minutes < 60) return `${minutes} ${translate('maps.minutesAgo')}`;
 
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h atrás`;
+  if (hours < 24) return `${hours}${translate('maps.hoursAgo')}`;
 
   const days = Math.floor(hours / 24);
-  return `${days} dias atrás`;
+  return `${days} ${translate('maps.daysAgo')}`;
 }
 
-// ✅ FUNÇÃO PARA GERAR HTML DO MAPA LEAFLET (ANDROID)
-function generateMapHTML(location: LastLocation, zones: GeofenceZone[]): string {
+// ✅ FUNÇÃO PARA GERAR HTML DO MAPA LEAFLET INTERNACIONALIZADA (ANDROID)
+function generateMapHTML(location: LastLocation, zones: GeofenceZone[], translate: TranslationFunction): string {
   const lat = location?.latitude || FALLBACK_REGION.latitude;
   const lng = location?.longitude || FALLBACK_REGION.longitude;
 
@@ -183,7 +195,7 @@ function generateMapHTML(location: LastLocation, zones: GeofenceZone[]): string 
         });
         L.marker([${lat}, ${lng}], {icon: petIcon})
          .addTo(map)
-         .bindPopup('Seu pet está aqui!');
+         .bindPopup('${translate('maps.petHere')}');
         ` : ''}
 
         // Zonas de segurança
@@ -195,7 +207,7 @@ function generateMapHTML(location: LastLocation, zones: GeofenceZone[]): string 
                 fillColor: zone.color,
                 fillOpacity: 0.2,
                 weight: 2
-            }).addTo(map).bindPopup('Zona: ' + zone.name);
+            }).addTo(map).bindPopup('${translate('maps.zoneLabel')} ' + zone.name);
         });
 
         // Comunicação com React Native
@@ -229,17 +241,29 @@ function generateMapHTML(location: LastLocation, zones: GeofenceZone[]): string 
                 fillColor: zone.color,
                 fillOpacity: 0.2,
                 weight: 2
-            }).addTo(map).bindPopup('Zona: ' + zone.name);
+            }).addTo(map).bindPopup('${translate('maps.zoneLabel')} ' + zone.name);
         }
     </script>
 </body>
 </html>`;
 }
 
+// Função para substituir placeholders nas strings de tradução
+function replacePlaceholders(text: string, placeholders: { [key: string]: string }): string {
+  let result = text;
+  Object.keys(placeholders).forEach(key => {
+    result = result.replace(`{${key}}`, placeholders[key]);
+  });
+  return result;
+}
+
 // ================== COMPONENTE PRINCIPAL ==================
 export default function Localizacao() {
   const { colors, fontSizes } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  
+  // Criar wrapper da função de tradução para compatibilidade de tipos
+  const translate: TranslationFunction = (key: string) => t(key as any);
   
   const uid = auth?.currentUser?.uid;
   const [pets, setPets] = useState<TrackablePet[]>([]);
@@ -273,13 +297,13 @@ export default function Localizacao() {
   const selected = useMemo(() => pets.find((p) => p.id === selectedId), [pets, selectedId]);
   const region = useMemo(() => toRegion(selected?.lastLocation ?? null), [selected]);
 
-  // Status inteligente baseado em zona
+  // Status inteligente baseado em zona - INTERNACIONALIZADO
   const petLocationStatus = useMemo(() => {
     if (!selected?.lastLocation || zones.length === 0) {
       return {
-        text: fmtDateTime(selected?.lastLocation?.updatedAt) === "—" 
-          ? "Sem localização ainda" 
-          : `Última vez visto ${timeAgo(selected?.lastLocation?.updatedAt)}`,
+        text: fmtDateTime(selected?.lastLocation?.updatedAt, language) === "—" 
+          ? t('maps.noLocation')
+          : `${t('maps.lastSeen')} ${timeAgo(selected?.lastLocation?.updatedAt, translate)}`,
         inZone: false,
         zoneName: null
       };
@@ -290,32 +314,32 @@ export default function Localizacao() {
     );
 
     if (currentZone) {
-      const timeAgoText = timeAgo(selected.lastLocation.updatedAt);
+      const timeAgoText = timeAgo(selected.lastLocation.updatedAt, translate);
       return {
-        text: `🏠 Em "${currentZone.name}" • ${timeAgoText}`,
+        text: `${t('maps.inZone')} "${currentZone.name}" • ${timeAgoText}`,
         inZone: true,
         zoneName: currentZone.name
       };
     } else {
-      const timeAgoText = timeAgo(selected.lastLocation.updatedAt);
-      const fmtText = fmtDateTime(selected.lastLocation.updatedAt);
+      const timeAgoText = timeAgo(selected.lastLocation.updatedAt, translate);
+      const fmtText = fmtDateTime(selected.lastLocation.updatedAt, language);
       return {
-        text: fmtText === "—" ? "Sem localização ainda" : `📍 Fora das zonas • ${timeAgoText}`,
+        text: fmtText === "—" ? t('maps.noLocation') : `${t('maps.outsideZones')} • ${timeAgoText}`,
         inZone: false,
         zoneName: null
       };
     }
-  }, [selected, zones]);
+  }, [selected, zones, t, translate, language]);
 
-  // Cores disponíveis para zonas
-  const zoneColors = [
-    { name: "Verde", value: "#22C55E" },
-    { name: "Azul", value: "#3B82F6" },
-    { name: "Vermelho", value: "#EF4444" },
-    { name: "Amarelo", value: "#F59E0B" },
-    { name: "Roxo", value: "#8B5CF6" },
-    { name: "Rosa", value: "#EC4899" }
-  ];
+  // Cores disponíveis para zonas - INTERNACIONALIZADO
+  const zoneColors = useMemo(() => [
+    { name: t('maps.colorGreen'), value: "#22C55E" },
+    { name: t('maps.colorBlue'), value: "#3B82F6" },
+    { name: t('maps.colorRed'), value: "#EF4444" },
+    { name: t('maps.colorYellow'), value: "#F59E0B" },
+    { name: t('maps.colorPurple'), value: "#8B5CF6" },
+    { name: t('maps.colorPink'), value: "#EC4899" }
+  ], [t]);
 
   // ✅ HANDLER PARA MENSAGENS DO WEBVIEW (ANDROID)
   const handleWebViewMessage = (event: any) => {
@@ -334,13 +358,13 @@ export default function Localizacao() {
     }
   };
 
-  // ================== FUNÇÕES DE UI ==================
+  // ================== FUNÇÕES DE UI INTERNACIONALIZADAS ==================
 
   const startCreatingZone = () => {
     setCreatingZone(true);
     Alert.alert(
-      "Criar Zona Segura",
-      "Toque no mapa para definir o centro da zona segura.",
+      t('maps.createSafeZone'),
+      t('maps.createSafeZoneDesc'),
       [
         { 
           text: t('general.cancel'), 
@@ -379,7 +403,7 @@ export default function Localizacao() {
 
   const confirmCreateZone = async () => {
     if (!newZoneCenter || !zoneName.trim()) {
-      Alert.alert(t('general.error'), "Informe um nome para a zona.");
+      Alert.alert(t('general.error'), t('maps.provideZoneName'));
       return;
     }
 
@@ -395,12 +419,15 @@ export default function Localizacao() {
 
     await saveZone(newZone);
     resetZoneCreation();
-    Alert.alert("✅ Sucesso", `Zona "${zoneName.trim()}" criada com sucesso!`);
+    Alert.alert(
+      t('maps.zoneCreatedSuccess'), 
+      replacePlaceholders(t('maps.zoneCreatedDesc'), { zoneName: zoneName.trim() })
+    );
   };
 
   async function openMaps() {
     if (!selected?.lastLocation) {
-      Alert.alert("Sem localização", "Não há localização disponível para este pet.");
+      Alert.alert(t('maps.noLocationForPet'), t('maps.noLocationForPetDesc'));
       return;
     }
 
@@ -409,20 +436,20 @@ export default function Localizacao() {
     const label = encodeURIComponent(selected.name || "Pet");
 
     Alert.alert(
-      "Abrir mapa",
-      "Escolha onde abrir a localização:",
+      t('maps.openMap'),
+      t('maps.chooseMapApp'),
       [
         { text: t('general.cancel'), style: "cancel" },
         { 
-          text: "Google Maps", 
+          text: t('maps.googleMaps'), 
           onPress: () => Linking.openURL(`https://maps.google.com/?q=${lat},${lng}&label=${label}`)
         },
         { 
-          text: "OpenStreetMap", 
+          text: t('maps.openStreetMap'), 
           onPress: () => Linking.openURL(`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}&zoom=16`)
         },
         { 
-          text: "Waze", 
+          text: t('maps.waze'), 
           onPress: () => Linking.openURL(`waze://?ll=${lat},${lng}&navigate=yes`)
         }
       ]
@@ -458,21 +485,30 @@ export default function Localizacao() {
     if (!selected) return;
 
     const newStatus = !selected.lost;
-    const action = newStatus ? "perdido" : "encontrado";
+    const action = newStatus ? t('maps.lost') : t('maps.found');
 
     Alert.alert(
-      `Marcar como ${action}`, 
-      `Deseja marcar ${selected.name} como ${action}?`,
+      newStatus ? t('maps.markAsLostTitle') : t('maps.markAsFoundTitle'), 
+      replacePlaceholders(
+        newStatus ? t('maps.markAsLostConfirm') : t('maps.markAsFoundConfirm'),
+        { petName: selected.name || 'Pet' }
+      ),
       [
         { text: t('general.cancel'), style: "cancel" },
         {
-          text: "Confirmar",
+          text: t('general.confirm'),
           onPress: async () => {
             try {
               await updatePet(selected.id, { lost: newStatus });
-              Alert.alert("✅ Sucesso", `${selected.name} marcado como ${action}.`);
+              Alert.alert(
+                t('maps.zoneCreatedSuccess'), 
+                replacePlaceholders(t('maps.statusUpdated'), { 
+                  petName: selected.name || 'Pet',
+                  status: action 
+                })
+              );
             } catch (e: any) {
-              Alert.alert("❌ Erro", "Não foi possível atualizar o status.");
+              Alert.alert(t('maps.zoneSaveError'), t('maps.statusUpdateError'));
             }
           }
         }
@@ -525,7 +561,10 @@ export default function Localizacao() {
 
     } catch (error: any) {
       console.error("Erro ao salvar zona:", error);
-      Alert.alert("❌ Erro", `Falha ao salvar zona: ${error.message}`);
+      Alert.alert(
+        t('maps.zoneSaveError'), 
+        `${t('maps.zoneSaveErrorDesc')} ${error.message}`
+      );
     }
   };
 
@@ -543,10 +582,13 @@ export default function Localizacao() {
       });
 
       setZones(updatedZones);
-      Alert.alert("✅ Sucesso", "Zona excluída!");
+      Alert.alert(t('maps.zoneCreatedSuccess'), t('maps.zoneDeleted'));
     } catch (error: any) {
       console.error("Erro ao excluir zona:", error);
-      Alert.alert("❌ Erro", `Não foi possível excluir: ${error.message}`);
+      Alert.alert(
+        t('maps.zoneSaveError'), 
+        `${t('maps.zoneDeleteError')} ${error.message}`
+      );
     }
   };
 
@@ -559,14 +601,20 @@ export default function Localizacao() {
 
       if (isInside && !wasInside) {
         Alert.alert(
-          "🟢 Pet entrou na zona segura",
-          `${selected?.name || 'Seu pet'} entrou na zona "${zone.name}"`,
+          t('maps.petEnteredZone'),
+          replacePlaceholders(t('maps.petEnteredZoneDesc'), {
+            petName: selected?.name || 'Seu pet',
+            zoneName: zone.name
+          }),
           [{ text: t('button.ok') }]
         );
       } else if (!isInside && wasInside) {
         Alert.alert(
-          "🔴 Pet saiu da zona segura",
-          `${selected?.name || 'Seu pet'} saiu da zona "${zone.name}"`,
+          t('maps.petLeftZone'),
+          replacePlaceholders(t('maps.petLeftZoneDesc'), {
+            petName: selected?.name || 'Seu pet',
+            zoneName: zone.name
+          }),
           [{ text: t('button.ok') }]
         );
       }
@@ -595,7 +643,7 @@ export default function Localizacao() {
 
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permissão necessária", "Autorize o acesso à localização para rastrear seu pet.");
+        Alert.alert(t('maps.permissionRequired'), t('maps.permissionRequiredDesc'));
         return;
       }
 
@@ -635,7 +683,7 @@ export default function Localizacao() {
 
     } catch (e: any) {
       console.error("Erro ao obter localização:", e);
-      Alert.alert("❌ Erro GPS", "Não foi possível obter a localização. Verifique se o GPS está ativado.");
+      Alert.alert(t('maps.locationError'), t('maps.locationErrorDesc'));
     } finally {
       setLocationLoading(false);
     }
@@ -693,7 +741,7 @@ export default function Localizacao() {
     };
   }, [uid]);
 
-  // ================== ESTADOS DE LOADING ==================
+  // ================== ESTADOS DE LOADING INTERNACIONALIZADOS ==================
   if (loading) {
     return (
       <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
@@ -710,10 +758,10 @@ export default function Localizacao() {
       <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
         <Ionicons name="person-circle-outline" size={80} color={colors.textTertiary} />
         <Text style={[styles.errorTitle, { color: colors.text, fontSize: fontSizes.lg }]}>
-          Faça login para ver seus pets
+          {t('maps.loginRequired')}
         </Text>
         <Text style={[styles.errorSubtitle, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>
-          Não encontramos um usuário autenticado.
+          {t('maps.noUserFound')}
         </Text>
       </View>
     );
@@ -724,10 +772,10 @@ export default function Localizacao() {
       <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
         <Ionicons name="paw-outline" size={80} color={colors.textTertiary} />
         <Text style={[styles.errorTitle, { color: colors.text, fontSize: fontSizes.lg }]}>
-          Nenhum pet cadastrado
+          {t('maps.noPetsTitle')}
         </Text>
         <Text style={[styles.errorSubtitle, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>
-          Cadastre um pet para começar a acompanhar a localização.
+          {t('maps.noPetsDesc')}
         </Text>
       </View>
     );
@@ -759,7 +807,7 @@ export default function Localizacao() {
               color: colors.text,
               fontSize: fontSizes.sm 
             }]}
-            placeholder="Selecione um pet"
+            placeholder={t('maps.selectPet')}
             closeAfterSelecting={true}
             searchable={false}
           />
@@ -774,7 +822,7 @@ export default function Localizacao() {
             ]}
           >
             <Text style={[styles.statusButtonText, { fontSize: fontSizes.sm }]}>
-              {selected.lost ? "❌ Encontrado" : "🚨 Perdido"}
+              {selected.lost ? t('maps.markAsFound') : t('maps.markAsLost')}
             </Text>
           </Pressable>
         )}
@@ -805,7 +853,7 @@ export default function Localizacao() {
               fontSize: fontSizes.sm 
             }
           ]}>
-            {creatingZone ? "Toque no mapa" : "Nova Zona"}
+            {creatingZone ? t('maps.tapOnMap') : t('maps.newSafeZone')}
           </Text>
         </Pressable>
 
@@ -824,7 +872,7 @@ export default function Localizacao() {
             color: colors.primary,
             fontSize: fontSizes.sm 
           }]}>
-            Gerenciar ({zones.length})
+            {t('maps.manage')} ({zones.length})
           </Text>
         </Pressable>
 
@@ -834,7 +882,7 @@ export default function Localizacao() {
               color: colors.primary,
               fontSize: fontSizes.xs 
             }]}>
-              {zones.length} zona{zones.length !== 1 ? 's' : ''}
+              {zones.length} {zones.length !== 1 ? t('maps.zones') : t('maps.zone')}
             </Text>
           </View>
         )}
@@ -846,7 +894,7 @@ export default function Localizacao() {
           // Android: WebView com Leaflet
           <WebView
             ref={webViewRef}
-            source={{ html: generateMapHTML(selected?.lastLocation ?? null, zones) }}
+            source={{ html: generateMapHTML(selected?.lastLocation ?? null, zones, translate) }}
             style={styles.map}
             onMessage={handleWebViewMessage}
             javaScriptEnabled={true}
@@ -859,7 +907,7 @@ export default function Localizacao() {
                   color: colors.textSecondary,
                   fontSize: fontSizes.sm 
                 }]}>
-                  Carregando mapa...
+                  {t('maps.loadingMap')}
                 </Text>
               </View>
             )}
@@ -891,10 +939,10 @@ export default function Localizacao() {
                     latitude: selected.lastLocation.latitude, 
                     longitude: selected.lastLocation.longitude 
                   }}
-                  title={selected?.name ? `${selected.name} está aqui!` : "Seu pet está aqui!"}
+                  title={selected?.name ? `${selected.name} ${t('maps.petHere').toLowerCase()}!` : t('maps.petHere')}
                   description={petLocationStatus.inZone 
-                    ? `🏠 Zona segura: ${petLocationStatus.zoneName}` 
-                    : "📍 Fora das zonas seguras"
+                    ? `🏠 ${t('maps.zoneLabel')} ${petLocationStatus.zoneName}` 
+                    : t('maps.outsideZones')
                   }
                   pinColor={selected.lost ? "#DC2626" : petLocationStatus.inZone ? "#22C55E" : "#F59E0B"}
                 />
@@ -951,10 +999,10 @@ export default function Localizacao() {
             }
           ]}>
             {selected?.lost 
-              ? "🚨 Pet perdido" 
+              ? t('maps.petLost')
               : petLocationStatus.inZone 
-                ? `🏠 Em zona segura` 
-                : "⚠️ Fora das zonas"
+                ? t('maps.petSafe')
+                : t('maps.petOutside')
             }
           </Text>
           {locationLoading && <ActivityIndicator size="small" color={colors.textSecondary} />}
@@ -981,7 +1029,7 @@ export default function Localizacao() {
               color: colors.primary,
               fontSize: fontSizes.xs 
             }]}>
-              {locationLoading ? "..." : "Atualizar"}
+              {locationLoading ? "..." : t('maps.refresh')}
             </Text>
           </Pressable>
 
@@ -1008,7 +1056,7 @@ export default function Localizacao() {
                 fontSize: fontSizes.xs 
               }
             ]}>
-              {isCentered ? "Centralizado" : "Centralizar"}
+              {isCentered ? t('maps.centered') : t('maps.center')}
             </Text>
           </Pressable>
 
@@ -1024,7 +1072,7 @@ export default function Localizacao() {
               color: colors.primary,
               fontSize: fontSizes.xs 
             }]}>
-              Abrir
+              {t('maps.open')}
             </Text>
           </Pressable>
         </View>
@@ -1054,7 +1102,7 @@ export default function Localizacao() {
             color="#fff" 
           />
           <Text style={[styles.realtimeButtonText, { fontSize: fontSizes.sm }]}>
-            {isRealtime ? "Parar tempo real (1 min)" : "Tempo real (1 min)"}
+            {isRealtime ? t('maps.stopRealTime') : t('maps.realTime')}
           </Text>
         </Pressable>
 
@@ -1063,8 +1111,8 @@ export default function Localizacao() {
           fontSize: fontSizes.xs 
         }]}>
           {Platform.OS === 'ios' 
-            ? 'Mapas fornecidos pela Apple' 
-            : 'Mapa fornecido por OpenStreetMap'
+            ? t('maps.appleCredit') 
+            : t('maps.osmCredit')
           }
         </Text>
       </View>
@@ -1086,7 +1134,7 @@ export default function Localizacao() {
                 color: colors.text,
                 fontSize: fontSizes.lg 
               }]}>
-                Nova Zona Segura
+                {t('maps.newSafeZoneTitle')}
               </Text>
               <Pressable onPress={cancelZoneCreation} style={styles.modalCloseButton}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
@@ -1098,7 +1146,7 @@ export default function Localizacao() {
                 color: colors.text,
                 fontSize: fontSizes.md 
               }]}>
-                Nome da zona:
+                {t('maps.zoneName')}
               </Text>
               <TextInput
                 style={[styles.modalInput, { 
@@ -1107,7 +1155,7 @@ export default function Localizacao() {
                   color: colors.text,
                   fontSize: fontSizes.md
                 }]}
-                placeholder="Ex: Casa, Parque, Veterinário"
+                placeholder={t('maps.zoneNamePlaceholder')}
                 placeholderTextColor={colors.textSecondary}
                 value={zoneName}
                 onChangeText={setZoneName}
@@ -1119,7 +1167,7 @@ export default function Localizacao() {
                 color: colors.text,
                 fontSize: fontSizes.md 
               }]}>
-                Raio da zona ({newZoneRadius}m):
+                {t('maps.zoneRadius')} ({newZoneRadius}m):
               </Text>
               <View style={styles.radiusContainer}>
                 {[50, 100, 200, 500].map(radius => (
@@ -1152,7 +1200,7 @@ export default function Localizacao() {
                 color: colors.text,
                 fontSize: fontSizes.md 
               }]}>
-                Cor da zona:
+                {t('maps.zoneColor')}
               </Text>
               <View style={styles.colorContainer}>
                 {zoneColors.map(color => (
@@ -1201,7 +1249,7 @@ export default function Localizacao() {
                   { fontSize: fontSizes.md },
                   !zoneName.trim() && { opacity: 0.5 }
                 ]}>
-                  Criar Zona
+                  {t('maps.createZone')}
                 </Text>
               </Pressable>
             </View>
@@ -1225,7 +1273,7 @@ export default function Localizacao() {
                 color: colors.text,
                 fontSize: fontSizes.lg 
               }]}>
-                Zonas Seguras
+                {t('maps.safeZones')}
               </Text>
               <Pressable 
                 onPress={() => setShowZoneManager(false)} 
@@ -1242,13 +1290,13 @@ export default function Localizacao() {
                   color: colors.textSecondary,
                   fontSize: fontSizes.lg 
                 }]}>
-                  Nenhuma zona criada
+                  {t('maps.noZonesCreated')}
                 </Text>
                 <Text style={[styles.noZonesSubtitle, { 
                   color: colors.textTertiary,
                   fontSize: fontSizes.sm 
                 }]}>
-                  Crie zonas seguras para monitorar automaticamente quando seu pet entra ou sai de áreas importantes
+                  {t('maps.noZonesDesc')}
                 </Text>
               </View>
             ) : (
@@ -1269,18 +1317,18 @@ export default function Localizacao() {
                         color: colors.textSecondary,
                         fontSize: fontSizes.sm 
                       }]}>
-                        📏 {zone.radius}m de raio
+                        📏 {zone.radius}{t('maps.radiusMeters')}
                       </Text>
                     </View>
                     <Pressable
                       onPress={() => {
                         Alert.alert(
-                          "Excluir zona",
-                          `Tem certeza que deseja excluir a zona "${zone.name}"?\n\nEsta ação não pode ser desfeita.`,
+                          t('maps.deleteZone'),
+                          replacePlaceholders(t('maps.deleteZoneConfirm'), { zoneName: zone.name }),
                           [
                             { text: t('general.cancel'), style: "cancel" },
                             { 
-                              text: "Excluir", 
+                              text: t('general.delete'), 
                               style: "destructive", 
                               onPress: () => deleteZone(zone.id) 
                             }
@@ -1306,7 +1354,7 @@ export default function Localizacao() {
                 ]}
               >
                 <Text style={[styles.modalButtonTextPrimary, { fontSize: fontSizes.md }]}>
-                  Fechar
+                  {t('maps.close')}
                 </Text>
               </Pressable>
             </View>
