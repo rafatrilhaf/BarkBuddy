@@ -43,9 +43,7 @@ export default function TabsLayout() {
         name="maps"
         options={{
           title: "Localização",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="map" color={color} size={size} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="map" color={color} size={size} />,
         }}
       />
 
@@ -53,9 +51,7 @@ export default function TabsLayout() {
         name="blog"
         options={{
           title: "Blog",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="book" color={color} size={size} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="book" color={color} size={size} />,
         }}
       />
 
@@ -63,9 +59,7 @@ export default function TabsLayout() {
         name="tutor"
         options={{
           title: "Tutor",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" color={color} size={size} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="person" color={color} size={size} />,
           headerRight: () => (
             <TouchableOpacity
               onPress={logout}
@@ -88,10 +82,17 @@ export default function TabsLayout() {
         name="pets"
         options={{
           title: "Pet",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="paw" color={color} size={size} />
-          ),
-          headerShown: false, // Oculta header verde das tabs
+          tabBarIcon: ({ color, size }) => <Ionicons name="paw" color={color} size={size} />,
+          headerShown: false,
+        }}
+      />
+
+      {/* Aqui adicionamos a nova aba Agenda */}
+      <Tabs.Screen
+        name="agenda"
+        options={{
+          title: "Agenda",
+          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" color={color} size={size} />,
         }}
       />
 
@@ -124,13 +125,11 @@ export default function TabsLayout() {
         name="settings"
         options={{
           title: "Ajustes",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings" color={color} size={size} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="settings" color={color} size={size} />,
         }}
       />
 
-      {/* 
+      {/*
         NÃO incluir mais nenhum <Tabs.Screen name="pet" /> aqui
         para evitar duplicação no rodapé
       */}
