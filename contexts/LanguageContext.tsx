@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Localization from 'expo-localization';
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { NativeModules, Platform } from 'react-native';
 
 const translations = {
   pt: {
@@ -11,6 +11,7 @@ const translations = {
     'nav.blog': 'Blog',
     'nav.tutor': 'Tutor',
     'nav.settings': 'Configurações',
+    'nav.agenda': 'Agenda',
 
     // Geral
     'general.save': 'Salvar',
@@ -20,12 +21,47 @@ const translations = {
     'general.success': 'Sucesso',
     'general.edit': 'Editar',
     'general.confirm': 'Confirmar',
+    'general.delete': 'Excluir',
+    'general.add': 'Adicionar',
+    'general.filter': 'Filtro',
+    'general.apply': 'Aplicar',
+    'general.clear': 'Limpar',
 
     // Tutor
     'tutor.name': 'Nome',
     'tutor.phone': 'Telefone', 
     'tutor.address': 'Endereço',
     'tutor.email': 'Email',
+
+    // Agenda
+    'agenda.title': 'Agenda',
+    'agenda.newReminder': 'Novo Lembrete',
+    'agenda.editReminder': 'Editar Lembrete',
+    'agenda.reminderTitle': 'Título',
+    'agenda.reminderDescription': 'Descrição',
+    'agenda.selectPet': 'Selecionar Pet',
+    'agenda.selectCategory': 'Selecionar Categoria',
+    'agenda.selectDate': 'Selecionar Data',
+    'agenda.selectTime': 'Selecionar Hora',
+    'agenda.notification': 'Notificação',
+    'agenda.completed': 'Concluído',
+    'agenda.pending': 'Pendente',
+    'agenda.noReminders': 'Nenhum lembrete para esta data',
+    'agenda.deleteConfirm': 'Deseja realmente excluir este lembrete?',
+    'agenda.reminderSaved': 'Lembrete salvo com sucesso!',
+    'agenda.reminderDeleted': 'Lembrete excluído!',
+    'agenda.filters': 'Filtros da Agenda',
+    'agenda.showCompleted': 'Mostrar Concluídos',
+    'agenda.notesOfDay': 'Notas do dia',
+    'agenda.noNotes': 'Nenhuma nota para esta data',
+
+    // Categorias da Agenda
+    'category.consulta': 'Consulta',
+    'category.medicacao': 'Medicação',
+    'category.banho': 'Banho',
+    'category.exercicio': 'Exercício',
+    'category.alimentacao': 'Alimentação',
+    'category.outro': 'Outro',
 
     // Configurações
     'settings.title': 'Configurações',
@@ -66,6 +102,7 @@ const translations = {
     'nav.blog': 'Blog',
     'nav.tutor': 'Tutor',
     'nav.settings': 'Settings',
+    'nav.agenda': 'Schedule',
 
     // General
     'general.save': 'Save',
@@ -75,12 +112,47 @@ const translations = {
     'general.success': 'Success',
     'general.edit': 'Edit',
     'general.confirm': 'Confirm',
+    'general.delete': 'Delete',
+    'general.add': 'Add',
+    'general.filter': 'Filter',
+    'general.apply': 'Apply',
+    'general.clear': 'Clear',
 
     // Tutor
     'tutor.name': 'Name',
     'tutor.phone': 'Phone',
     'tutor.address': 'Address',
     'tutor.email': 'Email',
+
+    // Schedule
+    'agenda.title': 'Schedule',
+    'agenda.newReminder': 'New Reminder',
+    'agenda.editReminder': 'Edit Reminder',
+    'agenda.reminderTitle': 'Title',
+    'agenda.reminderDescription': 'Description',
+    'agenda.selectPet': 'Select Pet',
+    'agenda.selectCategory': 'Select Category',
+    'agenda.selectDate': 'Select Date',
+    'agenda.selectTime': 'Select Time',
+    'agenda.notification': 'Notification',
+    'agenda.completed': 'Completed',
+    'agenda.pending': 'Pending',
+    'agenda.noReminders': 'No reminders for this date',
+    'agenda.deleteConfirm': 'Are you sure you want to delete this reminder?',
+    'agenda.reminderSaved': 'Reminder saved successfully!',
+    'agenda.reminderDeleted': 'Reminder deleted!',
+    'agenda.filters': 'Schedule Filters',
+    'agenda.showCompleted': 'Show Completed',
+    'agenda.notesOfDay': 'Notes of the day',
+    'agenda.noNotes': 'No notes for this date',
+
+    // Categories
+    'category.consulta': 'Appointment',
+    'category.medicacao': 'Medication',
+    'category.banho': 'Bath',
+    'category.exercicio': 'Exercise',
+    'category.alimentacao': 'Feeding',
+    'category.outro': 'Other',
 
     // Settings
     'settings.title': 'Settings',
@@ -121,6 +193,7 @@ const translations = {
     'nav.blog': 'Blog',
     'nav.tutor': 'Tutor',
     'nav.settings': 'Configuración',
+    'nav.agenda': 'Agenda',
 
     // General
     'general.save': 'Guardar',
@@ -130,12 +203,47 @@ const translations = {
     'general.success': 'Éxito',
     'general.edit': 'Editar',
     'general.confirm': 'Confirmar',
+    'general.delete': 'Eliminar',
+    'general.add': 'Añadir',
+    'general.filter': 'Filtro',
+    'general.apply': 'Aplicar',
+    'general.clear': 'Limpiar',
 
     // Tutor
     'tutor.name': 'Nombre',
     'tutor.phone': 'Teléfono',
     'tutor.address': 'Dirección', 
     'tutor.email': 'Email',
+
+    // Agenda
+    'agenda.title': 'Agenda',
+    'agenda.newReminder': 'Nuevo Recordatorio',
+    'agenda.editReminder': 'Editar Recordatorio',
+    'agenda.reminderTitle': 'Título',
+    'agenda.reminderDescription': 'Descripción',
+    'agenda.selectPet': 'Seleccionar Mascota',
+    'agenda.selectCategory': 'Seleccionar Categoría',
+    'agenda.selectDate': 'Seleccionar Fecha',
+    'agenda.selectTime': 'Seleccionar Hora',
+    'agenda.notification': 'Notificación',
+    'agenda.completed': 'Completado',
+    'agenda.pending': 'Pendiente',
+    'agenda.noReminders': 'No hay recordatorios para esta fecha',
+    'agenda.deleteConfirm': '¿Estás seguro de que deseas eliminar este recordatorio?',
+    'agenda.reminderSaved': '¡Recordatorio guardado exitosamente!',
+    'agenda.reminderDeleted': '¡Recordatorio eliminado!',
+    'agenda.filters': 'Filtros de Agenda',
+    'agenda.showCompleted': 'Mostrar Completados',
+    'agenda.notesOfDay': 'Notas del día',
+    'agenda.noNotes': 'No hay notas para esta fecha',
+
+    // Categorías
+    'category.consulta': 'Consulta',
+    'category.medicacao': 'Medicación',
+    'category.banho': 'Baño',
+    'category.exercicio': 'Ejercicio',
+    'category.alimentacao': 'Alimentación',
+    'category.outro': 'Otro',
 
     // Configuración
     'settings.title': 'Configuración',
@@ -185,6 +293,34 @@ interface LanguageProviderProps {
   children: ReactNode;
 }
 
+// Função para detectar idioma do dispositivo sem expo-localization
+const getDeviceLanguage = (): Language => {
+  try {
+    let deviceLanguage = 'pt';
+    
+    if (Platform.OS === 'ios') {
+      deviceLanguage = NativeModules.SettingsManager?.settings?.AppleLocale ||
+                      NativeModules.SettingsManager?.settings?.AppleLanguages?.[0] ||
+                      'pt';
+    } else if (Platform.OS === 'android') {
+      deviceLanguage = NativeModules.I18nManager?.localeIdentifier || 'pt';
+    }
+    
+    // Extrair apenas o código do idioma (pt-BR -> pt)
+    const languageCode = deviceLanguage.split('-')[0].split('_')[0].toLowerCase();
+    
+    // Verificar se é um idioma suportado
+    if (['pt', 'en', 'es'].includes(languageCode)) {
+      return languageCode as Language;
+    }
+    
+    return 'pt'; // Fallback para português
+  } catch (error) {
+    console.log('Erro ao detectar idioma do dispositivo:', error);
+    return 'pt';
+  }
+};
+
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>('pt');
 
@@ -195,12 +331,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         setLanguageState(savedLanguage as Language);
       } else {
         // Detectar idioma do sistema
-        const deviceLanguage = Localization.getLocales()[0]?.languageCode || 'pt';
-        const supportedLanguage: Language = ['pt', 'en', 'es'].includes(deviceLanguage) 
-          ? (deviceLanguage as Language) 
-          : 'pt';
-        setLanguageState(supportedLanguage);
-        await AsyncStorage.setItem('language', supportedLanguage);
+        const deviceLanguage = getDeviceLanguage();
+        setLanguageState(deviceLanguage);
+        await AsyncStorage.setItem('language', deviceLanguage);
       }
     } catch (error) {
       console.error('Erro ao carregar idioma:', error);

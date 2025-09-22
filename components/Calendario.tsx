@@ -1,17 +1,20 @@
+// components/Calendario.tsx
+
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Calendar, DateData, MarkedDates } from 'react-native-calendars';
+import { Calendar, DateData } from 'react-native-calendars';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface Pet {
   id: string;
   nome: string;
-  cor: string; // Hex ou nome de cor para marcação
+  cor: string;
 }
 
 interface Evento {
   id: string;
   petId: string;
-  data: string; // "YYYY-MM-DD"
+  data: string;
 }
 
 interface Props {
@@ -20,14 +23,25 @@ interface Props {
   onDayPress?: (date: string) => void;
 }
 
+type MarkedDates = {
+  [key: string]: {
+    selected?: boolean;
+    selectedColor?: string;
+    dots?: Array<{
+      key: string;
+      color: string;
+    }>;
+  };
+};
+
 export function Calendario({ pets, eventos, onDayPress }: Props) {
+  const { colors, isDark } = useTheme();
   const [marcacoes, setMarcacoes] = useState<MarkedDates>({});
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
 
   useEffect(() => {
     const marks: MarkedDates = {};
 
-    // Agrupar eventos por data e montar as cores dos pets
     const eventosPorData: { [date: string]: string[] } = {};
 
     eventos.forEach(ev => {
@@ -38,28 +52,31 @@ export function Calendario({ pets, eventos, onDayPress }: Props) {
     });
 
     for (const data in eventosPorData) {
-      // Criar array de marcações de cores para aquele dia
-      const colors = eventosPorData[data]
+      const petColors = eventosPorData[data]
         .map(petId => pets.find(p => p.id === petId)?.cor)
         .filter(Boolean) as string[];
 
-      if (!colors.length) continue;
+      if (!petColors.length) continue;
 
-      // Usar múltiplas marcações coloridas (dots)
       marks[data] = {
-        dots: colors.map(cor => ({ key: cor, color: cor })),
+        dots: petColors.map((cor, index) => ({ 
+          key: `${cor}-${index}`,
+          color: cor 
+        })),
         selected: diaSelecionado === data,
-        selectedColor: diaSelecionado === data ? '#999' : undefined,
+        selectedColor: diaSelecionado === data ? colors.primary : undefined,
       };
     }
 
-    // Se há dia selecionado e não tem marcação, marcar só a seleção
     if (diaSelecionado && !marks[diaSelecionado]) {
-      marks[diaSelecionado] = { selected: true, selectedColor: '#999' };
+      marks[diaSelecionado] = { 
+        selected: true, 
+        selectedColor: colors.primary
+      };
     }
 
     setMarcacoes(marks);
-  }, [eventos, pets, diaSelecionado]);
+  }, [eventos, pets, diaSelecionado, colors.primary]);
 
   function handleDayPress(day: DateData) {
     setDiaSelecionado(day.dateString);
@@ -73,11 +90,50 @@ export function Calendario({ pets, eventos, onDayPress }: Props) {
         markingType={'multi-dot'}
         markedDates={marcacoes}
         theme={{
-          todayTextColor: '#00adf5',
-          arrowColor: '#00adf5',
-          monthTextColor: '#333',
+          // Cores principais
+          todayTextColor: colors.calendarTodayText,
+          arrowColor: colors.primary,
+          monthTextColor: colors.calendarHeaderText,
+          selectedDayBackgroundColor: colors.primary,
+          selectedDayTextColor: '#ffffff',
+          
+          // Fundo do calendário
+          backgroundColor: colors.calendarBackground,
+          calendarBackground: colors.calendarBackground,
+          
+          // Texto dos dias
+          dayTextColor: colors.calendarText,
+          textDisabledColor: colors.calendarDisabledText,
+          textSectionTitleColor: colors.textSecondary,
+          
+          // Dots (pontos dos eventos)
+          dotColor: colors.primary,
+          selectedDotColor: '#ffffff',
+          
+          // Fontes
+          textDayFontFamily: 'System',
+          textMonthFontFamily: 'System',
+          textDayHeaderFontFamily: 'System',
+          textDayFontWeight: '400',
+          textMonthFontWeight: 'bold',
+          textDayHeaderFontWeight: '500',
+          textDayFontSize: 16,
+          textMonthFontSize: 18,
+          textDayHeaderFontSize: 14,
+          
+          // Cor dos dias inativos (mês anterior/próximo)
+          textInactiveColor: colors.calendarDisabledText,
+          
+          // Cores de separadores
+          indicatorColor: colors.primary,
         }}
         enableSwipeMonths={true}
+        hideExtraDays={false}
+        firstDay={0}
+        showWeekNumbers={false}
+        style={{
+          backgroundColor: colors.calendarBackground,
+        }}
       />
     </View>
   );
@@ -85,6 +141,6 @@ export function Calendario({ pets, eventos, onDayPress }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 10,
+    marginVertical: 4,
   },
 });

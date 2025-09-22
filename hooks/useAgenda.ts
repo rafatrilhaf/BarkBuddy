@@ -1,6 +1,6 @@
 // hooks/useAgenda.ts
 
-import firestore from '@react-native-firebase/firestore';
+import { Timestamp } from 'firebase/firestore';
 import { useCallback, useEffect, useState } from 'react';
 import { AgendaService, Lembrete } from '../services/agenda';
 
@@ -15,7 +15,7 @@ interface UseAgendaReturn {
   setFiltroCategorias: (categorias: string[]) => void;
 
   buscarLembretesMes: () => Promise<void>;
-  salvarLembrete: (lembrete: Lembrete) => Promise<void>;
+  salvarLembrete: (lembrete: Omit<Lembrete, 'criadoEm'>) => Promise<void>;
   excluirLembrete: (id: string) => Promise<void>;
   toggleConcluido: (id: string, concluido: boolean) => Promise<void>;
 }
@@ -38,8 +38,8 @@ export function useAgenda(): UseAgendaReturn {
       const ano = Number(dataSelecionada.substring(0, 4));
       const mes = Number(dataSelecionada.substring(5, 7)) - 1;
 
-      const primeiroDia = firestore.Timestamp.fromDate(new Date(ano, mes, 1, 0, 0, 0));
-      const ultimoDia = firestore.Timestamp.fromDate(new Date(ano, mes + 1, 0, 23, 59, 59));
+      const primeiroDia = Timestamp.fromDate(new Date(ano, mes, 1, 0, 0, 0));
+      const ultimoDia = Timestamp.fromDate(new Date(ano, mes + 1, 0, 23, 59, 59));
 
       let todosLembretes = await AgendaService.buscarLembretesPorPeriodo(primeiroDia, ultimoDia);
 
@@ -60,40 +60,66 @@ export function useAgenda(): UseAgendaReturn {
   }, [dataSelecionada, filtroPets, filtroCategorias]);
 
   const salvarLembrete = useCallback(
-    async (lembrete: Lembrete) => {
-      if (lembrete.id) {
-        await AgendaService.editarLembrete(lembrete.id, {
-          titulo: lembrete.titulo,
-          descricao: lembrete.descricao,
-          categoria: lembrete.categoria,
-          petId: lembrete.petId,
-          dataHora: firestore.Timestamp.fromDate(lembrete.dataHora),
-          concluido: lembrete.concluido,
-        });
-      } else {
-        await AgendaService.adicionarLembrete({
-          ...lembrete,
-          dataHora: firestore.Timestamp.fromDate(lembrete.dataHora),
-          criadoEm: firestore.FieldValue.serverTimestamp() as unknown as any,
-        });
+    async (lembrete: Omit<Lembrete, 'criadoEm'>) => {
+      try {
+        if (lembrete.id) {
+          // Editar lembrete existente
+          await AgendaService.editarLembrete(lembrete.id, {
+            titulo: lembrete.titulo,
+            descricao: lembrete.descricao,
+            categoria: lembrete.categoria,
+            petId: lembrete.petId,
+            dataHora: typeof lembrete.dataHora === 'string' 
+              ? Timestamp.fromDate(new Date(lembrete.dataHora))
+              : lembrete.dataHora,
+            concluido: lembrete.concluido,
+          });
+        } else {
+          // Criar novo lembrete
+          const novoLembrete = {
+            titulo: lembrete.titulo,
+            descricao: lembrete.descricao,
+            categoria: lembrete.categoria,
+            petId: lembrete.petId,
+            dataHora: typeof lembrete.dataHora === 'string' 
+              ? Timestamp.fromDate(new Date(lembrete.dataHora))
+              : lembrete.dataHora,
+            concluido: lembrete.concluido || false,
+          };
+          
+          await AgendaService.adicionarLembrete(novoLembrete);
+        }
+        await buscarLembretesMes();
+      } catch (error) {
+        console.error('Erro ao salvar lembrete:', error);
+        throw error;
       }
-      await buscarLembretesMes();
     },
     [buscarLembretesMes],
   );
 
   const excluirLembrete = useCallback(
     async (id: string) => {
-      await AgendaService.excluirLembrete(id);
-      await buscarLembretesMes();
+      try {
+        await AgendaService.excluirLembrete(id);
+        await buscarLembretesMes();
+      } catch (error) {
+        console.error('Erro ao excluir lembrete:', error);
+        throw error;
+      }
     },
     [buscarLembretesMes],
   );
 
   const toggleConcluido = useCallback(
     async (id: string, concluido: boolean) => {
-      await AgendaService.editarLembrete(id, { concluido });
-      await buscarLembretesMes();
+      try {
+        await AgendaService.editarLembrete(id, { concluido });
+        await buscarLembretesMes();
+      } catch (error) {
+        console.error('Erro ao alterar status do lembrete:', error);
+        throw error;
+      }
     },
     [buscarLembretesMes],
   );
@@ -118,3 +144,5 @@ export function useAgenda(): UseAgendaReturn {
     toggleConcluido,
   };
 }
+
+export default useAgenda;

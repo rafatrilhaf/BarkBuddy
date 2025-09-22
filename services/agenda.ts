@@ -1,71 +1,185 @@
-import firestore from '@react-native-firebase/firestore';
+// services/agenda.ts
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+  Timestamp,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import { db } from "./firebase";
 
 export interface Lembrete {
   id?: string;
+  userId: string;
   petId: string;
   titulo: string;
   descricao?: string;
   categoria: 'consulta' | 'medicacao' | 'banho' | 'outro';
-  dataHora: FirebaseFirestoreTypes.Timestamp; // data e hora do evento
+  dataHora: Timestamp;
   concluido: boolean;
-  criadoEm: FirebaseFirestoreTypes.Timestamp;
+  criadoEm: Timestamp;
 }
 
-// Nome da collection no Firestore
-const colecao = firestore().collection('lembretes');
+export interface Nota {
+  id?: string;
+  userId: string;
+  petId: string;
+  titulo: string;
+  texto: string;
+  data: string;
+  criadoEm: Timestamp;
+}
+
+// Collections
+const colecaoLembretes = collection(db, 'lembretes');
+const colecaoPets = collection(db, 'pets');
 
 export const AgendaService = {
   
-  async adicionarLembrete(lembrete: Lembrete) {
-    const docRef = colecao.doc();
-    await docRef.set({
+  async adicionarLembrete(lembrete: Omit<Lembrete, 'id' | 'criadoEm'>) {
+    const docRef = await addDoc(colecaoLembretes, {
       ...lembrete,
-      criadoEm: firestore.FieldValue.serverTimestamp(),
+      criadoEm: serverTimestamp(),
     });
     return docRef.id;
   },
 
   async editarLembrete(id: string, dados: Partial<Lembrete>) {
-    await colecao.doc(id).update(dados);
+    const lembreteRef = doc(db, 'lembretes', id);
+    await updateDoc(lembreteRef, dados);
   },
 
   async excluirLembrete(id: string) {
-    await colecao.doc(id).delete();
+    const lembreteRef = doc(db, 'lembretes', id);
+    await deleteDoc(lembreteRef);
   },
 
-  // Busca lembretes de um usuário por data (ex: no mês/dia)
-  // Ajuste para buscar lembretes entre data início e fim (timestamp)
   async buscarLembretesPorPeriodo(
-    dataInicio: FirebaseFirestoreTypes.Timestamp,
-    dataFim: FirebaseFirestoreTypes.Timestamp,
+    dataInicio: Timestamp,
+    dataFim: Timestamp,
+    userId: string
   ): Promise<Lembrete[]> {
-    const snapshot = await colecao
-      .where('dataHora', '>=', dataInicio)
-      .where('dataHora', '<=', dataFim)
-      .get();
+    const q = query(
+      colecaoLembretes,
+      where('userId', '==', userId),
+      where('dataHora', '>=', dataInicio),
+      where('dataHora', '<=', dataFim),
+      orderBy('dataHora', 'asc')
+    );
 
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Lembrete[];
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      ...doc.data() 
+    })) as Lembrete[];
   },
 
-  // Buscar lembretes por pet e opcionalmente categoria
   async buscarLembretesPorPet(
+    userId: string,
     petId: string,
-    dataInicio?: FirebaseFirestoreTypes.Timestamp,
-    dataFim?: FirebaseFirestoreTypes.Timestamp,
+    dataInicio?: Timestamp,
+    dataFim?: Timestamp,
     categoria?: string,
   ): Promise<Lembrete[]> {
-    let query: FirebaseFirestoreTypes.Query = colecao.where('petId', '==', petId);
+    let q = query(
+      colecaoLembretes, 
+      where('userId', '==', userId),
+      where('petId', '==', petId)
+    );
 
     if (dataInicio && dataFim) {
-      query = query.where('dataHora', '>=', dataInicio).where('dataHora', '<=', dataFim);
+      q = query(q, where('dataHora', '>=', dataInicio), where('dataHora', '<=', dataFim));
     }
 
     if (categoria) {
-      query = query.where('categoria', '==', categoria);
+      q = query(q, where('categoria', '==', categoria));
     }
 
-    const snapshot = await query.get();
+    q = query(q, orderBy('dataHora', 'asc'));
 
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Lembrete[];
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      ...doc.data() 
+    })) as Lembrete[];
+  },
+
+  async buscarLembretesPorUsuario(userId: string): Promise<Lembrete[]> {
+    const q = query(
+      colecaoLembretes,
+      where('userId', '==', userId),
+      orderBy('dataHora', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      ...doc.data() 
+    })) as Lembrete[];
+  },
+
+  async marcarComoConcluido(id: string) {
+    const lembreteRef = doc(db, 'lembretes', id);
+    await updateDoc(lembreteRef, {
+      concluido: true,
+      concluidoEm: serverTimestamp(),
+    });
+  },
+
+  // ✅ NOVO: Buscar notas dos pets por data
+  async buscarNotasPorData(userId: string, data: string): Promise<Nota[]> {
+    try {
+      // Primeiro buscar os pets do usuário
+      const petsQuery = query(colecaoPets, where('userId', '==', userId));
+      const petsSnapshot = await getDocs(petsQuery);
+      
+      const notas: Nota[] = [];
+      
+      // Para cada pet, buscar suas notas (records do tipo 'note')
+      for (const petDoc of petsSnapshot.docs) {
+        const petId = petDoc.id;
+        const recordsRef = collection(db, 'pets', petId, 'records');
+        
+        const notesQuery = query(
+          recordsRef,
+          where('type', '==', 'note'),
+          orderBy('createdAt', 'desc')
+        );
+        
+        const notesSnapshot = await getDocs(notesQuery);
+        
+        for (const noteDoc of notesSnapshot.docs) {
+          const noteData = noteDoc.data();
+          const noteDate = noteData.createdAt?.toDate();
+          
+          if (noteDate) {
+            const noteDateStr = noteDate.toISOString().substring(0, 10);
+            
+            if (noteDateStr === data) {
+              notas.push({
+                id: noteDoc.id,
+                userId,
+                petId,
+                titulo: noteData.value?.title || 'Nota sem título',
+                texto: noteData.value?.content || noteData.note || '',
+                data: noteDateStr,
+                criadoEm: noteData.createdAt,
+              });
+            }
+          }
+        }
+      }
+      
+      return notas.sort((a, b) => b.criadoEm.toDate().getTime() - a.criadoEm.toDate().getTime());
+    } catch (error) {
+      console.error('Erro ao buscar notas:', error);
+      return [];
+    }
   },
 };
