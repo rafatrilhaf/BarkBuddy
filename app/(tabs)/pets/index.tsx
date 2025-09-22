@@ -30,8 +30,8 @@ import {
   updatePet,
   uploadPetImageLocal,
 } from "services/pets";
-import { useLanguage } from '../../contexts/LanguageContext';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 type Row = Pet & { id?: string };
 
@@ -259,7 +259,7 @@ export default function PetTab() {
   // ✅ ADIÇÃO 1: Função para navegar para tela de adicionar coleira
   const addCollarToPet = (petId: string, petName: string) => {
     router.push({
-      pathname: "/pet/addCollar",
+      pathname: "/pets/addCollar",
       params: { petId, petName }
     });
   };
@@ -850,7 +850,7 @@ export default function PetTab() {
             Veja suas notas e os gráficos do seu pet. 
           </Text>
           <Pressable
-            onPress={() => router.push("/pet/dashboard")}
+            onPress={() => router.push("/pets/dashboard")}
             style={{
               backgroundColor: colors.primary,
               paddingVertical: 10,

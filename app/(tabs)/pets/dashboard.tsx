@@ -15,8 +15,8 @@ import {
 } from "react-native";
 import { BarChart, LineChart } from "react-native-chart-kit";
 import DropDownPicker from "react-native-dropdown-picker";
-import { useLanguage } from "../../contexts/LanguageContext";
-import { useTheme } from "../../contexts/ThemeContext";
+import { useLanguage } from "../../../contexts/LanguageContext";
+import { useTheme } from "../../../contexts/ThemeContext";
 
 const screenWidth = Dimensions.get("window").width;
 

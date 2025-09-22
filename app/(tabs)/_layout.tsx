@@ -1,4 +1,4 @@
-//BarkBuddy\app\(tabs)\_layout.tsx
+// BarkBuddy/app/(tabs)/_layout.tsx
 import { auth } from "@/services/firebase";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, router } from "expo-router";
@@ -8,13 +8,10 @@ import theme from "../../constants/theme";
 export default function TabsLayout() {
   const logout = () => {
     Alert.alert(
-      "Sair da conta", 
-      "Deseja realmente sair da sua conta?", 
+      "Sair da conta",
+      "Deseja realmente sair da sua conta?",
       [
-        { 
-          text: "Cancelar", 
-          style: "cancel" 
-        },
+        { text: "Cancelar", style: "cancel" },
         {
           text: "Sair",
           style: "destructive",
@@ -42,7 +39,6 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: "#c9e3d7",
       }}
     >
-      {/* 1 - Maps */}
       <Tabs.Screen
         name="maps"
         options={{
@@ -53,7 +49,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 2 - Blog */}
       <Tabs.Screen
         name="blog"
         options={{
@@ -64,7 +59,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 3 - Tutor (com botão sair) */}
       <Tabs.Screen
         name="tutor"
         options={{
@@ -90,19 +84,17 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 4 - Pet */}
       <Tabs.Screen
-        name="pet"
+        name="pets"
         options={{
           title: "Pet",
-          
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="paw" color={color} size={size} />
           ),
+          headerShown: false, // Oculta header verde das tabs
         }}
       />
 
-      {/* 5 - About */}
       <Tabs.Screen
         name="about"
         options={{
@@ -127,6 +119,21 @@ export default function TabsLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Ajustes",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings" color={color} size={size} />
+          ),
+        }}
+      />
+
+      {/* 
+        NÃO incluir mais nenhum <Tabs.Screen name="pet" /> aqui
+        para evitar duplicação no rodapé
+      */}
     </Tabs>
   );
 }
