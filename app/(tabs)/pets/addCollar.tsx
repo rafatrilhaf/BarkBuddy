@@ -100,7 +100,7 @@ export default function AddCollar() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Header - INTERNACIONALIZADO */}
-        <View style={styles.header}>
+        {/*<View style={styles.header}>
           <Pressable onPress={() => router.back()} style={[styles.backButton, { backgroundColor: colors.primary + '20' }]}>
             <Ionicons name="arrow-back" size={24} color={colors.primary} />
           </Pressable>
@@ -110,7 +110,7 @@ export default function AddCollar() {
           }]}>
             {t('collar.title')}
           </Text>
-        </View>
+        </View>*/}
 
         {/* Pet Info - INTERNACIONALIZADO */}
         <View style={[styles.petInfo, { backgroundColor: colors.primary + '15' }]}>

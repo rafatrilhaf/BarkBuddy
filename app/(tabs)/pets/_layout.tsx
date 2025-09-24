@@ -6,7 +6,7 @@ export default function PetsLayout() {
   return (
     <Stack
       screenOptions={{
-        headerBackTitle: "Voltar",
+        //headerBackTitle: "Voltar",
         headerBackTitleVisible: true,
         headerTintColor: "#fff",
         headerStyle: { backgroundColor: theme.green }, // Mesmo verde do header das tabs
@@ -29,6 +29,7 @@ export default function PetsLayout() {
       <Stack.Screen
         name="addCollar"
         options={{ title: "Adicionar Coleira" }}
+        
       />
       <Stack.Screen
         name="edit"

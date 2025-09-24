@@ -15,6 +15,7 @@ function RootStack() {
           headerStyle: { backgroundColor: colors.primary },
           headerTintColor: colors.text,
           headerTitleStyle: { fontWeight: "700" },
+          headerShown:false,
         }}
       >
         <Stack.Screen name="index" options={{ title: "Início" }} />
