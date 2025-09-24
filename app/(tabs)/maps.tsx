@@ -830,26 +830,26 @@ export default function Localizacao() {
 
       {/* Barra de ferramentas */}
       <View style={[styles.geofenceToolbar, { 
-        backgroundColor: colors.surface,
-        borderBottomColor: colors.border 
+        backgroundColor: colors.background,
+        borderBottomColor: colors.border
       }]}>
         <Pressable
           onPress={startCreatingZone}
           style={[
             styles.toolbarButton, 
-            { borderColor: colors.primary },
+            { borderColor: colors.primaryLight },
             creatingZone && { backgroundColor: colors.primary }
           ]}
         >
           <Ionicons 
             name="add-circle" 
             size={20} 
-            color={creatingZone ? colors.background : colors.primary} 
+            color={creatingZone ? colors.background : colors.text} 
           />
           <Text style={[
             styles.toolbarButtonText, 
             { 
-              color: creatingZone ? colors.background : colors.primary,
+              color: creatingZone ? colors.background : colors.text,
               fontSize: fontSizes.sm 
             }
           ]}>
@@ -862,14 +862,14 @@ export default function Localizacao() {
           style={[
             styles.toolbarButton, 
             { 
-              borderColor: colors.primary,
+              borderColor: colors.primaryLight,
               backgroundColor: showZoneManager ? colors.surface : "transparent" 
             }
           ]}
         >
-          <Ionicons name="settings" size={20} color={colors.primary} />
+          <Ionicons name="settings" size={20} color={colors.text} />
           <Text style={[styles.toolbarButtonText, { 
-            color: colors.primary,
+            color: colors.text,
             fontSize: fontSizes.sm 
           }]}>
             {t('maps.manage')} ({zones.length})
@@ -989,7 +989,7 @@ export default function Localizacao() {
       </View>
 
       {/* Painel inferior */}
-      <View style={[styles.bottomPanel, { backgroundColor: colors.surface }]}>
+      <View style={[styles.bottomPanel, { backgroundColor: colors.background }]}>
         <View style={styles.statusRow}>
           <Text style={[
             styles.statusIndicator, 
@@ -1020,13 +1020,13 @@ export default function Localizacao() {
             onPress={fetchAndUpdateLocation} 
             style={[styles.actionButton, { 
               backgroundColor: colors.background,
-              borderColor: colors.primary 
+              borderColor: colors.primaryLight 
             }]}
             disabled={locationLoading}
           >
-            <Ionicons name="refresh" size={20} color={colors.primary} />
+            <Ionicons name="refresh" size={20} color={colors.text} />
             <Text style={[styles.actionButtonText, { 
-              color: colors.primary,
+              color: colors.text,
               fontSize: fontSizes.xs 
             }]}>
               {locationLoading ? "..." : t('maps.refresh')}
@@ -1039,7 +1039,7 @@ export default function Localizacao() {
               styles.actionButton,
               { 
                 backgroundColor: colors.background,
-                borderColor: isCentered ? "#22C55E" : colors.primary 
+                borderColor: isCentered ? colors.primary : colors.primaryLight
               },
               isCentered && { backgroundColor: colors.primary + '20' }
             ]}
@@ -1047,12 +1047,12 @@ export default function Localizacao() {
             <Ionicons 
               name={isCentered ? "radio-button-on" : "locate"} 
               size={20} 
-              color={isCentered ? "#22C55E" : colors.primary} 
+              color={isCentered ? "#22C55E" : colors.text} 
             />
             <Text style={[
               styles.actionButtonText,
               { 
-                color: isCentered ? "#22C55E" : colors.primary,
+                color: isCentered ? "#22C55E" : colors.text,
                 fontSize: fontSizes.xs 
               }
             ]}>
@@ -1064,12 +1064,12 @@ export default function Localizacao() {
             onPress={openMaps} 
             style={[styles.actionButton, { 
               backgroundColor: colors.background,
-              borderColor: colors.primary 
+              borderColor: colors.primaryLight
             }]}
           >
-            <Ionicons name="map" size={20} color={colors.primary} />
+            <Ionicons name="map" size={20} color={colors.text} />
             <Text style={[styles.actionButtonText, { 
-              color: colors.primary,
+              color: colors.text,
               fontSize: fontSizes.xs 
             }]}>
               {t('maps.open')}

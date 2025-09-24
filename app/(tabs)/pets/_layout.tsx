@@ -1,6 +1,7 @@
 // BarkBuddy/app/(tabs)/pets/_layout.tsx
+
 import { Stack } from "expo-router";
-import theme from "../../../constants/theme";
+import { rawColors } from "../../../constants/theme";
 
 export default function PetsLayout() {
   return (
@@ -8,21 +9,21 @@ export default function PetsLayout() {
       screenOptions={{
         headerBackTitle: "Voltar",
         headerBackTitleVisible: true,
-        headerTintColor: "#fff",
-        headerStyle: { backgroundColor: theme.green }, // Mesmo verde do header das tabs
+        headerTintColor: rawColors.white,               // texto branco
+        headerStyle: { backgroundColor: rawColors.green }, // verde do constants
       }}
     >
       <Stack.Screen
         name="index"
-        options={{ 
-          title: "Pet", 
+        options={{
+          title: "Pet",
           headerShown: true,
         }}
       />
       <Stack.Screen
         name="dashboard"
-        options={{ 
-          title: "Dashboards", 
+        options={{
+          title: "Dashboards",
           headerShown: true,
         }}
       />
