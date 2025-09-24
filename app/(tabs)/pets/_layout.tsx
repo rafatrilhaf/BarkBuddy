@@ -1,36 +1,35 @@
-// BarkBuddy/app/(tabs)/pets/_layout.tsx
+// app/(tabs)/pets/_layout.tsx
 
 import { Stack } from "expo-router";
-import { rawColors } from "../../../constants/theme";
+import { ThemeProvider, useTheme } from "../../../contexts/ThemeContext";
 
-export default function PetsLayout() {
+function PetsStack() {
+  const { colors, fontSizes } = useTheme();
+
   return (
     <Stack
       screenOptions={{
-        //headerBackTitle: "Voltar",
         headerBackTitleVisible: true,
-        headerTintColor: rawColors.white,               // texto branco
-        headerStyle: { backgroundColor: rawColors.green }, // verde do constants
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.white,
+        headerTitleStyle: {
+          fontSize: fontSizes.md,
+          fontWeight: "600",
+          color: colors.white,
+        },
       }}
     >
       <Stack.Screen
         name="index"
-        options={{
-          title: "Pet",
-          headerShown: true,
-        }}
+        options={{ title: "Pet", headerShown: true }}
       />
       <Stack.Screen
         name="dashboard"
-        options={{
-          title: "Dashboards",
-          headerShown: true,
-        }}
+        options={{ title: "Dashboards", headerShown: true }}
       />
       <Stack.Screen
         name="addCollar"
         options={{ title: "Adicionar Coleira" }}
-        
       />
       <Stack.Screen
         name="edit"
@@ -45,5 +44,13 @@ export default function PetsLayout() {
         options={{ title: "QR Code do Pet" }}
       />
     </Stack>
+  );
+}
+
+export default function PetsLayout() {
+  return (
+    <ThemeProvider>
+      <PetsStack />
+    </ThemeProvider>
   );
 }
