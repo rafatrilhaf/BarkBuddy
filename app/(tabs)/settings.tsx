@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
   Alert,
+  Linking,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -11,6 +12,10 @@ import {
 } from 'react-native';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
+
+// ✅ importa auth e router
+import { auth } from '@/services/firebase';
+import { router } from 'expo-router';
 
 interface SettingItemProps {
   title: string;
@@ -54,7 +59,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
           <Text
             style={[
               styles.settingTitle,
-              { 
+              {
                 color: colors.text,
                 fontSize: fontSizes.md,
                 fontWeight: '600',
@@ -67,7 +72,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
             <Text
               style={[
                 styles.settingSubtitle,
-                { 
+                {
                   color: colors.textSecondary,
                   fontSize: fontSizes.sm,
                 },
@@ -108,7 +113,7 @@ const SectionHeader: React.FC<{ title: string }> = ({ title }) => {
 };
 
 export default function SettingsScreen() {
-  const { themeMode, setThemeMode, fontSize, setFontSize, colors, toggleTheme } = useTheme();
+  const { themeMode, setThemeMode, fontSize, setFontSize, colors } = useTheme();
   const { language, setLanguage, t } = useLanguage();
 
   const handleThemePress = () => {
@@ -116,22 +121,10 @@ export default function SettingsScreen() {
       t('settings.theme'),
       'Escolha um tema:',
       [
-        {
-          text: t('theme.light'),
-          onPress: () => setThemeMode('light'),
-        },
-        {
-          text: t('theme.dark'),
-          onPress: () => setThemeMode('dark'),
-        },
-        {
-          text: t('theme.system'),
-          onPress: () => setThemeMode('system'),
-        },
-        {
-          text: t('general.cancel'),
-          style: 'cancel',
-        },
+        { text: t('theme.light'), onPress: () => setThemeMode('light') },
+        { text: t('theme.dark'), onPress: () => setThemeMode('dark') },
+        { text: t('theme.system'), onPress: () => setThemeMode('system') },
+        { text: t('general.cancel'), style: 'cancel' },
       ]
     );
   };
@@ -141,22 +134,10 @@ export default function SettingsScreen() {
       t('settings.language'),
       'Escolha um idioma:',
       [
-        {
-          text: 'Português',
-          onPress: () => setLanguage('pt'),
-        },
-        {
-          text: 'English',
-          onPress: () => setLanguage('en'),
-        },
-        {
-          text: 'Español',
-          onPress: () => setLanguage('es'),
-        },
-        {
-          text: t('general.cancel'),
-          style: 'cancel',
-        },
+        { text: 'Português', onPress: () => setLanguage('pt') },
+        { text: 'English', onPress: () => setLanguage('en') },
+        { text: 'Español', onPress: () => setLanguage('es') },
+        { text: t('general.cancel'), style: 'cancel' },
       ]
     );
   };
@@ -166,40 +147,35 @@ export default function SettingsScreen() {
       t('settings.fontSize'),
       'Escolha o tamanho:',
       [
-        {
-          text: t('fontSize.small'),
-          onPress: () => setFontSize('small'),
-        },
-        {
-          text: t('fontSize.medium'),
-          onPress: () => setFontSize('medium'),
-        },
-        {
-          text: t('fontSize.large'),
-          onPress: () => setFontSize('large'),
-        },
-        {
-          text: t('general.cancel'),
-          style: 'cancel',
-        },
+        { text: t('fontSize.small'), onPress: () => setFontSize('small') },
+        { text: t('fontSize.medium'), onPress: () => setFontSize('medium') },
+        { text: t('fontSize.large'), onPress: () => setFontSize('large') },
+        { text: t('general.cancel'), style: 'cancel' },
       ]
     );
   };
 
+  // ✅ Logout real usando Firebase Auth + redirecionamento
   const handleLogout = () => {
     Alert.alert(
       t('auth.logout'),
       t('auth.logoutConfirm'),
       [
+        { text: t('general.cancel'), style: 'cancel' },
         {
-          text: t('button.no'),
-          style: 'cancel',
-        },
-        {
-          text: t('button.yes'),
+          text: t('auth.logout'),
           style: 'destructive',
-          onPress: () => {
-            console.log('Logout realizado');
+          onPress: async () => {
+            try {
+              await auth.signOut();
+              router.replace('/auth/login'); // impede voltar com "voltar"
+            } catch (e: any) {
+              console.error('Erro ao sair:', e?.message);
+              Alert.alert(
+                t('general.error'),
+                t('auth.logoutError') || 'Não foi possível sair. Tente novamente.'
+              );
+            }
           },
         },
       ]
@@ -297,13 +273,17 @@ export default function SettingsScreen() {
             title={t('settings.help')}
             subtitle="Central de ajuda"
             icon="help-circle-outline"
-            onPress={() => console.log('Abrir ajuda')}
+            onPress={() => {
+              Linking.openURL('https://barkbuddyofficial.netlify.app/#contato');
+            }}
           />
           <SettingItem
             title={t('settings.about')}
             subtitle="Versão 1.0.0"
             icon="information-circle-outline"
-            onPress={() => console.log('Sobre o app')}
+            onPress={() => {
+              Linking.openURL('https://barkbuddyofficial.netlify.app/#produtores');
+            }}
           />
         </View>
 
@@ -325,15 +305,9 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingVertical: 20,
-  },
+  container: { flex: 1 },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingVertical: 20 },
   sectionHeader: {
     fontWeight: '600',
     marginHorizontal: 20,
@@ -368,13 +342,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  textContainer: {
-    flex: 1,
-  },
-  settingTitle: {
-    marginBottom: 2,
-  },
-  settingSubtitle: {
-    opacity: 0.8,
-  },
+  textContainer: { flex: 1 },
+  settingTitle: { marginBottom: 2 },
+  settingSubtitle: { opacity: 0.8 },
 });
