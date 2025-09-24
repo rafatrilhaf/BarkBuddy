@@ -1,4 +1,7 @@
+// components/ListaLembretes.tsx
+
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Pet {
   id: string;
@@ -25,6 +28,8 @@ interface Props {
 }
 
 export function ListaLembretes({ pets, lembretes, onEditar, onExcluir, onToggleConcluido }: Props) {
+  const { t } = useLanguage();
+  
   // Agrupa lembretes por petId    
   const lembretesAgrupados = pets.map(pet => ({
     pet,
@@ -33,12 +38,12 @@ export function ListaLembretes({ pets, lembretes, onEditar, onExcluir, onToggleC
 
   function confirmarExclusao(lembreteId: string) {
     Alert.alert(
-      'Excluir lembrete',
-      'Tem certeza que deseja excluir este lembrete?',
+      t('components.reminders.deleteReminder'),
+      t('components.reminders.deleteConfirm'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('general.cancel'), style: 'cancel' },
         {
-          text: 'Excluir',
+          text: t('components.reminders.delete'),
           style: 'destructive',
           onPress: () => onExcluir(lembreteId),
         },
@@ -71,16 +76,18 @@ export function ListaLembretes({ pets, lembretes, onEditar, onExcluir, onToggleC
                 </Text>
               </View>
               <TouchableOpacity onPress={() => onEditar(lembrete)} style={styles.botaoEditar}>
-                <Text style={styles.textoBotao}>Editar</Text>
+                <Text style={styles.textoBotao}>{t('components.reminders.edit')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => confirmarExclusao(lembrete.id)} style={styles.botaoExcluir}>
-                <Text style={[styles.textoBotao, { color: 'red' }]}>Excluir</Text>
+                <Text style={[styles.textoBotao, { color: 'red' }]}>{t('components.reminders.delete')}</Text>
               </TouchableOpacity>
             </View>
           ))}
         </View>
       )}
-      ListEmptyComponent={<Text style={styles.semLembretes}>Nenhum lembrete para esta data.</Text>}
+      ListEmptyComponent={
+        <Text style={styles.semLembretes}>{t('components.reminders.noRemindersForDate')}</Text>
+      }
     />
   );
 }

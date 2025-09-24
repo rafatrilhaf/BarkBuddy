@@ -17,6 +17,7 @@ import {
   View,
 } from "react-native";
 import theme from "../constants/theme";
+import { useLanguage } from "../contexts/LanguageContext";
 import {
   addComment,
   countAllComments,
@@ -38,6 +39,8 @@ type PostCardProps = {
 };
 
 export default function PostCard({ post }: PostCardProps) {
+  const { t } = useLanguage();
+  
   // Estados para comentários
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -68,12 +71,12 @@ export default function PostCard({ post }: PostCardProps) {
   // Função enviar comentário principal
   const handleComment = async () => {
     if (!currentUser) {
-      Alert.alert("Login necessário", "Faça login para comentar");
+      Alert.alert(t('components.postCard.loginRequired'), t('components.postCard.loginToComment'));
       return;
     }
 
     if (!commentText.trim()) {
-      Alert.alert("Erro", "Digite um comentário");
+      Alert.alert(t('general.error'), t('components.postCard.writeCommentError'));
       return;
     }
 
@@ -83,7 +86,7 @@ export default function PostCard({ post }: PostCardProps) {
       setCommentText("");
     } catch (e) {
       console.error(e);
-      Alert.alert("Erro", "Falha ao enviar comentário");
+      Alert.alert(t('general.error'), t('components.postCard.commentSendError'));
     } finally {
       setLoading(false);
     }
@@ -92,12 +95,12 @@ export default function PostCard({ post }: PostCardProps) {
   // Função enviar reply
   const handleReply = async () => {
     if (!currentUser) {
-      Alert.alert("Login necessário", "Faça login para responder");
+      Alert.alert(t('components.postCard.loginRequired'), t('components.postCard.loginToReply'));
       return;
     }
 
     if (!replyText.trim()) {
-      Alert.alert("Erro", "Digite uma resposta");
+      Alert.alert(t('general.error'), t('components.postCard.writeReplyError'));
       return;
     }
 
@@ -108,7 +111,7 @@ export default function PostCard({ post }: PostCardProps) {
       setReplyingTo(null);
     } catch (e) {
       console.error(e);
-      Alert.alert("Erro", "Falha ao enviar resposta");
+      Alert.alert(t('general.error'), t('components.postCard.replySendError'));
     } finally {
       setLoading(false);
     }
@@ -117,25 +120,21 @@ export default function PostCard({ post }: PostCardProps) {
   // Função compartilhar melhorada
   const handleShare = async () => {
     try {
-      const shareMessage = `🐾 Confira este post do BarkBuddy:
-
-"${post.text}"
-
-📝 Compartilhado por: ${authorProfile?.name || post.user}
-
-Baixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯`;
+      const shareMessage = t('components.postCard.shareMessage')
+        .replace('{text}', post.text)
+        .replace('{author}', authorProfile?.name || post.user);
 
       const result = await Share.share({
         message: shareMessage,
-        title: "Post do BarkBuddy 🐾",
+        title: t('components.postCard.shareTitle'),
       });
 
       if (result.action === Share.sharedAction) {
-        console.log("Post compartilhado com sucesso!");
+        console.log(t('components.postCard.shareSuccess'));
       }
     } catch (error) {
       console.error("Erro ao compartilhar:", error);
-      Alert.alert("Erro", "Não foi possível compartilhar este post");
+      Alert.alert(t('general.error'), t('components.postCard.shareError'));
     }
   };
 
@@ -205,7 +204,7 @@ Baixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯`;
               onPress={() => setReplyingTo(item.id)}
               style={styles.replyButton}
             >
-              <Text style={styles.replyButtonText}>Responder</Text>
+              <Text style={styles.replyButtonText}>{t('components.postCard.reply')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -236,6 +235,14 @@ Baixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯`;
     </View>
   );
 
+  // Função para formatar contador de comentários
+  const getCommentCountText = (count: number) => {
+    if (count === 1) {
+      return t('components.postCard.commentCount').replace('{count}', count.toString());
+    }
+    return t('components.postCard.commentCountPlural').replace('{count}', count.toString());
+  };
+
   return (
     <>
       <View style={styles.postCard}>
@@ -258,7 +265,7 @@ Baixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯`;
               {authorProfile?.name || post.user}
             </Text>
             <Text style={styles.postTime}>
-              publicado hoje às {post.createdAt}
+              {t('components.postCard.publishedToday')} {post.createdAt}
             </Text>
           </View>
           <TouchableOpacity>
@@ -280,7 +287,7 @@ Baixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯`;
         {comments.length > 0 && (
           <View style={styles.commentCounter}>
             <Text style={styles.commentCountText}>
-              {countAllComments(comments)} comentário{countAllComments(comments) !== 1 ? "s" : ""}
+              {getCommentCountText(countAllComments(comments))}
             </Text>
           </View>
         )}
@@ -292,14 +299,14 @@ Baixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯`;
             style={styles.actionButton}
           >
             <Ionicons name="chatbubble-ellipses-outline" size={20} color={theme.greenDark} />
-            <Text style={styles.actionText}>Comentar</Text>
+            <Text style={styles.actionText}>{t('components.postCard.comment')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleShare}
             style={styles.actionButton}
           >
             <Ionicons name="paper-plane-outline" size={20} color={theme.greenDark} />
-            <Text style={styles.actionText}>Compartilhar</Text>
+            <Text style={styles.actionText}>{t('components.postCard.share')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -312,7 +319,7 @@ Baixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯`;
             <TouchableOpacity onPress={() => setShowComments(false)}>
               <Ionicons name="arrow-back" size={24} color={theme.greenDark} />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Comentários</Text>
+            <Text style={styles.modalTitle}>{t('components.postCard.comments')}</Text>
           </View>
 
           {/* Lista comentários */}
@@ -325,10 +332,10 @@ Baixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯`;
               <View style={styles.emptyCommentsContainer}>
                 <Ionicons name="chatbubble-ellipses-outline" size={48} color="#ccc" />
                 <Text style={styles.emptyCommentsText}>
-                  Nenhum comentário ainda
+                  {t('components.postCard.noCommentsYet')}
                 </Text>
                 <Text style={styles.emptyCommentsSubtext}>
-                  Seja o primeiro a comentar!
+                  {t('components.postCard.firstToComment')}
                 </Text>
               </View>
             }
@@ -338,7 +345,7 @@ Baixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯`;
           <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.inputContainer}>
             {replyingTo && (
               <View style={styles.replyingToContainer}>
-                <Text style={styles.replyingToText}>Respondendo comentário</Text>
+                <Text style={styles.replyingToText}>{t('components.postCard.replyingTo')}</Text>
                 <TouchableOpacity onPress={() => setReplyingTo(null)}>
                   <Ionicons name="close" size={16} color="#666" />
                 </TouchableOpacity>
@@ -346,7 +353,7 @@ Baixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯`;
             )}
             <View style={styles.inputRow}>
               <TextInput
-                placeholder={replyingTo ? "Escreva uma resposta..." : "Escreva um comentário..."}
+                placeholder={replyingTo ? t('components.postCard.writeReply') : t('components.postCard.writeComment')}
                 value={replyingTo ? replyText : commentText}
                 onChangeText={replyingTo ? setReplyText : setCommentText}
                 multiline

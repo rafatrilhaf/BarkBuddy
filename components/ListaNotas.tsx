@@ -1,4 +1,5 @@
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Nota {
   id: string;
@@ -13,10 +14,14 @@ interface Props {
 }
 
 export function ListaNotas({ notas, onPressNota }: Props) {
+  const { t } = useLanguage();
+  
   if (notas.length === 0) {
     return (
       <View style={styles.container}>
-        <Text style={styles.semNotas}>Nenhuma nota para esta data.</Text>
+        <Text style={styles.semNotas}>
+          {t('components.notes.noNotesForDate')}
+        </Text>
       </View>
     );
   }

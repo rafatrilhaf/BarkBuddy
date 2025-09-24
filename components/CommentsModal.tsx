@@ -1,18 +1,22 @@
+// components/CommentsModal.tsx
+
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import theme from "../constants/theme";
+import { useLanguage } from "../contexts/LanguageContext";
 import { addComment, Comment, subscribeComments } from "../services/comments";
 
 type CommentsModalProps = {
@@ -22,6 +26,8 @@ type CommentsModalProps = {
 };
 
 export default function CommentsModal({ postId, visible, onClose }: CommentsModalProps) {
+  const { t } = useLanguage();
+  
   const [comments, setComments] = useState<Comment[]>([]);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
@@ -41,7 +47,7 @@ export default function CommentsModal({ postId, visible, onClose }: CommentsModa
       setText("");
     } catch (error) {
       console.error("Erro ao enviar comentário:", error);
-      alert("Erro ao enviar comentário");
+      Alert.alert(t('general.error'), t('components.commentsModal.sendError'));
     } finally {
       setSending(false);
     }
@@ -61,7 +67,7 @@ export default function CommentsModal({ postId, visible, onClose }: CommentsModa
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
             <Ionicons name="close" size={28} color={theme.greenDark} />
           </TouchableOpacity>
-          <Text style={styles.title}>Comentários</Text>
+          <Text style={styles.title}>{t('components.commentsModal.comments')}</Text>
         </View>
 
         <FlatList
@@ -70,7 +76,7 @@ export default function CommentsModal({ postId, visible, onClose }: CommentsModa
           renderItem={renderItem}
           contentContainerStyle={styles.commentsList}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>Nenhum comentário ainda. Seja o primeiro!</Text>
+            <Text style={styles.emptyText}>{t('components.commentsModal.noCommentsYet')}</Text>
           }
         />
 
@@ -81,7 +87,7 @@ export default function CommentsModal({ postId, visible, onClose }: CommentsModa
           <View style={styles.inputContainer}>
             <TextInput
               multiline
-              placeholder="Escreva um comentário..."
+              placeholder={t('components.commentsModal.writeComment')}
               value={text}
               onChangeText={setText}
               editable={!sending}

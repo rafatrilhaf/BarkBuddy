@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Calendar, DateData } from 'react-native-calendars';
+import { Calendar, DateData, LocaleConfig } from 'react-native-calendars';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface Pet {
@@ -36,8 +37,117 @@ type MarkedDates = {
 
 export function Calendario({ pets, eventos, onDayPress }: Props) {
   const { colors, isDark } = useTheme();
+  const { t, language } = useLanguage();
   const [marcacoes, setMarcacoes] = useState<MarkedDates>({});
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
+
+  // Configurar localização do calendário
+  useEffect(() => {
+    const calendarLocales = {
+      pt: {
+        monthNames: [
+          t('components.calendar.january'),
+          t('components.calendar.february'),
+          t('components.calendar.march'),
+          t('components.calendar.april'),
+          t('components.calendar.may'),
+          t('components.calendar.june'),
+          t('components.calendar.july'),
+          t('components.calendar.august'),
+          t('components.calendar.september'),
+          t('components.calendar.october'),
+          t('components.calendar.november'),
+          t('components.calendar.december'),
+        ],
+        monthNamesShort: [
+          'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+          'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+        ],
+        dayNames: [
+          'Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'
+        ],
+        dayNamesShort: [
+          t('components.calendar.sunday'),
+          t('components.calendar.monday'),
+          t('components.calendar.tuesday'),
+          t('components.calendar.wednesday'),
+          t('components.calendar.thursday'),
+          t('components.calendar.friday'),
+          t('components.calendar.saturday'),
+        ],
+        today: t('components.calendar.today')
+      },
+      en: {
+        monthNames: [
+          t('components.calendar.january'),
+          t('components.calendar.february'),
+          t('components.calendar.march'),
+          t('components.calendar.april'),
+          t('components.calendar.may'),
+          t('components.calendar.june'),
+          t('components.calendar.july'),
+          t('components.calendar.august'),
+          t('components.calendar.september'),
+          t('components.calendar.october'),
+          t('components.calendar.november'),
+          t('components.calendar.december'),
+        ],
+        monthNamesShort: [
+          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ],
+        dayNames: [
+          'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+        ],
+        dayNamesShort: [
+          t('components.calendar.sunday'),
+          t('components.calendar.monday'),
+          t('components.calendar.tuesday'),
+          t('components.calendar.wednesday'),
+          t('components.calendar.thursday'),
+          t('components.calendar.friday'),
+          t('components.calendar.saturday'),
+        ],
+        today: t('components.calendar.today')
+      },
+      es: {
+        monthNames: [
+          t('components.calendar.january'),
+          t('components.calendar.february'),
+          t('components.calendar.march'),
+          t('components.calendar.april'),
+          t('components.calendar.may'),
+          t('components.calendar.june'),
+          t('components.calendar.july'),
+          t('components.calendar.august'),
+          t('components.calendar.september'),
+          t('components.calendar.october'),
+          t('components.calendar.november'),
+          t('components.calendar.december'),
+        ],
+        monthNamesShort: [
+          'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+          'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+        ],
+        dayNames: [
+          'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
+        ],
+        dayNamesShort: [
+          t('components.calendar.sunday'),
+          t('components.calendar.monday'),
+          t('components.calendar.tuesday'),
+          t('components.calendar.wednesday'),
+          t('components.calendar.thursday'),
+          t('components.calendar.friday'),
+          t('components.calendar.saturday'),
+        ],
+        today: t('components.calendar.today')
+      }
+    };
+
+    LocaleConfig.locales[language] = calendarLocales[language];
+    LocaleConfig.defaultLocale = language;
+  }, [language, t]);
 
   useEffect(() => {
     const marks: MarkedDates = {};

@@ -1,8 +1,11 @@
 import React from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 
 type Props = React.ComponentProps<"div"> & { height?: number | string };
 
 export default function MapWeb({ height = 320, style, ...rest }: Props) {
+  const { t } = useLanguage();
+  
   return (
     <div
       {...rest}
@@ -18,10 +21,11 @@ export default function MapWeb({ height = 320, style, ...rest }: Props) {
       }}
     >
       <span style={{ opacity: 0.7 }}>
-        Mapa nativo indisponível no Web. Abra no Android/iOS.
+        {t('components.mapWeb.nativeMapUnavailable')}
       </span>
     </div>
   );
 }
+
 export const Marker = () => null;
 export const PROVIDER_GOOGLE = "web";
