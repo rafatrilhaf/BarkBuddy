@@ -1,12 +1,15 @@
+// components/FiltrosAgenda.tsx
+
 import React, { useEffect, useState } from 'react';
 import {
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Pet {
   id: string;
@@ -34,6 +37,8 @@ export function FiltrosAgenda({
   onClose,
   onAplicarFiltros,
 }: Props) {
+  const { t } = useLanguage();
+  
   const [petsSelecionados, setPetsSelecionados] = useState<string[]>([]);
   const [categoriasSelecionadas, setCategoriasSelecionadas] = useState<string[]>([]);
 
@@ -60,14 +65,20 @@ export function FiltrosAgenda({
     setCategoriasSelecionadas([]);
   }
 
+  // Função para traduzir categorias se necessário
+  const getCategoryLabel = (categoria: string) => {
+    const categoryKey = `category.${categoria}` as any;
+    return t(categoryKey) || categoria.charAt(0).toUpperCase() + categoria.slice(1);
+  };
+
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Text style={styles.titulo}>Filtros da Agenda</Text>
+          <Text style={styles.titulo}>{t('components.filters.title')}</Text>
 
           <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
-            <Text style={styles.label}>Pets</Text>
+            <Text style={styles.label}>{t('components.filters.pets')}</Text>
             <View style={styles.opcoesContainer}>
               {pets.map(pet => {
                 const selecionado = petsSelecionados.includes(pet.id);
@@ -85,7 +96,7 @@ export function FiltrosAgenda({
               })}
             </View>
 
-            <Text style={styles.label}>Categorias</Text>
+            <Text style={styles.label}>{t('components.filters.categories')}</Text>
             <View style={styles.opcoesContainer}>
               {categorias.map(cat => {
                 const selecionado = categoriasSelecionadas.includes(cat);
@@ -96,7 +107,7 @@ export function FiltrosAgenda({
                     onPress={() => toggleSelecao(categoriasSelecionadas, setCategoriasSelecionadas, cat)}
                   >
                     <Text style={selecionado ? styles.textoSelecionado : styles.textoOpcao}>
-                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                      {getCategoryLabel(cat)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -106,10 +117,10 @@ export function FiltrosAgenda({
 
           <View style={styles.botoes}>
             <TouchableOpacity onPress={limpar} style={[styles.botao, styles.botaoLimpar]}>
-              <Text style={styles.textoBotao}>Limpar</Text>
+              <Text style={styles.textoBotao}>{t('components.filters.clear')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={aplicar} style={[styles.botao, styles.botaoAplicar]}>
-              <Text style={[styles.textoBotao, { color: '#fff' }]}>Aplicar</Text>
+              <Text style={[styles.textoBotao, { color: '#fff' }]}>{t('components.filters.apply')}</Text>
             </TouchableOpacity>
           </View>
         </View>

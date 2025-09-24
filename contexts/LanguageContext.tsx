@@ -152,6 +152,42 @@ const translations = {
     'components.filters.clear': 'Limpar',
     'components.filters.apply': 'Aplicar',
 
+    // ListaLembretes
+'components.reminders.deleteReminder': 'Excluir lembrete',
+'components.reminders.deleteConfirm': 'Tem certeza que deseja excluir este lembrete?',
+'components.reminders.edit': 'Editar',
+'components.reminders.delete': 'Excluir',
+'components.reminders.noRemindersForDate': 'Nenhum lembrete para esta data.',
+
+// CommentsModal
+'components.commentsModal.comments': 'Comentários',
+'components.commentsModal.noCommentsYet': 'Nenhum comentário ainda. Seja o primeiro!',
+'components.commentsModal.writeComment': 'Escreva um comentário...',
+'components.commentsModal.sendError': 'Erro ao enviar comentário',
+
+// Calendario
+'components.calendar.today': 'Hoje',
+'components.calendar.january': 'Janeiro',
+'components.calendar.february': 'Fevereiro',
+'components.calendar.march': 'Março',
+'components.calendar.april': 'Abril',
+'components.calendar.may': 'Maio',
+'components.calendar.june': 'Junho',
+'components.calendar.july': 'Julho',
+'components.calendar.august': 'Agosto',
+'components.calendar.september': 'Setembro',
+'components.calendar.october': 'Outubro',
+'components.calendar.november': 'Novembro',
+'components.calendar.december': 'Dezembro',
+'components.calendar.sunday': 'Dom',
+'components.calendar.monday': 'Seg',
+'components.calendar.tuesday': 'Ter',
+'components.calendar.wednesday': 'Qua',
+'components.calendar.thursday': 'Qui',
+'components.calendar.friday': 'Sex',
+'components.calendar.saturday': 'Sáb',
+
+
     // ================== MAPAS/LOCALIZAÇÃO ==================
     'maps.title': 'Localização',
     'maps.selectPet': 'Selecione um pet',
@@ -609,6 +645,42 @@ const translations = {
     'components.filters.clear': 'Clear',
     'components.filters.apply': 'Apply',
 
+    // ListaLembretes
+'components.reminders.deleteReminder': 'Delete reminder',
+'components.reminders.deleteConfirm': 'Are you sure you want to delete this reminder?',
+'components.reminders.edit': 'Edit',
+'components.reminders.delete': 'Delete',
+'components.reminders.noRemindersForDate': 'No reminders for this date.',
+
+// CommentsModal
+'components.commentsModal.comments': 'Comments',
+'components.commentsModal.noCommentsYet': 'No comments yet. Be the first!',
+'components.commentsModal.writeComment': 'Write a comment...',
+'components.commentsModal.sendError': 'Error sending comment',
+
+// Calendario
+'components.calendar.today': 'Today',
+'components.calendar.january': 'January',
+'components.calendar.february': 'February',
+'components.calendar.march': 'March',
+'components.calendar.april': 'April',
+'components.calendar.may': 'May',
+'components.calendar.june': 'June',
+'components.calendar.july': 'July',
+'components.calendar.august': 'August',
+'components.calendar.september': 'September',
+'components.calendar.october': 'October',
+'components.calendar.november': 'November',
+'components.calendar.december': 'December',
+'components.calendar.sunday': 'Sun',
+'components.calendar.monday': 'Mon',
+'components.calendar.tuesday': 'Tue',
+'components.calendar.wednesday': 'Wed',
+'components.calendar.thursday': 'Thu',
+'components.calendar.friday': 'Fri',
+'components.calendar.saturday': 'Sat',
+
+
     // ================== MAPS/LOCATION ==================
     'maps.title': 'Location',
     'maps.selectPet': 'Select a pet',
@@ -1065,8 +1137,43 @@ const translations = {
     'components.filters.categories': 'Categorías',
     'components.filters.clear': 'Limpiar',
     'components.filters.apply': 'Aplicar',
+    // ListaLembretes
+'components.reminders.deleteReminder': 'Eliminar recordatorio',
+'components.reminders.deleteConfirm': '¿Estás seguro de que deseas eliminar este recordatorio?',
+'components.reminders.edit': 'Editar',
+'components.reminders.delete': 'Eliminar',
+'components.reminders.noRemindersForDate': 'No hay recordatorios para esta fecha.',
 
-    // ================== MAPAS/UBICACIÓN ==================
+// CommentsModal
+'components.commentsModal.comments': 'Comentarios',
+'components.commentsModal.noCommentsYet': '¡No hay comentarios aún. Sé el primero!',
+'components.commentsModal.writeComment': 'Escribe un comentario...',
+'components.commentsModal.sendError': 'Error al enviar comentario',
+
+// Calendario
+'components.calendar.today': 'Hoy',
+'components.calendar.january': 'Enero',
+'components.calendar.february': 'Febrero',
+'components.calendar.march': 'Marzo',
+'components.calendar.april': 'Abril',
+'components.calendar.may': 'Mayo',
+'components.calendar.june': 'Junio',
+'components.calendar.july': 'Julio',
+'components.calendar.august': 'Agosto',
+'components.calendar.september': 'Septiembre',
+'components.calendar.october': 'Octubre',
+'components.calendar.november': 'Noviembre',
+'components.calendar.december': 'Diciembre',
+'components.calendar.sunday': 'Dom',
+'components.calendar.monday': 'Lun',
+'components.calendar.tuesday': 'Mar',
+'components.calendar.wednesday': 'Mié',
+'components.calendar.thursday': 'Jue',
+'components.calendar.friday': 'Vie',
+'components.calendar.saturday': 'Sáb',
+
+
+// ================== MAPAS/UBICACIÓN ==================
     'maps.title': 'Ubicación',
     'maps.selectPet': 'Seleccionar mascota',
     'maps.found': '✅ Encontrada',
