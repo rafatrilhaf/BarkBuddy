@@ -1,4 +1,4 @@
-// app/(tabs)/blog.tsx - VERSÃO INTERNACIONALIZADA
+// app/(tabs)/blog.tsx - VERSÃO CORRIGIDA PARA EVITAR RACE CONDITION
 import { Ionicons } from "@expo/vector-icons";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { useEffect, useMemo, useState } from "react";
@@ -22,6 +22,7 @@ import {
   type TextPost,
 } from "../../services/post";
 
+
 type PostCardShape = {
   id: string;
   user: string;
@@ -30,6 +31,7 @@ type PostCardShape = {
   createdAt: string;
   authorId: string;
 };
+
 
 export default function Blog() {
   const { colors, fontSizes } = useTheme();
@@ -46,21 +48,39 @@ export default function Blog() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Listener de autenticação local com verificação de usuário anônimo
+  // ÚNICO useEffect para auth e posts - evita race condition
   useEffect(() => {
     console.log("🔥 Blog: Configurando listener de auth...");
-    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+    let postsUnsubscribe: (() => void) | null = null;
+    
+    const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
       console.log("👤 Auth state mudou:", authUser ? `LOGADO: ${authUser.email}` : 'DESLOGADO');
       console.log("👤 Auth isAnonymous:", authUser?.isAnonymous);
+      
+      // Limpar listener anterior de posts se existir
+      if (postsUnsubscribe) {
+        console.log("📡 Parando listener anterior de posts");
+        postsUnsubscribe();
+        postsUnsubscribe = null;
+      }
       
       // Só considera autenticado se NÃO for anônimo
       if (authUser && !authUser.isAnonymous) {
         setUser(authUser);
         setIsAuthenticated(true);
+        setPosts([]); // Limpar posts anteriores
         console.log("✅ Usuário real autenticado:", authUser.email);
+        
+        // Aguardar um tick para garantir que o auth estabilizou
+        setTimeout(() => {
+          console.log("📡 Iniciando listener de posts para:", authUser.email);
+          postsUnsubscribe = listenTextPosts(setPosts);
+        }, 100);
+        
       } else {
         setUser(null);
         setIsAuthenticated(false);
+        setPosts([]);
         console.log("❌ Usuário anônimo ou deslogado");
       }
       
@@ -70,24 +90,15 @@ export default function Blog() {
       }
     });
 
-    return () => unsubscribe();
-  }, [initializing]);
-
-  // Só ouvir posts se usuário estiver REALMENTE autenticado (não anônimo)
-  useEffect(() => {
-    if (!isAuthenticated || !user || user.isAnonymous) {
-      console.log("📡 NÃO iniciando listener - usuário não autenticado ou anônimo");
-      setPosts([]);
-      return;
-    }
-    
-    console.log("📡 Iniciando listener de posts para:", user.email);
-    const unsubscribe = listenTextPosts(setPosts);
+    // Cleanup function
     return () => {
-      console.log("📡 Parando listener de posts");
-      unsubscribe();
+      console.log("🔥 Cleanup auth e posts listeners");
+      authUnsubscribe();
+      if (postsUnsubscribe) {
+        postsUnsubscribe();
+      }
     };
-  }, [isAuthenticated, user]);
+  }, []); // Array vazio - executa só 1 vez
 
   // Formatar horário "HH:mm"
   function fmtHHmm(ts?: any) {
