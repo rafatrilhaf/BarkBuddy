@@ -1,5 +1,5 @@
 # BarkBuddy 🐾
-**Sistema de localização e apoio para pets** – um app que ajuda tutores a manterem seus animais seguros, com recursos de localização, alerta de perdido, perfil do pet, contatos de confiança e (opcionalmente) integração com hardware IoT/NFC.
+**Sistema de localização e apoio para pets** – um app que ajuda tutores a manterem seus animais seguros, com recursos de localização, alerta de perdido, perfil do pet, contatos de confiança e integração com hardware IoT/NFC.
 
 > “Porque seu melhor amigo nunca deve ficar perdido.”
 
@@ -41,30 +41,100 @@ O BarkBuddy integra **app móvel** (Expo/React Native + TypeScript + Firebase) e
 ---
 
 ## 🏗️ Arquitetura & Tecnologias
-**Aplicativo (mobile)**
-- Expo + React Native + TypeScript
-- Navegação com **Expo Router**
-- **Firebase**: Auth, Firestore, Storage, FCM
 
-**Mapas**
-- Google Maps API (Android/iOS) ou OpenStreetMap (alternativa)
+### 📱 Aplicativo (Mobile)
+- **Expo + React Native + TypeScript**
+- Navegação com **[Expo Router](https://expo.dev/router)**
+- Integração com **Firebase**:
+  - 🔐 Authentication  
+  - ☁️ Firestore  
+  - 🗂️ Storage  
+  - 🔔 FCM (Push Notifications)
 
-**Identificação**
-- **NFC** (Android) e **QR Code** como opção paralela
+### 🗺️ Mapas
+- **OpenStreetMap** (API)
+- **Mapa Iphone Nativo** (IOS)
+- **Leaflet.js** (Android)
 
-**IoT (opcional)**
-- ESP32 + GPS NEO-6M + SIM800L
+### 🔍 Identificação
+- Leitura de **QR Code** como método alternativo de autenticação ou acesso
 
-> Para TCC/PoC é possível **simular** o GPS e usar **tags NFC reais** lidas pelo celular, deixando o hardware como evolução.
+### 🖼️ Manipulação de Imagens (Java)
+- Conversão de imagem → bits  
+- Conversão de bits → imagem  
+- Armazenamento eficiente no **Firebase Storage**  
+*(realizado com Java como serviço auxiliar)*
+
+### 📡 IoT
+- **ESP32** + **GPS NEO-6M** + **SIM800L**
+  - Localização via GPS
+  - Comunicação via rede móvel (GSM)
 
 ---
 
-## 🖼 Screenshots
-> Adicione imagens quando disponíveis (pasta `docs/`):
-- Tela de **Home/Mapa**
-- **Perfil do Pet**
-- Fluxo de **Alerta de Perdido**
-- **Leitura NFC/QR** e retorno
+## Telas do Aplicativo
+
+<details>
+  <summary>Telas do App (clique para expandir)</summary>
+
+  ### Tela de Login
+  ![Login](assets/screens/app/Login.png)
+
+  ### Perfil do Pet
+  ![Perfil do Pet](assets/screens/app/Pets.png)
+
+  ### Tela de Localização
+  ![Localização](assets/screens/app/Localizacao.png)
+
+  ### Agenda
+  ![Agenda](assets/screens/app/Agenda.png)
+
+  ### Agendar
+  ![Agendar](assets/screens/app/Agendar.png)
+
+  ### Blog
+  ![Blog](assets/screens/app/Blog.png)
+
+  ### Inicio
+  ![Inicio](assets/screens/app/Inicio.png)
+
+  ### Perfil
+  ![Perfil](assets/screens/app/Perfil.png)
+
+  ### Postar
+  ![Postar](assets/screens/app/Postar.png)
+
+  ### Sobre
+  ![Sobre](assets/screens/app/Sobre.png)
+
+</details>
+
+<details>
+  <summary>Telas Web (clique para expandir)</summary>
+
+  ### Adquirir
+  ![Adquirir](assets/screens/web/adquirir.png)
+
+  ### Contato
+  ![Contato](assets/screens/web/contato.png)
+
+  ### Inicio Web
+  ![Inicio Web](assets/screens/web/inicio.png)
+
+  ### Logado
+  ![Logado](assets/screens/web/logado.png)
+
+  ### Perdidos
+  ![Perdidos](assets/screens/web/perdidos.png)
+
+  ### Perfil Web
+  ![Perfil Web](assets/screens/web/perfil.png)
+
+  ### Planos
+  ![Planos](assets/screens/web/planos.png)
+
+</details>
+
 
 ---
 
