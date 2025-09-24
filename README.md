@@ -106,28 +106,69 @@ O BarkBuddy integra **app móvel** (Expo/React Native + TypeScript + Firebase) e
 
 ---
 
-## Telas do Aplicativo - Web
+## Telas do Aplicativo
 
-### Adquirir
-![Adquirir](assets/screens/web/adquirir.png)
+<details>
+  <summary>Telas do App (clique para expandir)</summary>
 
-### Contato
-![Contato](assets/screens/web/contato.png)
+  ### Tela de Login
+  ![Login](assets/screens/app/Login.png)
 
-### Inicio Web
-![Inicio Web](assets/screens/web/inicio.png)
+  ### Perfil do Pet
+  ![Perfil do Pet](assets/screens/app/Pets.png)
 
-### Logado
-![Logado](assets/screens/web/logado.png)
+  ### Tela de Localização
+  ![Localização](assets/screens/app/Localizacao.png)
 
-### Perdidos
-![Perdidos](assets/screens/web/perdidos.png)
+  ### Agenda
+  ![Agenda](assets/screens/app/Agenda.png)
 
-### Perfil Web
-![Perfil Web](assets/screens/web/perfil.png)
+  ### Agendar
+  ![Agendar](assets/screens/app/Agendar.png)
 
-### Planos
-![Planos](assets/screens/web/planos.png)
+  ### Blog
+  ![Blog](assets/screens/app/Blog.png)
+
+  ### Inicio
+  ![Inicio](assets/screens/app/Inicio.png)
+
+  ### Perfil
+  ![Perfil](assets/screens/app/Perfil.png)
+
+  ### Postar
+  ![Postar](assets/screens/app/Postar.png)
+
+  ### Sobre
+  ![Sobre](assets/screens/app/Sobre.png)
+
+</details>
+
+<details>
+  <summary>Telas Web (clique para expandir)</summary>
+
+  ### Adquirir
+  ![Adquirir](assets/screens/web/adquirir.png)
+
+  ### Contato
+  ![Contato](assets/screens/web/contato.png)
+
+  ### Inicio Web
+  ![Inicio Web](assets/screens/web/inicio.png)
+
+  ### Logado
+  ![Logado](assets/screens/web/logado.png)
+
+  ### Perdidos
+  ![Perdidos](assets/screens/web/perdidos.png)
+
+  ### Perfil Web
+  ![Perfil Web](assets/screens/web/perfil.png)
+
+  ### Planos
+  ![Planos](assets/screens/web/planos.png)
+
+</details>
+
 
 ---
 
