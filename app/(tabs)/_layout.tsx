@@ -142,42 +142,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* About Tab */}
-      <Tabs.Screen
-        name="about"
-        options={{
-          title: t('nav.about'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="information-circle" color={color} size={size} />
-          ),
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={logout}
-              style={{
-                marginRight: 12,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                backgroundColor: colors.background,
-                borderRadius: 8,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.2,
-                shadowRadius: 2,
-                elevation: 2,
-              }}
-            >
-              <Text style={{ 
-                fontWeight: "600", 
-                color: colors.primary,
-                fontSize: fontSizes.sm
-              }}>
-                {t('auth.logout')}
-              </Text>
-            </TouchableOpacity>
-          ),
-        }}
-      />
-
+    
       {/* Settings Tab */}
       <Tabs.Screen
         name="settings"

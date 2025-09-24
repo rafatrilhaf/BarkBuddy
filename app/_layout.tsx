@@ -20,7 +20,6 @@ function RootStack() {
         <Stack.Screen name="index" options={{ title: "Início" }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth" options={{ headerShown: false }} />
-        <Stack.Screen name="about" options={{ title: "Sobre" }} />
         {/* **Não** registrar `pet` aqui */}
       </Stack>
     </>
