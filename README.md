@@ -72,40 +72,6 @@ O BarkBuddy integra **app móvel** (Expo/React Native + TypeScript + Firebase) e
 
 ---
 
-## Telas do Aplicativo - App
-
-### Tela de Login
-![Login](assets/screens/app/Login.png)
-
-### Perfil do Pet
-![Perfil do Pet](assets/screens/app/Pets.png)
-
-### Tela de Localização
-![Localização](assets/screens/app/Localizacao.png)
-
-### Agenda
-![Agenda](assets/screens/app/Agenda.png)
-
-### Agendar
-![Agendar](assets/screens/app/Agendar.png)
-
-### Blog
-![Blog](assets/screens/app/Blog.png)
-
-### Inicio
-![Inicio](assets/screens/app/Inicio.png)
-
-### Perfil
-![Perfil](assets/screens/app/Perfil.png)
-
-### Postar
-![Postar](assets/screens/app/Postar.png)
-
-### Sobre
-![Sobre](assets/screens/app/Sobre.png)
-
----
-
 ## Telas do Aplicativo
 
 <details>
