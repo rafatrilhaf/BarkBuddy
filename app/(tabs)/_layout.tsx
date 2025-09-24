@@ -1,4 +1,5 @@
-// BarkBuddy/app/(tabs)/_layout.tsx - VERSÃO INTERNACIONALIZADA
+// app/(tabs)/_layout.tsx - VERSÃO COM FALLBACK SEGURO
+
 import { auth } from "@/services/firebase";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, router } from "expo-router";
@@ -7,8 +8,17 @@ import { useLanguage } from "../../contexts/LanguageContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 export default function TabsLayout() {
-  const { colors, fontSizes } = useTheme();
+  const { colors, fontSizes, isDark } = useTheme();
   const { t } = useLanguage();
+
+  // ✅ Função para obter cores da Tab Bar com fallback seguro
+  const getTabBarColors = () => ({
+    background: isDark ? (colors.tabBarBackground || '#0a2818') : colors.primary,
+    active: isDark ? (colors.tabBarActive || '#4ade80') : colors.background,
+    inactive: isDark ? (colors.tabBarInactive || '#9ca3af') : colors.background + '80',
+  });
+
+  const tabBarColors = getTabBarColors();
 
   const logout = () => {
     Alert.alert(
@@ -36,14 +46,18 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: colors.primary },
-        headerTintColor: colors.background,
-        headerTitleStyle: { 
-          fontSize: fontSizes.lg,
-          fontWeight: '600'
+        headerStyle: {
+          backgroundColor: colors.primary,
+        },
+        // HeaderTintColor aplica a ícones e botão de voltar
+        // Garante título sempre branco
+        headerTitleStyle: {
+          fontSize:   fontSizes.lg,
+          fontWeight: '600',
+          color:      colors.white,
         },
         tabBarStyle: { 
-          backgroundColor: colors.primary, 
+          backgroundColor: tabBarColors.background, // ← Usando fallback seguro
           height: 64,
           borderTopWidth: 0,
           elevation: 8,
@@ -52,8 +66,8 @@ export default function TabsLayout() {
           shadowOpacity: 0.1,
           shadowRadius: 4,
         },
-        tabBarActiveTintColor: colors.background,
-        tabBarInactiveTintColor: colors.background + '80', // 50% opacity
+        tabBarActiveTintColor: tabBarColors.active, // ← Usando fallback seguro
+        tabBarInactiveTintColor: tabBarColors.inactive, // ← Usando fallback seguro
         tabBarLabelStyle: {
           fontSize: fontSizes.xs,
           fontWeight: '600',
@@ -61,7 +75,7 @@ export default function TabsLayout() {
         }
       }}
     >
-      {/* Maps Tab */}
+      {/* Resto das tabs igual... */}
       <Tabs.Screen
         name="maps"
         options={{
@@ -72,7 +86,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* Blog Tab */}
       <Tabs.Screen
         name="blog"
         options={{
@@ -83,7 +96,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* Tutor Tab */}
       <Tabs.Screen
         name="tutor"
         options={{
@@ -119,7 +131,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* Pets Tab */}
       <Tabs.Screen
         name="pets"
         options={{
@@ -131,7 +142,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* Agenda Tab */}
       <Tabs.Screen
         name="agenda"
         options={{
@@ -142,8 +152,6 @@ export default function TabsLayout() {
         }}
       />
 
-    
-      {/* Settings Tab */}
       <Tabs.Screen
         name="settings"
         options={{
@@ -153,11 +161,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-
-      {/*
-        NÃO incluir mais nenhum <Tabs.Screen name="pet" /> aqui
-        para evitar duplicação no rodapé
-      */}
     </Tabs>
   );
 }

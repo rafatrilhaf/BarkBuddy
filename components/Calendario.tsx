@@ -40,6 +40,7 @@ export function Calendario({ pets, eventos, onDayPress }: Props) {
   const { t, language } = useLanguage();
   const [marcacoes, setMarcacoes] = useState<MarkedDates>({});
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
+  const [calendarKey, setCalendarKey] = useState(0);
 
   // Configurar localização do calendário
   useEffect(() => {
@@ -145,9 +146,14 @@ export function Calendario({ pets, eventos, onDayPress }: Props) {
       }
     };
 
+    // Configurar locale
     LocaleConfig.locales[language] = calendarLocales[language];
     LocaleConfig.defaultLocale = language;
-  }, [language, t]);
+
+    // Forçar re-render do calendário quando idioma ou tema mudam
+    setCalendarKey(prev => prev + 1);
+
+  }, [language, t, isDark]); // ← Dependências incluem idioma e tema
 
   useEffect(() => {
     const marks: MarkedDates = {};
@@ -186,7 +192,7 @@ export function Calendario({ pets, eventos, onDayPress }: Props) {
     }
 
     setMarcacoes(marks);
-  }, [eventos, pets, diaSelecionado, colors.primary]);
+  }, [eventos, pets, diaSelecionado, colors.primary, isDark, language]); // ← Dependências incluem idioma
 
   function handleDayPress(day: DateData) {
     setDiaSelecionado(day.dateString);
@@ -196,6 +202,7 @@ export function Calendario({ pets, eventos, onDayPress }: Props) {
   return (
     <View style={styles.container}>
       <Calendar
+        key={`calendar-${language}-${isDark ? 'dark' : 'light'}-${calendarKey}`} // ← Key dinâmica com idioma, tema e contador
         onDayPress={handleDayPress}
         markingType={'multi-dot'}
         markedDates={marcacoes}
@@ -214,7 +221,7 @@ export function Calendario({ pets, eventos, onDayPress }: Props) {
           // Texto dos dias
           dayTextColor: colors.calendarText,
           textDisabledColor: colors.calendarDisabledText,
-          textSectionTitleColor: colors.textSecondary,
+          textSectionTitleColor: colors.calendarWeekText || colors.text,
           
           // Dots (pontos dos eventos)
           dotColor: colors.primary,
@@ -236,6 +243,11 @@ export function Calendario({ pets, eventos, onDayPress }: Props) {
           
           // Cores de separadores
           indicatorColor: colors.primary,
+          
+          // Propriedades extras para forçar cores corretas
+          agendaDayTextColor: colors.calendarText,
+          agendaDayNumColor: colors.calendarText,
+          agendaTodayColor: colors.calendarTodayText,
         }}
         enableSwipeMonths={true}
         hideExtraDays={false}
