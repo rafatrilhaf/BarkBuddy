@@ -28,6 +28,7 @@ const translations = {
     'general.apply': 'Aplicar',
     'general.clear': 'Limpar',
     'general.close': 'Fechar',
+    'general.years': 'anos',
 
     // Tutor
     'tutor.name': 'Nome',
@@ -96,6 +97,60 @@ const translations = {
     'button.ok': 'OK',
     'button.yes': 'Sim',
     'button.no': 'Não',
+
+    // Status de Pets
+    'pet.status.safe': 'SEGURO',
+    'pet.status.missing': 'DESAPARECIDO',
+
+    // ================== VALIDAÇÕES E ERROS ==================
+    'validation.titleRequired': 'Título é obrigatório',
+    'validation.petRequired': 'Selecione um pet',
+
+    // ================== COMPONENTS ==================
+    // PostCard
+    'components.postCard.comment': 'Comentar',
+    'components.postCard.share': 'Compartilhar',
+    'components.postCard.publishedToday': 'publicado hoje às',
+    'components.postCard.comments': 'Comentários',
+    'components.postCard.noCommentsYet': 'Nenhum comentário ainda',
+    'components.postCard.firstToComment': 'Seja o primeiro a comentar!',
+    'components.postCard.reply': 'Responder',
+    'components.postCard.replyingTo': 'Respondendo comentário',
+    'components.postCard.writeComment': 'Escreva um comentário...',
+    'components.postCard.writeReply': 'Escreva uma resposta...',
+    'components.postCard.loginRequired': 'Login necessário',
+    'components.postCard.loginToComment': 'Faça login para comentar',
+    'components.postCard.loginToReply': 'Faça login para responder',
+    'components.postCard.writeCommentError': 'Digite um comentário',
+    'components.postCard.writeReplyError': 'Digite uma resposta',
+    'components.postCard.commentSendError': 'Falha ao enviar comentário',
+    'components.postCard.replySendError': 'Falha ao enviar resposta',
+    'components.postCard.shareMessage': '🐾 Confira este post do BarkBuddy:\n\n"{text}"\n\n📝 Compartilhado por: {author}\n\nBaixe o BarkBuddy e junte-se à nossa comunidade de tutores! 🎯',
+    'components.postCard.shareTitle': 'Post do BarkBuddy 🐾',
+    'components.postCard.shareSuccess': 'Post compartilhado com sucesso!',
+    'components.postCard.shareError': 'Não foi possível compartilhar este post',
+    'components.postCard.commentCount': '{count} comentário',
+    'components.postCard.commentCountPlural': '{count} comentários',
+
+    // PetCard
+    'components.petCard.foundYourPet': 'Achei seu pet!',
+    'components.petCard.viewDetails': 'Ver detalhes',
+
+    // MapWeb
+    'components.mapWeb.nativeMapUnavailable': 'Mapa nativo indisponível no Web. Abra no Android/iOS.',
+
+    // ListaNotas
+    'components.notes.noNotesForDate': 'Nenhuma nota para esta data.',
+
+    // ModalLembrete
+    'components.modalLembrete.pet': 'Pet',
+
+    // FiltrosAgenda  
+    'components.filters.title': 'Filtros da Agenda',
+    'components.filters.pets': 'Pets',
+    'components.filters.categories': 'Categorias',
+    'components.filters.clear': 'Limpar',
+    'components.filters.apply': 'Aplicar',
 
     // ================== MAPAS/LOCALIZAÇÃO ==================
     'maps.title': 'Localização',
@@ -430,6 +485,7 @@ const translations = {
     'general.apply': 'Apply',
     'general.clear': 'Clear',
     'general.close': 'Close',
+    'general.years': 'years',
 
     // Tutor
     'tutor.name': 'Name',
@@ -498,6 +554,60 @@ const translations = {
     'button.ok': 'OK',
     'button.yes': 'Yes',
     'button.no': 'No',
+
+    // Pet Status
+    'pet.status.safe': 'SAFE',
+    'pet.status.missing': 'MISSING',
+
+    // ================== VALIDATIONS AND ERRORS ==================
+    'validation.titleRequired': 'Title is required',
+    'validation.petRequired': 'Select a pet',
+
+    // ================== COMPONENTS ==================
+    // PostCard
+    'components.postCard.comment': 'Comment',
+    'components.postCard.share': 'Share',
+    'components.postCard.publishedToday': 'published today at',
+    'components.postCard.comments': 'Comments',
+    'components.postCard.noCommentsYet': 'No comments yet',
+    'components.postCard.firstToComment': 'Be the first to comment!',
+    'components.postCard.reply': 'Reply',
+    'components.postCard.replyingTo': 'Replying to comment',
+    'components.postCard.writeComment': 'Write a comment...',
+    'components.postCard.writeReply': 'Write a reply...',
+    'components.postCard.loginRequired': 'Login required',
+    'components.postCard.loginToComment': 'Login to comment',
+    'components.postCard.loginToReply': 'Login to reply',
+    'components.postCard.writeCommentError': 'Write a comment',
+    'components.postCard.writeReplyError': 'Write a reply',
+    'components.postCard.commentSendError': 'Failed to send comment',
+    'components.postCard.replySendError': 'Failed to send reply',
+    'components.postCard.shareMessage': '🐾 Check out this BarkBuddy post:\n\n"{text}"\n\n📝 Shared by: {author}\n\nDownload BarkBuddy and join our pet owner community! 🎯',
+    'components.postCard.shareTitle': 'BarkBuddy Post 🐾',
+    'components.postCard.shareSuccess': 'Post shared successfully!',
+    'components.postCard.shareError': 'Could not share this post',
+    'components.postCard.commentCount': '{count} comment',
+    'components.postCard.commentCountPlural': '{count} comments',
+
+    // PetCard
+    'components.petCard.foundYourPet': 'Found your pet!',
+    'components.petCard.viewDetails': 'View details',
+
+    // MapWeb
+    'components.mapWeb.nativeMapUnavailable': 'Native map unavailable on Web. Open on Android/iOS.',
+
+    // ListaNotas
+    'components.notes.noNotesForDate': 'No notes for this date.',
+
+    // ModalLembrete
+    'components.modalLembrete.pet': 'Pet',
+
+    // FiltrosAgenda
+    'components.filters.title': 'Schedule Filters',
+    'components.filters.pets': 'Pets',
+    'components.filters.categories': 'Categories',
+    'components.filters.clear': 'Clear',
+    'components.filters.apply': 'Apply',
 
     // ================== MAPS/LOCATION ==================
     'maps.title': 'Location',
@@ -832,6 +942,7 @@ const translations = {
     'general.apply': 'Aplicar',
     'general.clear': 'Limpiar',
     'general.close': 'Cerrar',
+    'general.years': 'años',
 
     // Tutor
     'tutor.name': 'Nombre',
@@ -900,6 +1011,60 @@ const translations = {
     'button.ok': 'OK',
     'button.yes': 'Sí',
     'button.no': 'No',
+
+    // Estado de Mascotas
+    'pet.status.safe': 'SEGURA',
+    'pet.status.missing': 'DESAPARECIDA',
+
+    // ================== VALIDACIONES Y ERRORES ==================
+    'validation.titleRequired': 'Título es obligatorio',
+    'validation.petRequired': 'Selecciona una mascota',
+
+    // ================== COMPONENTS ==================
+    // PostCard
+    'components.postCard.comment': 'Comentar',
+    'components.postCard.share': 'Compartir',
+    'components.postCard.publishedToday': 'publicado hoy a las',
+    'components.postCard.comments': 'Comentarios',
+    'components.postCard.noCommentsYet': 'No hay comentarios aún',
+    'components.postCard.firstToComment': '¡Sé el primero en comentar!',
+    'components.postCard.reply': 'Responder',
+    'components.postCard.replyingTo': 'Respondiendo comentario',
+    'components.postCard.writeComment': 'Escribe un comentario...',
+    'components.postCard.writeReply': 'Escribe una respuesta...',
+    'components.postCard.loginRequired': 'Login necesario',
+    'components.postCard.loginToComment': 'Inicia sesión para comentar',
+    'components.postCard.loginToReply': 'Inicia sesión para responder',
+    'components.postCard.writeCommentError': 'Escribe un comentario',
+    'components.postCard.writeReplyError': 'Escribe una respuesta',
+    'components.postCard.commentSendError': 'Error al enviar comentario',
+    'components.postCard.replySendError': 'Error al enviar respuesta',
+    'components.postCard.shareMessage': '🐾 Mira esta publicación de BarkBuddy:\n\n"{text}"\n\n📝 Compartido por: {author}\n\n¡Descarga BarkBuddy y únete a nuestra comunidad de dueños de mascotas! 🎯',
+    'components.postCard.shareTitle': 'Publicación de BarkBuddy 🐾',
+    'components.postCard.shareSuccess': '¡Publicación compartida exitosamente!',
+    'components.postCard.shareError': 'No fue posible compartir esta publicación',
+    'components.postCard.commentCount': '{count} comentario',
+    'components.postCard.commentCountPlural': '{count} comentarios',
+
+    // PetCard
+    'components.petCard.foundYourPet': '¡Encontré tu mascota!',
+    'components.petCard.viewDetails': 'Ver detalles',
+
+    // MapWeb
+    'components.mapWeb.nativeMapUnavailable': 'Mapa nativo no disponible en Web. Abrir en Android/iOS.',
+
+    // ListaNotas
+    'components.notes.noNotesForDate': 'No hay notas para esta fecha.',
+
+    // ModalLembrete
+    'components.modalLembrete.pet': 'Mascota',
+
+    // FiltrosAgenda
+    'components.filters.title': 'Filtros de Agenda',
+    'components.filters.pets': 'Mascotas',
+    'components.filters.categories': 'Categorías',
+    'components.filters.clear': 'Limpiar',
+    'components.filters.apply': 'Aplicar',
 
     // ================== MAPAS/UBICACIÓN ==================
     'maps.title': 'Ubicación',

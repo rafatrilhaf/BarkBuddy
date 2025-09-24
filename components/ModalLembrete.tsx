@@ -106,12 +106,12 @@ export function ModalLembrete({
 
   function handleSave() {
     if (!titulo.trim()) {
-      Alert.alert(t('general.error'), 'Título é obrigatório');
+      Alert.alert(t('general.error'), t('validation.titleRequired'));
       return;
     }
 
     if (!petSelecionado) {
-      Alert.alert(t('general.error'), 'Selecione um pet');
+      Alert.alert(t('general.error'), t('validation.petRequired'));
       return;
     }
 
@@ -250,7 +250,7 @@ export function ModalLembrete({
 
             <View style={styles.campo}>
               <Text style={[styles.label, { color: colors.text, fontSize: fontSizes.md }]}>
-                Pet *
+                {t('components.modalLembrete.pet')} *
               </Text>
               <TouchableOpacity
                 style={[
