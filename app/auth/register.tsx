@@ -152,8 +152,8 @@ export default function Register() {
           </Pressable>
         </View>
 
-        <View style={{ backgroundColor: '#1b6d49', paddingVertical: 14, borderTopLeftRadius: 24, borderTopRightRadius: 24, alignItems: 'center' }}>
-          <Image source={require('../../assets/images/Wordmark.png')} style={{ width: 180, height: 28 }} />
+        <View style={{ backgroundColor: '#1b6d49', paddingVertical: 14, borderTopLeftRadius: 24, borderTopRightRadius: 24, alignItems: 'center',  }}>
+          <Image source={require('../../assets/images/Wordmark.png')} style={{ width: 180, height: 42 }} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
