@@ -1,22 +1,34 @@
-import { auth } from '@/services/firebase'; // se não usar alias @, troque para ../../services/firebase
+import { auth } from '@/services/firebase';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { Link, router } from 'expo-router';
 import { sendPasswordResetEmail } from 'firebase/auth';
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
 export default function ForgotPassword() {
+  const headerHeight = useHeaderHeight();
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
+  const [kbVisible, setKbVisible] = useState(false);
+
+  useEffect(() => {
+    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const s = Keyboard.addListener(showEvt, () => setKbVisible(true));
+    const h = Keyboard.addListener(hideEvt, () => setKbVisible(false));
+    return () => { s.remove(); h.remove(); };
+  }, []);
 
   const handleReset = async () => {
     if (!email.trim()) {
@@ -27,7 +39,7 @@ export default function ForgotPassword() {
       setBusy(true);
       await sendPasswordResetEmail(auth, email.trim());
       Alert.alert('Pronto!', 'Se o e-mail existir, enviaremos o link de recuperação.');
-      router.back(); // volta para o login
+      router.back();
     } catch (e: any) {
       const msg =
         e?.code === 'auth/user-not-found' ? 'E-mail não encontrado.' :
@@ -42,84 +54,89 @@ export default function ForgotPassword() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#085f37' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={{ flex: 1, padding: 20 }}>
-          {/* LOGO topo */}
-          <View style={{ alignItems: 'center', marginTop: 48, marginBottom: 16 }}>
-            <Image
-              source={require('../../assets/images/Logo.png')}
-              style={{ width: 120, height: 120 }}
-              resizeMode="contain"
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={{ flex: 1, padding: 20, justifyContent: 'space-between' }}>
+          {/* Topo */}
+          <View>
+            <View style={{ alignItems: 'center', marginTop: kbVisible ? 24 : 48, marginBottom: kbVisible ? 8 : 16 }}>
+              <Image
+                source={require('../../assets/images/Logo.png')}
+                style={{ width: 120, height: 120 }}
+                resizeMode="contain"
+              />
+            </View>
+
+            <View style={{ alignItems: 'center', marginBottom: kbVisible ? 12 : 24 }}>
+              <Image
+                source={require('../../assets/images/Wordmark.png')}
+                style={{ width: 200, height: 40 }}
+                resizeMode="contain"
+              />
+            </View>
+
+            <Text style={{ color: '#fff', fontSize: 24, fontWeight: '900', marginBottom: 8 }}>
+              Recuperar senha
+            </Text>
+            <Text style={{ color: '#dfeee6', marginBottom: 12 }}>
+              Informe seu e-mail cadastrado e enviaremos um link para redefinição.
+            </Text>
+
+            <Text style={{ color: '#fff', marginBottom: 6 }}>E-mail</Text>
+            <TextInput
+              style={s.in}
+              placeholder="seuemail@exemplo.com"
+              placeholderTextColor="#666"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+              returnKeyType="send"
+              onSubmitEditing={busy ? undefined : handleReset}
             />
-          </View>
 
-          {/* WORDMARK (nome) */}
-          <View style={{ alignItems: 'center', marginBottom: 24 }}>
-            <Image
-              source={require('../../assets/images/Wordmark.png')}
-              style={{ width: 200, height: 40 }}
-              resizeMode="contain"
-            />
-          </View>
-
-          {/* Título e instrução */}
-          <Text style={{ color: '#fff', fontSize: 24, fontWeight: '900', marginBottom: 8 }}>
-            Recuperar senha
-          </Text>
-          <Text style={{ color: '#dfeee6', marginBottom: 12 }}>
-            Informe seu e-mail cadastrado e enviaremos um link para redefinição.
-          </Text>
-
-          {/* Campo e-mail */}
-          <Text style={{ color: '#fff', marginBottom: 6 }}>E-mail</Text>
-          <TextInput
-            style={s.in}
-            placeholder="seuemail@exemplo.com"
-            placeholderTextColor="#666"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-
-          {/* Botão enviar */}
-          <Pressable
-            onPress={busy ? undefined : handleReset}
-            style={({ pressed }) => ({
-              marginTop: 16,
-              backgroundColor: pressed ? '#c6d8cd' : '#d3e3d9',
-              borderRadius: 16,
-              paddingVertical: 16,
-            })}
-          >
-            <Text style={s.btnt}>{busy ? '...' : 'Enviar link'}</Text>
-          </Pressable>
-
-          {/* Voltar para login */}
-          <Link href="/auth/login" asChild>
-            <Pressable>
-              <Text style={{ color: '#dfeee6', textAlign: 'center', marginTop: 10 }}>
-                Voltar ao login
-              </Text>
+            <Pressable
+              onPress={busy ? undefined : handleReset}
+              style={({ pressed }) => ({
+                marginTop: 16,
+                backgroundColor: pressed ? '#c6d8cd' : '#d3e3d9',
+                borderRadius: 16,
+                paddingVertical: 16,
+              })}
+            >
+              <Text style={s.btnt}>{busy ? '...' : 'Enviar link'}</Text>
             </Pressable>
-          </Link>
-        </View>
 
-        {/* Barra inferior com marca */}
-        <View
-          style={{
-            backgroundColor: '#1b6d49',
-            paddingVertical: 14,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            alignItems: 'center',
-          }}
-        >
-          <Image source={require('../../assets/images/Wordmark.png')} style={{ width: 180, height: 28 }} />
+            <Link href="/auth/login" asChild>
+              <Pressable>
+                <Text style={{ color: '#dfeee6', textAlign: 'center', marginTop: 10 }}>
+                  Voltar ao login
+                </Text>
+              </Pressable>
+            </Link>
+          </View>
+
+          {/* Rodapé: esconde com teclado aberto */}
+          {!kbVisible && (
+            <View
+              style={{
+                backgroundColor: '#1b6d49',
+                paddingVertical: 20,
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                alignItems: 'center',
+                marginHorizontal: -20,
+                marginVertical: -20,
+                paddingHorizontal: 20,
+              }}
+            >
+              <Image source={require('../../assets/images/Wordmark.png')} style={{ width: 180, height: 42 }} />
+            </View>
+          )}
         </View>
-      </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
